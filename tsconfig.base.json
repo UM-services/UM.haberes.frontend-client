@@ -1,0 +1,50 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "paths": {
+      "@haberes/ui-layout": [
+        "./libs/ui-layout/src/index.ts"
+      ],
+      "@haberes/shared-api": [
+        "./libs/shared-api/src/index.ts"
+      ],
+      "@haberes/ui-auth": [
+        "./libs/ui-auth/src/index.ts"
+      ],
+      "@haberes/feature-designaciones": [
+        "./libs/feature-designaciones/src/index.ts"
+      ]
+    },
+    "rootDir": "."
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
+}

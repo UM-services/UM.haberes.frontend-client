@@ -1,0 +1,16 @@
+graph TD
+  Client((Navegador))
+  Client-->Liquidacion[liquidacion :4200]
+  Client-->Novedades[novedades :4201]
+
+  Liquidacion-->Gateway[haberes-gateway-service :8091 /api/]
+  Novedades-->Gateway
+
+  Liquidacion---Layout1[ui-layout - Navbar/Sidebar]
+  Liquidacion---Auth1[ui-auth - Login]
+  Liquidacion---API1[shared-api - Auth]
+
+  Novedades---Layout2[ui-layout - Navbar/Sidebar]
+  Novedades---Auth2[ui-auth - Login]
+  Novedades---API2[shared-api - Auth]
+  Novedades---Desig[feature-designaciones]
