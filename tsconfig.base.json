@@ -24,6 +24,12 @@
       ],
       "@haberes/feature-designaciones": [
         "./libs/feature-designaciones/src/index.ts"
+      ],
+      "@haberes/feature-anotador": [
+        "./libs/feature-anotador/src/index.ts"
+      ],
+      "@haberes/feature-cargos": [
+        "./libs/feature-cargos/src/index.ts"
       ]
     },
     "rootDir": "."
