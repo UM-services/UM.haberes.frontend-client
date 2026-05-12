@@ -8,12 +8,14 @@ Frontend corporativo para la gestión de haberes universitarios. Monorepo Nx con
 um.haberes.frontend-client/
 ├── apps/
 │   ├── liquidacion/          # App de Liquidación de Haberes
-│   └── novedades/            # App de Gestión de Novedades/Designaciones
+│   └── novedades/            # App de Gestión de Novedades, Designaciones, Anotaciones y Cargos
 ├── libs/
 │   ├── ui-layout/            # @haberes/ui-layout — Navbar y Sidebar compartidos
 │   ├── ui-auth/              # @haberes/ui-auth — Componente de login
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards
-│   └── feature-designaciones/# @haberes/feature-designaciones — Gestión de designaciones
+│   ├── feature-designaciones/# @haberes/feature-designaciones — Gestión de designaciones
+│   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
+│   └── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos por legajo
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -23,7 +25,7 @@ um.haberes.frontend-client/
 | App | Puerto Dev | Descripción |
 |---|---|---|
 | `liquidacion` | 4200 | Módulo de liquidación de haberes |
-| `novedades` | 4201 | Módulo de novedades y designaciones docentes |
+| `novedades` | 4201 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
 
 ## Librerías
 
@@ -33,6 +35,8 @@ um.haberes.frontend-client/
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login con validación |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación y guards de rutas |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones |
+| `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
+| `feature-cargos` | `@haberes/feature-cargos` | Reporte de cargos por legajo (descarga PDF) |
 
 ## Comandos de Desarrollo
 
