@@ -1,17 +1,24 @@
 # @haberes/feature-cargos
 
-Librería de reportes de cargos por legajo para el módulo de Novedades.
+Librería de reportes de cargos docentes para el módulo de Novedades.
 
 ## Componentes
 
 - **`CargosLegajoComponent`**: Componente standalone que permite:
   - Búsqueda de personas por legajo o nombre (con debounce y autocomplete).
   - Selección de persona y período (mes/año).
-  - Descarga de reporte PDF detallado de cargos.
+  - Descarga de reporte PDF detallado de cargos por legajo.
+
+- **`DocentesSedeComponent`**: Componente standalone que permite:
+  - Selección de sede geográfica (cargada desde API) y período (mes/año).
+  - Descarga de reporte PDF de docentes asignados a la facultad filtrado por sede y período.
 
 ## Servicios
 
-- **`CargosReportService`**: Servicio que consume el endpoint `/api/haberes/report/bono/detalleCargos/{legajoId}/{anho}/{mes}/{facultadId}` con respuesta tipo `Blob` para descarga de PDF.
+- **`CargosReportService`**: Servicio que consume:
+  - `GET /api/haberes/report/bono/detalleCargos/{legajoId}/{anho}/{mes}/{facultadId}` — Reporte PDF de cargos por legajo.
+  - `GET /api/haberes/report/docentes/docentesSede/{facultadId}/{geograficaId}/{anho}/{mes}` — Reporte PDF de docentes por sede.
+  - `GET /api/haberes/core/geografica/` — Listado de sedes geográficas.
 
 ## Dependencias
 

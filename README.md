@@ -13,9 +13,9 @@ um.haberes.frontend-client/
 │   ├── ui-layout/            # @haberes/ui-layout — Navbar y Sidebar compartidos
 │   ├── ui-auth/              # @haberes/ui-auth — Componente de login
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards
-│   ├── feature-designaciones/# @haberes/feature-designaciones — Gestión de designaciones
+│   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
-│   └── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos por legajo
+│   └── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos legajo y docentes sede
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -34,9 +34,9 @@ um.haberes.frontend-client/
 | `ui-layout` | `@haberes/ui-layout` | Componentes de layout (navbar, sidebar) |
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login con validación |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación y guards de rutas |
-| `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones |
+| `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
-| `feature-cargos` | `@haberes/feature-cargos` | Reporte de cargos por legajo (descarga PDF) |
+| `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF) |
 
 ## Comandos de Desarrollo
 
