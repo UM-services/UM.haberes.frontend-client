@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.3.0] - 2026-05-13
+
+### Added
+- **feat(`feature-designaciones`):** Nueva librería `AsigCursosComponent` para asignación de cursos docentes.
+  - Componente `AsigCursosComponent` con gestión completa de altas, bajas y cambios de cargos docentes por curso.
+  - Búsqueda de cursos por sede y filtro textual, con grilla de plantel docente actual (titulares y contratados).
+  - Formularios de propuesta de novedades (alta/baja/cambio) con validación de acreditación y límite de novedades.
+  - Auto-detección de cambios (horas, desarraigo, cambio de cargo) con baja automática del cargo anterior.
+  - Servicio `AsignacionCursosService` para API REST de cursos, cargos tipos, geográficas, acreditación y novedades.
+  - Reporte PDF de novedades docentes por facultad y período (`/api/haberes/report/novedades/novedadesDocentes`).
+- **feat(`feature-cargos`):** Nuevo componente `DocentesSedeComponent` para reporte de docentes por sede.
+  - Selector de sede geográfica con carga desde API (`/api/haberes/core/geografica`) y período (mes/año).
+  - Descarga de reporte PDF de docentes por sede (`/api/haberes/report/docentes/docentesSede`).
+  - Métodos `downloadDocentesSedeReport()` y `getGeograficas()` en `CargosReportService`.
+- **feat(`novedades`):** Nuevas rutas `/docentes-sede` y `/asig-cursos` con ítems en el menú lateral.
+  - Orden del menú: Asignación Cursos, Docentes por Sede, Cargos x Legajo, Anotador, Designaciones.
+
+### Fixed
+- **fix(`feature-cargos`):** Renombrada propiedad `reportUrl` a `cargosReportUrl` en `CargosReportService` para claridad semántica.
+
+### Changed
+- **chore(`feature-designaciones`):** Exportado `AsigCursosComponent` desde el barrel `index.ts`.
+- **chore(`feature-cargos`):** Exportado `DocentesSedeComponent` desde el barrel `index.ts`.
+
 ## [0.2.0] - 2026-05-12
 
 ### Added
