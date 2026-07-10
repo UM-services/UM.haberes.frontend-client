@@ -13,7 +13,7 @@ jobs:
   generate-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -190,7 +190,7 @@ jobs:
 
               '  <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200 mb-10">' +
               '    <h2 class="text-2xl font-bold text-gray-900 mb-6">Arquitectura del Sistema</h2>' +
-              '    <div class="mermaid flex justify-center">graph TD; Client((Navegador))-->Liquidacion[liquidacion :4200]; Client-->Novedades[novedades :4201]; Liquidacion-->Gateway[haberes-gateway-service :8091 /api/]; Novedades-->Gateway; Liquidacion---Layout1[ui-layout - Navbar/Sidebar]; Liquidacion---Auth1[ui-auth - Login]; Liquidacion---API1[shared-api - Auth]; Novedades---Layout2[ui-layout - Navbar/Sidebar]; Novedades---Auth2[ui-auth - Login]; Novedades---API2[shared-api - Auth]; Novedades---Desig[feature-designaciones]; Novedades---Anot[feature-anotador]; Novedades---Carg[feature-cargos];</div>' +
+              '    <div class="mermaid flex justify-center">graph TD; Client((Navegador))-->Liquidacion[liquidacion :4200]; Client-->Novedades[novedades :4201]; Liquidacion-->Gateway[haberes-gateway-service :8091 /api/]; Novedades-->Gateway; Liquidacion---Layout1[ui-layout - Navbar/Sidebar]; Liquidacion---Auth1[ui-auth - Login]; Liquidacion---API1[shared-api - Auth]; Novedades---Layout2[ui-layout - Navbar/Sidebar]; Novedades---Auth2[ui-auth - Login]; Novedades---API2[shared-api - Auth]; Novedades---Desig[feature-designaciones - Designaciones / AsigCursos]; Novedades---Anot[feature-anotador - Anotaciones]; Novedades---Carg[feature-cargos - CargosLegajo / DocentesSede];</div>' +
               '  </div>' +
 
               '  <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-10 overflow-hidden">' +
