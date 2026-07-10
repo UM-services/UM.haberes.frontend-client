@@ -78,6 +78,13 @@ docker build -t novedades -f apps/novedades/Dockerfile .
 docker run -e BACKEND_URL=http://backend:8091 -p 443:443 liquidacion
 ```
 
+## CI/CD
+
+| Workflow | Trigger | Descripción |
+|---|---|---|
+| `docker-publish.yml` | Push a `main` | Build y push de imágenes Docker a Docker Hub (matriz: `liquidacion`, `novedades`). Tags: `latest` + `sha`. |
+| `generate-docs.yml` | Push a `main` | Genera dashboard documental en GitHub Pages con grafo Nx, historial de commits/PRs y diagrama de arquitectura. |
+
 ## Tecnologías
 
 - Angular 21.2 (standalone components)

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.1] - 2026-07-10
+
+### Added
+- **chore(ci):** Nuevo workflow `docker-publish.yml` para build y push automático de imágenes Docker a Docker Hub.
+  - Pipeline matricial que construye imágenes para `liquidacion` y `novedades` en paralelo.
+  - Trigger en push a `main`, con cache de capas via GitHub Actions Cache (GHA).
+  - Tags automáticos: `latest` y `sha` del commit.
+  - Autenticación via secrets `DOCKER_USERNAME` y `DOCKER_PASSWORD`.
+
+### Changed
+- **chore(docs):** Actualizado `actions/checkout` de `v4` a `v6` en `generate-docs.yml` para consistencia con `docker-publish.yml`.
+
 ## [0.3.0] - 2026-05-13
 
 ### Added
