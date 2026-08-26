@@ -14,7 +14,7 @@ export default [
                 "error",
                 {
                     type: "attribute",
-                    prefix: "lib",
+                    prefix: ["ui", "ui-auth", "lib"],
                     style: "camelCase"
                 }
             ],
@@ -22,7 +22,7 @@ export default [
                 "error",
                 {
                     type: "element",
-                    prefix: "lib",
+                    prefix: ["ui", "ui-auth", "lib"],
                     style: "kebab-case"
                 }
             ]
