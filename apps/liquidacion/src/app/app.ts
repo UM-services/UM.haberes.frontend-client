@@ -9,7 +9,7 @@ import { AuthService } from '@haberes/shared-api';
   imports: [CommonModule, RouterModule, NavbarComponent, SidebarComponent],
   selector: 'app-root',
   template: `
-    <ng-container *ngIf="isLoggedIn$ | async as loggedIn; else loginLayout">
+    @if (isLoggedIn$ | async; as loggedIn) {
       <div class="flex h-screen overflow-hidden bg-gray-50">
         <ui-sidebar 
           moduleName="Liquidacion" 
@@ -30,13 +30,11 @@ import { AuthService } from '@haberes/shared-api';
           </main>
         </div>
       </div>
-    </ng-container>
-
-    <ng-template #loginLayout>
+    } @else {
       <div class="min-h-screen bg-gray-50">
         <router-outlet></router-outlet>
       </div>
-    </ng-template>
+    }
   `
 })
 export class AppComponent {
