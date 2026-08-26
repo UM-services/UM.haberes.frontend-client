@@ -3,37 +3,41 @@
   <!-- CABECERA: FILTROS -->
   <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-end gap-3 shrink-0">
     <div class="w-64">
-      <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Sede</label>
-      <select [ngModel]="sedeSeleccionada()" (ngModelChange)="sedeSeleccionada.set($event)" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm bg-gray-50">
+      <label for="asig-sede" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Sede</label>
+      <select id="asig-sede" [ngModel]="sedeSeleccionada()" (ngModelChange)="sedeSeleccionada.set($event)" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm bg-gray-50">
         <option [ngValue]="null" disabled>Seleccione...</option>
-        <option *ngFor="let s of sedes()" [ngValue]="s.geograficaId">{{ s.nombre }}</option>
+        @for (s of sedes(); track s.geograficaId) {
+          <option [ngValue]="s.geograficaId">{{ s.nombre }}</option>
+        }
       </select>
     </div>
 
     <div class="flex items-center gap-1">
       <div class="w-16">
-        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Mes</label>
-        <input type="number" [(ngModel)]="mes" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-center text-sm font-medium">
+        <label for="asig-mes" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Mes</label>
+        <input id="asig-mes" type="number" [(ngModel)]="mes" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-center text-sm font-medium">
       </div>
       <div class="w-20">
-        <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Año</label>
-        <input type="number" [(ngModel)]="anho" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-center text-sm font-medium">
+        <label for="asig-anho" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Año</label>
+        <input id="asig-anho" type="number" [(ngModel)]="anho" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-center text-sm font-medium">
       </div>
       <div class="flex flex-col mt-5">
         <div class="flex gap-0.5">
-          <button (click)="cambiarMes(-1)" class="p-1 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
-          <button (click)="cambiarMes(1)" class="p-1 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg></button>
+          <button (click)="cambiarMes(-1)" class="p-1 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200" aria-label="Mes anterior"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
+          <button (click)="cambiarMes(1)" class="p-1 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200" aria-label="Mes siguiente"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg></button>
         </div>
       </div>
     </div>
 
     <div class="flex-1 w-full min-w-[200px]">
-      <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Filtro Curso</label>
-      <input type="text" [ngModel]="filtroCurso()" (ngModelChange)="filtroCurso.set($event); loadCursos()" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm" placeholder="Buscar curso...">
+      <label for="filtro-curso-input" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Filtro Curso</label>
+      <input id="filtro-curso-input" type="text" [ngModel]="filtroCurso()" (ngModelChange)="filtroCurso.set($event); loadCursos()" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm" placeholder="Buscar curso...">
     </div>
 
     <button (click)="imprimir()" [disabled]="isPrinting()" class="px-4 py-1.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 text-sm flex items-center gap-2">
-      <div *ngIf="isPrinting()" class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+      @if (isPrinting()) {
+        <div class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+      }
       Imprimir
     </button>
   </div>
@@ -42,7 +46,9 @@
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden shrink-0 h-40 flex flex-col">
     <div class="bg-gray-50 px-3 py-1.5 border-b border-gray-200 text-xs font-bold text-gray-600 uppercase tracking-wider flex justify-between">
       <span>Cursos Disponibles ({{ cursos().length }})</span>
-      <span *ngIf="isLoading()" class="text-blue-500 animate-pulse">Cargando...</span>
+      @if (isLoading()) {
+        <span class="text-blue-500 animate-pulse">Cargando...</span>
+      }
     </div>
     <div class="flex-1 overflow-y-auto custom-scrollbar">
       <table class="min-w-full divide-y divide-gray-200 text-[11px]">
@@ -50,162 +56,197 @@
           <tr><th class="px-3 py-1 text-left font-semibold">Curso</th><th class="px-3 py-1 text-left font-semibold w-24">Facultad</th><th class="px-3 py-1 text-left font-semibold w-24">Sede</th></tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr *ngFor="let c of cursos()" (click)="seleccionarCurso(c)" 
-              [class.bg-blue-100]="cursoSeleccionado()?.cursoId === c.cursoId"
-              class="hover:bg-blue-50 cursor-pointer">
-            <td class="px-3 py-1.5 font-medium text-gray-800">{{ c.nombre }}</td>
-            <td class="px-3 py-1.5 text-gray-500">{{ c.facultad?.reducido }}</td>
-            <td class="px-3 py-1.5 text-gray-500">{{ c.geografica?.reducido }}</td>
-          </tr>
+          @for (c of cursos(); track c.cursoId) {
+            <tr (click)="seleccionarCurso(c)" 
+                [class.bg-blue-100]="cursoSeleccionado()?.cursoId === c.cursoId"
+                class="hover:bg-blue-50 cursor-pointer">
+              <td class="px-3 py-1.5 font-medium text-gray-800">{{ c.nombre }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.facultad?.reducido }}</td>
+              <td class="px-3 py-1.5 text-gray-500">{{ c.geografica?.reducido }}</td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
   </div>
 
   <!-- SECCIÓN CENTRAL Y NOVEDADES (Se muestra solo si hay un curso seleccionado) -->
-  <div *ngIf="cursoSeleccionado()" class="flex-1 flex flex-col lg:flex-row gap-3 min-h-0">
-    
-    <!-- COLUMNA IZQUIERDA: ALTA/MODIFICACION -->
-    <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
-      <!-- Formulario ALTA -->
-      <div class="bg-blue-50/50 rounded-xl border border-blue-200 shadow-sm p-3 shrink-0 relative">
-        <div *ngIf="!canModify()" class="absolute inset-0 bg-gray-100/50 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]">
-          <span class="bg-white text-red-600 px-3 py-1 font-bold text-xs rounded shadow border border-red-200">PERÍODO ACREDITADO</span>
-        </div>
-        <h3 class="text-[11px] font-bold text-blue-800 uppercase tracking-widest mb-2 flex justify-between items-center">
-          <span>Proponer Alta / Cambio</span>
-          <button (click)="agregarCargoAlta()" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700">+</button>
-        </h3>
-        
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="col-span-2 relative">
-            <label class="block font-semibold text-gray-600 mb-0.5">Docente</label>
-            <input type="text" [ngModel]="personaInput()" (ngModelChange)="onSearchInput($event)" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
-            <!-- Dropdown local -->
-            <div *ngIf="showDropdown()" class="absolute z-50 w-full mt-1 bg-white rounded shadow-xl border border-blue-200 max-h-40 overflow-y-auto">
-              <ul>
-                <li *ngFor="let res of resultadosBusqueda()" (click)="seleccionarPersona(res)" class="px-2 py-1 hover:bg-blue-100 cursor-pointer border-b border-gray-50 text-[11px]">
-                  {{ res.apellidoNombre || (res.apellido + ', ' + res.nombre) }}
-                </li>
-              </ul>
+  @if (cursoSeleccionado()) {
+    <div class="flex-1 flex flex-col lg:flex-row gap-3 min-h-0">
+      
+      <!-- COLUMNA IZQUIERDA: ALTA/MODIFICACION -->
+      <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
+        <!-- Formulario ALTA -->
+        <div class="bg-blue-50/50 rounded-xl border border-blue-200 shadow-sm p-3 shrink-0 relative">
+          @if (!canModify()) {
+            <div class="absolute inset-0 bg-gray-100/50 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]">
+              <span class="bg-white text-red-600 px-3 py-1 font-bold text-xs rounded shadow border border-red-200">PERÍODO ACREDITADO</span>
+            </div>
+          }
+          <h3 class="text-[11px] font-bold text-blue-800 uppercase tracking-widest mb-2 flex justify-between items-center">
+            <span>Proponer Alta / Cambio</span>
+            <button (click)="agregarCargoAlta()" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700">+</button>
+          </h3>
+          
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="col-span-2 relative">
+              <label for="asig-docente" class="block font-semibold text-gray-600 mb-0.5">Docente</label>
+              <input id="asig-docente" type="text" [ngModel]="personaInput()" (ngModelChange)="onSearchInput($event)" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+              <!-- Dropdown local -->
+              @if (showDropdown()) {
+                <div class="absolute z-50 w-full mt-1 bg-white rounded shadow-xl border border-blue-200 max-h-40 overflow-y-auto">
+                  <ul>
+                    @for (res of resultadosBusqueda(); track res.legajoId) {
+                      <li (click)="seleccionarPersona(res)" (keyup.enter)="seleccionarPersona(res)" tabindex="0" role="button" class="px-2 py-1 hover:bg-blue-100 cursor-pointer border-b border-gray-50 text-[11px]">
+                        {{ res.apellidoNombre || (res.apellido + ', ' + res.nombre) }}
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+            <div>
+              <label for="asig-cargo-tipo" class="block font-semibold text-gray-600 mb-0.5">Cargo</label>
+              <select id="asig-cargo-tipo" [(ngModel)]="cargoAltaSeleccionado" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+                @for (ct of cargosTipo(); track ct.cargoTipoId) {
+                  <option [ngValue]="ct.cargoTipoId">{{ ct.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label for="asig-horas" class="block font-semibold text-gray-600 mb-0.5">Horas Semanales</label>
+              <input id="asig-horas" type="number" [(ngModel)]="horasSemanales" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+            </div>
+            <div class="flex items-end pb-1">
+              <label for="asig-desarraigo" class="flex items-center gap-1.5 font-semibold text-gray-700 cursor-pointer bg-white border border-blue-200 px-2 py-1 rounded w-full justify-center shadow-sm">
+                <input id="asig-desarraigo" type="checkbox" [(ngModel)]="desarraigo" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                <span>Desarraigo</span>
+              </label>
+            </div>
+            <div class="col-span-2">
+              <label for="asig-obs-alta" class="block font-semibold text-gray-600 mb-0.5">Observaciones</label>
+              <input id="asig-obs-alta" type="text" [(ngModel)]="observacionesAlta" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
             </div>
           </div>
-          <div>
-            <label class="block font-semibold text-gray-600 mb-0.5">Cargo</label>
-            <select [(ngModel)]="cargoAltaSeleccionado" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
-              <option *ngFor="let ct of cargosTipo()" [ngValue]="ct.cargoTipoId">{{ ct.nombre }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold text-gray-600 mb-0.5">Horas Semanales</label>
-            <input type="number" [(ngModel)]="horasSemanales" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
-          </div>
-          <div class="flex items-end pb-1">
-            <label class="flex items-center gap-1.5 font-semibold text-gray-700 cursor-pointer bg-white border border-blue-200 px-2 py-1 rounded w-full justify-center shadow-sm">
-              <input type="checkbox" [(ngModel)]="desarraigo" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
-              <span>Desarraigo</span>
-            </label>
-          </div>
-          <div class="col-span-2">
-            <label class="block font-semibold text-gray-600 mb-0.5">Observaciones</label>
-            <input type="text" [(ngModel)]="observacionesAlta" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+        </div>
+        
+        <!-- Grilla Pendientes ALTA -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div class="bg-gray-50 px-2 py-1 border-b border-gray-200 text-[10px] font-bold text-gray-600 uppercase">Cargos Alta (Pendientes)</div>
+          <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <table class="min-w-full divide-y divide-gray-200 text-[11px]">
+              <tbody class="divide-y divide-gray-100">
+                @for (item of cargosAlta(); track (item.id || $index)) {
+                  <tr class="hover:bg-red-50">
+                    <td class="px-2 py-1 w-6"><button (click)="eliminarNovedad(item)" [disabled]="!canModify()" class="text-red-500 font-bold hover:bg-red-100 px-1 rounded">-</button></td>
+                    <td class="px-2 py-1">{{ item.cargoTipo?.nombre }}</td>
+                    <td class="px-2 py-1">{{ item.horasSemanales }}h</td>
+                    <td class="px-2 py-1 font-medium">{{ item.persona?.apellidoNombre }}</td>
+                    <td class="px-2 py-1 text-center">
+                      @if (item.desarraigo === 1) {
+                        <span class="bg-blue-100 text-blue-700 px-1 rounded font-bold">Dsr</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-      
-      <!-- Grilla Pendientes ALTA -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
-        <div class="bg-gray-50 px-2 py-1 border-b border-gray-200 text-[10px] font-bold text-gray-600 uppercase">Cargos Alta (Pendientes)</div>
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
-          <table class="min-w-full divide-y divide-gray-200 text-[11px]">
-            <tbody class="divide-y divide-gray-100">
-              <tr *ngFor="let item of cargosAlta()" class="hover:bg-red-50">
-                <td class="px-2 py-1 w-6"><button (click)="eliminarNovedad(item)" [disabled]="!canModify()" class="text-red-500 font-bold hover:bg-red-100 px-1 rounded">-</button></td>
-                <td class="px-2 py-1">{{ item.cargoTipo?.nombre }}</td>
-                <td class="px-2 py-1">{{ item.horasSemanales }}h</td>
-                <td class="px-2 py-1 font-medium">{{ item.persona?.apellidoNombre }}</td>
-                <td class="px-2 py-1 text-center"><span *ngIf="item.desarraigo===1" class="bg-blue-100 text-blue-700 px-1 rounded font-bold">Dsr</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <!-- COLUMNA CENTRAL: GRILLA CARGOS ACTUALES -->
-    <div class="flex-[1.5] bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-0 overflow-hidden">
-       <div class="bg-blue-600 text-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-center">
-         Plantel Docente Actual
-       </div>
-       <div class="flex-1 overflow-y-auto custom-scrollbar">
-         <table class="min-w-full divide-y divide-gray-200 text-xs">
-           <thead class="bg-gray-50 sticky top-0 shadow-sm">
-             <tr class="text-left text-gray-500">
-               <th class="px-3 py-1.5 font-semibold">Cargo</th>
-               <th class="px-3 py-1.5 font-semibold w-16">Horas</th>
-               <th class="px-3 py-1.5 font-semibold">Docente</th>
-               <th class="px-2 py-1.5 font-semibold text-center w-16" title="Desarraigo">Desar.</th>
-             </tr>
-           </thead>
-           <tbody class="divide-y divide-gray-100">
-             <tr *ngFor="let c of cargosActuales()" 
-                 (click)="seleccionarCargoActual(c)"
-                 [class.bg-yellow-100]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
-                 [class.text-gray-400]="c.isContratado"
-                 [class.bg-gray-50]="c.isContratado"
-                 class="hover:bg-yellow-50 cursor-pointer transition-colors">
-               <td class="px-3 py-1.5 whitespace-nowrap">{{ c.cargoTipo?.nombre }}</td>
-               <td class="px-3 py-1.5">{{ c.horasSemanales }}</td>
-               <td class="px-3 py-1.5 font-medium truncate max-w-[150px]" [title]="c.persona?.apellidoNombre">{{ c.persona?.apellidoNombre }}</td>
-               <td class="px-2 py-1.5 text-center"><span *ngIf="c.desarraigo===1" class="font-bold text-green-600">✓</span></td>
-             </tr>
-           </tbody>
-         </table>
-       </div>
-    </div>
+      <!-- COLUMNA CENTRAL: GRILLA CARGOS ACTUALES -->
+      <div class="flex-[1.5] bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-0 overflow-hidden">
+         <div class="bg-blue-600 text-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-center">
+           Plantel Docente Actual
+         </div>
+         <div class="flex-1 overflow-y-auto custom-scrollbar">
+           <table class="min-w-full divide-y divide-gray-200 text-xs">
+             <thead class="bg-gray-50 sticky top-0 shadow-sm">
+               <tr class="text-left text-gray-500">
+                 <th class="px-3 py-1.5 font-semibold">Cargo</th>
+                 <th class="px-3 py-1.5 font-semibold w-16">Horas</th>
+                 <th class="px-3 py-1.5 font-semibold">Docente</th>
+                 <th class="px-2 py-1.5 font-semibold text-center w-16" title="Desarraigo">Desar.</th>
+               </tr>
+             </thead>
+             <tbody class="divide-y divide-gray-100">
+               @for (c of cargosActuales(); track c.cursoCargoId) {
+                 <tr (click)="seleccionarCargoActual(c)"
+                     [class.bg-yellow-100]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
+                     [class.text-gray-400]="c.isContratado"
+                     [class.bg-gray-50]="c.isContratado"
+                     class="hover:bg-yellow-50 cursor-pointer transition-colors">
+                   <td class="px-3 py-1.5 whitespace-nowrap">{{ c.cargoTipo?.nombre }}</td>
+                   <td class="px-3 py-1.5">{{ c.horasSemanales }}</td>
+                   <td class="px-3 py-1.5 font-medium truncate max-w-[150px]" [title]="c.persona?.apellidoNombre">{{ c.persona?.apellidoNombre }}</td>
+                   <td class="px-2 py-1.5 text-center">
+                     @if (c.desarraigo === 1) {
+                       <span class="font-bold text-green-600">✓</span>
+                     }
+                   </td>
+                 </tr>
+               }
+             </tbody>
+           </table>
+         </div>
+      </div>
 
-    <!-- COLUMNA DERECHA: BAJA -->
-    <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
-      <!-- Formulario BAJA -->
-      <div class="bg-red-50/50 rounded-xl border border-red-200 shadow-sm p-3 shrink-0 relative">
-        <div *ngIf="!canModify()" class="absolute inset-0 bg-gray-100/50 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]"></div>
-        <h3 class="text-[11px] font-bold text-red-800 uppercase tracking-widest mb-2 flex justify-between items-center">
-          <span>Proponer Baja</span>
-          <button (click)="agregarCargoBaja()" class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-red-700">+</button>
-        </h3>
-        <div class="text-xs space-y-2">
-          <div class="p-1.5 border border-red-100 rounded transition-colors" [ngClass]="cargoSeleccionado() && !cargoSeleccionado()?.isContratado ? 'bg-red-50 text-red-800 font-bold shadow-sm' : 'bg-white text-gray-500 italic'">
-            <span *ngIf="!cargoSeleccionado() || cargoSeleccionado()?.isContratado">Seleccione un docente en la grilla central.</span>
-            <span *ngIf="cargoSeleccionado() && !cargoSeleccionado()?.isContratado" class="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-              Baja a: {{ cargoSeleccionado()?.persona?.apellidoNombre }}
-            </span>
+      <!-- COLUMNA DERECHA: BAJA -->
+      <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
+        <!-- Formulario BAJA -->
+        <div class="bg-red-50/50 rounded-xl border border-red-200 shadow-sm p-3 shrink-0 relative">
+          @if (!canModify()) {
+            <div class="absolute inset-0 bg-gray-100/50 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]"></div>
+          }
+          <h3 class="text-[11px] font-bold text-red-800 uppercase tracking-widest mb-2 flex justify-between items-center">
+            <span>Proponer Baja</span>
+            <button (click)="agregarCargoBaja()" class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-red-700">+</button>
+          </h3>
+          <div class="text-xs space-y-2">
+            <div class="p-1.5 border border-red-100 rounded transition-colors" [ngClass]="cargoSeleccionado() && !cargoSeleccionado()?.isContratado ? 'bg-red-50 text-red-800 font-bold shadow-sm' : 'bg-white text-gray-500 italic'">
+              @if (!cargoSeleccionado() || cargoSeleccionado()?.isContratado) {
+                <span>Seleccione un docente en la grilla central.</span>
+              }
+              @if (cargoSeleccionado() && !cargoSeleccionado()?.isContratado) {
+                <span class="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                  Baja a: {{ cargoSeleccionado()?.persona?.apellidoNombre }}
+                </span>
+              }
+            </div>
+            <div>
+              <label for="asig-obs-baja" class="block font-semibold text-gray-600 mb-0.5">Observaciones</label>
+              <input id="asig-obs-baja" type="text" [(ngModel)]="observacionesBaja" class="w-full px-2 py-1 border border-red-300 rounded bg-white">
+            </div>
           </div>
-          <div>
-            <label class="block font-semibold text-gray-600 mb-0.5">Observaciones</label>
-            <input type="text" [(ngModel)]="observacionesBaja" class="w-full px-2 py-1 border border-red-300 rounded bg-white">
+        </div>
+        
+        <!-- Grilla Pendientes BAJA -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div class="bg-gray-50 px-2 py-1 border-b border-gray-200 text-[10px] font-bold text-gray-600 uppercase">Cargos Baja (Pendientes)</div>
+          <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <table class="min-w-full divide-y divide-gray-200 text-[11px]">
+              <tbody class="divide-y divide-gray-100">
+                @for (item of cargosBaja(); track (item.id || $index)) {
+                  <tr class="hover:bg-red-50">
+                    <td class="px-2 py-1 w-6"><button (click)="eliminarNovedad(item)" [disabled]="!canModify()" class="text-red-500 font-bold hover:bg-red-100 px-1 rounded">-</button></td>
+                    <td class="px-2 py-1">{{ item.cargoTipo?.nombre }}</td>
+                    <td class="px-2 py-1">{{ item.horasSemanales }}h</td>
+                    <td class="px-2 py-1 font-medium">{{ item.persona?.apellidoNombre }}</td>
+                    <td class="px-2 py-1 text-center">
+                      @if (item.desarraigo === 1) {
+                        <span class="bg-blue-100 text-blue-700 px-1 rounded font-bold">Dsr</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-      
-      <!-- Grilla Pendientes BAJA -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
-        <div class="bg-gray-50 px-2 py-1 border-b border-gray-200 text-[10px] font-bold text-gray-600 uppercase">Cargos Baja (Pendientes)</div>
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
-          <table class="min-w-full divide-y divide-gray-200 text-[11px]">
-            <tbody class="divide-y divide-gray-100">
-              <tr *ngFor="let item of cargosBaja()" class="hover:bg-red-50">
-                <td class="px-2 py-1 w-6"><button (click)="eliminarNovedad(item)" [disabled]="!canModify()" class="text-red-500 font-bold hover:bg-red-100 px-1 rounded">-</button></td>
-                <td class="px-2 py-1">{{ item.cargoTipo?.nombre }}</td>
-                <td class="px-2 py-1">{{ item.horasSemanales }}h</td>
-                <td class="px-2 py-1 font-medium">{{ item.persona?.apellidoNombre }}</td>
-                <td class="px-2 py-1 text-center"><span *ngIf="item.desarraigo===1" class="bg-blue-100 text-blue-700 px-1 rounded font-bold">Dsr</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-  </div>
+    </div>
+  }
 </div>
