@@ -15,7 +15,8 @@ um.haberes.frontend-client/
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards
 │   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
-│   └── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos legajo y docentes sede
+│   ├── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos legajo y docentes sede
+│   └── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -24,8 +25,8 @@ um.haberes.frontend-client/
 
 | App | Puerto Dev | Descripción |
 |---|---|---|
-| `liquidacion` | 4200 | Módulo de liquidación de haberes |
-| `novedades` | 4201 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
+| `novedades` | 4208 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
+| `liquidacion` | 4209 | Módulo de liquidación de haberes |
 
 ## Librerías
 
@@ -37,6 +38,7 @@ um.haberes.frontend-client/
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF) |
+| `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
 
 ## Comandos de Desarrollo
 
@@ -74,9 +76,51 @@ Ver [docs/architecture.mermaid](docs/architecture.mermaid) para el diagrama de a
 docker build -t liquidacion -f apps/liquidacion/Dockerfile .
 docker build -t novedades -f apps/novedades/Dockerfile .
 
-# Ejecutar con backend personalizado
-docker run -e BACKEND_URL=http://backend:8091 -p 443:443 liquidacion
+# Ejecutar con backend personalizado + entorno/version
+docker run -e BACKEND_URL=http://backend:8091 -e ENV_NAME=develop -e APP_VERSION=abc123 -p 443:443 liquidacion
 ```
+
+## Indicador de entorno (runtime)
+
+La SPA se compila **una sola vez** con placeholders y cada contenedor los
+sustituye al arrancar (misma imagen en todos los entornos). El `entrypoint.sh`
+del Nginx reemplaza en los `.js` servidos:
+
+| Placeholder | Variable de entorno | Default si falta |
+|---|---|---|
+| `BACKEND_URL_PLACEHOLDER` | `BACKEND_URL` | se deja intacto (aviso en log) |
+| `ENV_NAME_PLACEHOLDER` | `ENV_NAME` | `desconocido` → badge rojo |
+| `APP_VERSION_PLACEHOLDER` | `APP_VERSION` | `sin-version` |
+
+El valor de `ENV_NAME` se normaliza y muestra como badge junto al usuario y como
+prefijo del `document.title`: `local`→LOCAL, `develop/dev`→DESARROLLO,
+`staging`→STAGING, `production/prod`→PRODUCCIÓN; cualquier otro valor (incluido
+el placeholder sin reemplazar) se muestra como **SIN DEFINIR** en rojo.
+
+En el `.env` de cada server (donde ya vive `BACKEND_URL`) agregar:
+
+```dotenv
+# compose local   → ENV_NAME=local
+# env-develop/.env    → ENV_NAME=develop
+# env-staging/.env    → ENV_NAME=staging
+# env-production/.env → ENV_NAME=production
+```
+
+Y propagar las variables en el bloque `environment` del servicio frontend del
+`docker-compose.yml` (usar `${GITHUB_SHA}` del pipeline como `APP_VERSION`):
+
+```yaml
+services:
+  novedades:
+    environment:
+      BACKEND_URL: ${BACKEND_URL}
+      ENV_NAME: ${ENV_NAME}
+      APP_VERSION: ${APP_VERSION}
+```
+
+> En `ng serve` / build `development` no interviene Docker: se usa
+> `environment.development.ts` (`env: 'local'`) vía `fileReplacements` en el
+> `project.json` de cada app, por lo que el badge muestra LOCAL en local.
 
 ## CI/CD
 

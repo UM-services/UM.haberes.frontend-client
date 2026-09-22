@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.4.0] - 2026-09-22
+
+### Added
+- **feat(`feature-bonos`):** Nueva librería `@haberes/feature-bonos` para el bono individual del docente (migración de `prjBonos` VB6).
+  - `BonoIndividualComponent`: validación de integridad del bono, preparación, descarga de PDF, registro de auditoría con legajo solicitante y envío por email con validación de casilla.
+  - `BonoReportService` sobre `/api/haberes/core/bono` y `/api/haberes/report/bono` (endpoints de front `/ui/generatePdf` y `/ui/sendBono`; la IP de auditoría la resuelve el backend, nunca el browser).
+  - Modelos tipados (`IntegridadBonoResponse`, `ActividadResponse`, `BonoImpresionResponse`, etc.) exportados desde el barrel.
+- **feat(`liquidacion`):** Nueva ruta lazy `/consultas/bono-individual` que monta `BonoIndividualComponent`.
+- **feat(`liquidacion`):** Catálogo de opciones del sistema migrado de VB6 (`menu-options.data.ts`) con panel `/inicio` de búsqueda y filtrado por grupos funcionales, y rutas placeholder autogeneradas para las opciones aún no migradas.
+- **feat(`ui-layout`):** Sidebar con menús colapsables por grupos (`MenuGroup`, input `menuGroups`); navbar con badge de entorno (label, color y tooltip con versión) junto al usuario.
+- **feat(`shared-api`):** Indicador de entorno en runtime: token `APP_ENV_INFO` + `provideAppEnvInfo` (prefija el `document.title`) y `getEnvDisplay()` que normaliza `ENV_NAME` a LOCAL/DESARROLLO/STAGING/PRODUCCIÓN, mostrando "SIN DEFINIR" en rojo si falta.
+- **feat(`shared-api`):** Token `API_URL` consumido por `AuthService` y `errorInterceptor` que cierra sesión y redirige a `/login` ante 401/403; ambos registrados en `app.config.ts` de las dos apps.
+- **feat(apps):** `environment.development.ts` con `fileReplacements` en el target `build:development` de cada app: en `ng serve` el badge muestra LOCAL sin Docker.
+- **feat(apps):** `entrypoint.sh` sustituye además `ENV_NAME_PLACEHOLDER` y `APP_VERSION_PLACEHOLDER` en los `.js` servidos, con defaults evidenciables (`desconocido`/`sin-version`).
+- **feat(`package.json`):** Script `serve:all` que levanta novedades (4208) y liquidacion (4209) con concurrently.
+- **feat(ci):** Nuevos workflows `ci.yml` (validación de PR a `main`: chequeo de sincronización package/lock, `npm ci`, `nx affected` de lint/test/build), `deploy-develop.yml` y `deploy-staging.yml` (verify + build + deploy multi-entorno).
+- **chore(workspace):** Etiquetas `type:*`/`scope:*` en todos los proyectos y reglas `depConstraints` de dirección de dependencias en ESLint; path mapping `@haberes/feature-bonos`; targets de test (Vitest vía `@angular/build:unit-test`) para `shared-api`, `ui-layout` y `feature-bonos`.
+
+### Changed
+- **perf(`novedades`):** Todas las rutas pasan a lazy loading con `loadComponent`, eliminando los imports eager de las feature libraries.
+- **ci(docker):** Los `Dockerfile` consumen el artefacto `dist/` pre-construido por el pipeline en lugar de compilar multi-stage en la imagen.
+- **ci(nginx):** `proxy_pass` del gateway con variable y `resolver 127.0.0.11` para resolución DNS dinámica en Docker.
+- **refactor(`shared-api`):** `AuthService.logout()` navega con `Router` en lugar de `window.location.href`; URLs derivadas de `API_URL`.
+- **ui:** Puertos de desarrollo porteados a 4208 (novedades) y 4209 (liquidacion) alineados con `docker-compose.yml`; escala tipográfica global 87.5%; marca "Haberes" en navbar/sidebar.
+- **chore(nx):** Inputs de lint/test limpiados de `karma.conf.js` obsoleto; fix de `npm ci` y lint en `package-lock.json` (PRs #11 y #12).
+
+### Fixed
+- **fix(`ui-layout`):** Especificación de `NavbarComponent` para el badge de entorno (label/color/tooltip y ausencia de badge sin `APP_ENV_INFO`).
+
 ## [0.3.1] - 2026-07-10
 
 ### Added
