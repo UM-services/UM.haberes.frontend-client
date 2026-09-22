@@ -4,10 +4,17 @@
   "sourceRoot": "libs/shared-api/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["type:data-access", "scope:shared"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "novedades:build:development",
+        "tsConfig": "libs/shared-api/tsconfig.spec.json"
+      }
     }
   }
 }

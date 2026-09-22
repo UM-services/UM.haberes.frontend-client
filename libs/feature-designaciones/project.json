@@ -4,7 +4,7 @@
   "sourceRoot": "libs/feature-designaciones/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["type:feature", "scope:novedades"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

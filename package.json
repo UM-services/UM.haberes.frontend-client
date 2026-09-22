@@ -1,9 +1,10 @@
 {
   "name": "um.haberes.frontend-client",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "scripts": {
     "ng": "ng",
     "start": "nx serve",
+    "serve:all": "npx concurrently \"nx serve novedades --port 4208\" \"nx serve liquidacion --port 4209\"",
     "build": "nx build",
     "watch": "nx build --watch --configuration development",
     "test": "nx test"

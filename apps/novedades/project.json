@@ -4,7 +4,7 @@
   "projectType": "application",
   "prefix": "app",
   "sourceRoot": "apps/novedades/src",
-  "tags": [],
+  "tags": ["type:app", "scope:novedades"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
@@ -42,6 +42,12 @@
           "outputHashing": "all"
         },
         "development": {
+          "fileReplacements": [
+            {
+              "replace": "apps/novedades/src/environments/environment.ts",
+              "with": "apps/novedades/src/environments/environment.development.ts"
+            }
+          ],
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
@@ -52,6 +58,9 @@
     "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 4208
+      },
       "configurations": {
         "production": {
           "buildTarget": "novedades:build:production"

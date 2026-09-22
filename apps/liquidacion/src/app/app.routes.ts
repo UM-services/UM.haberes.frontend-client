@@ -1,17 +1,44 @@
-import { Routes } from '@angular/router';
-import { LoginComponent } from '@haberes/ui-auth';
+import { Route, Routes } from '@angular/router';
 import { authGuard, unauthGuard } from '@haberes/shared-api';
-import { Component } from '@angular/core';
+import { TODAS_LAS_OPCIONES } from './menu-options.data';
 
-@Component({
-  standalone: true,
-  template: '<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100"><h3 class="text-lg font-semibold text-gray-800 mb-2">Bienvenido al Sistema</h3><p class="text-gray-600">Seleccione una opción del menú lateral para comenzar a trabajar.</p></div>'
-})
-export class InicioComponent {}
+// Opciones migradas a componentes reales: se excluyen de los placeholders generados
+const RUTAS_MIGRADAS = new Set(['/consultas/bono-individual']);
+
+const bonoIndividualRoute: Route = {
+  path: 'consultas/bono-individual',
+  loadComponent: () => import('@haberes/feature-bonos').then(m => m.BonoIndividualComponent),
+  canActivate: [authGuard]
+};
+
+const opcionesRoutes: Routes = TODAS_LAS_OPCIONES
+  .filter(opcion => !RUTAS_MIGRADAS.has(opcion.path))
+  .map(opcion => ({
+    path: opcion.path.startsWith('/') ? opcion.path.slice(1) : opcion.path,
+    loadComponent: () => import('./placeholder-opcion.component').then(m => m.PlaceholderOpcionComponent),
+    canActivate: [authGuard],
+    data: {
+      titulo: opcion.label,
+      grupo: opcion.grupo,
+      origenVb6: opcion.origenVb6,
+      descripcion: opcion.descripcion
+    }
+  }));
 
 export const appRoutes: Routes = [
-  { path: 'login', component: LoginComponent, canActivate: [unauthGuard], data: { requireFacultadId: false } },
-  { path: 'inicio', component: InicioComponent, canActivate: [authGuard] },
+  {
+    path: 'login',
+    loadComponent: () => import('@haberes/ui-auth').then(m => m.LoginComponent),
+    canActivate: [unauthGuard],
+    data: { requireFacultadId: false }
+  },
+  {
+    path: 'inicio',
+    loadComponent: () => import('./inicio.component').then(m => m.InicioComponent),
+    canActivate: [authGuard]
+  },
+  bonoIndividualRoute,
+  ...opcionesRoutes,
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },
   { path: '**', redirectTo: 'inicio' }
 ];

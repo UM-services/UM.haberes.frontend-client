@@ -24,6 +24,13 @@
         }
       </div>
 
+      @if (envDisplay; as env) {
+        <span
+          class="rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset {{ env.badgeClass }}"
+          [title]="envTooltip"
+        >{{ env.label }}</span>
+      }
+
       <div class="relative">
         <button (click)="toggleDropdown()" class="flex items-center focus:outline-none cursor-pointer">
           <div class="h-9 w-9 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md hover:shadow-lg transition-shadow">

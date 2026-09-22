@@ -30,27 +30,11 @@
       ],
       "@haberes/feature-cargos": [
         "./libs/feature-cargos/src/index.ts"
+      ],
+      "@haberes/feature-bonos": [
+        "./libs/feature-bonos/src/index.ts"
       ]
     },
     "rootDir": "."
-  },
-  "angularCompilerOptions": {
-    "enableI18nLegacyMessageIdFormat": false,
-    "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictTemplates": true
-  },
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.spec.json"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "tmp"
-  ]
+  }
 }

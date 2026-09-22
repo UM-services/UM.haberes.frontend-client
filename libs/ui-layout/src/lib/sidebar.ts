@@ -5,7 +5,13 @@ import { RouterModule } from '@angular/router';
 export interface MenuItem {
   label: string;
   path: string;
-  iconSvg: string;
+  iconSvg?: string;
+}
+
+export interface MenuGroup<T = MenuItem> {
+  title: string;
+  iconSvg?: string;
+  items: T[];
 }
 
 @Component({
@@ -15,6 +21,21 @@ export interface MenuItem {
   imports: [CommonModule, RouterModule]
 })
 export class SidebarComponent {
-  @Input() moduleName = "Tesorería";
+  @Input() moduleName = "Haberes";
   @Input() menuItems: MenuItem[] = [];
+  @Input() menuGroups: MenuGroup[] = [];
+
+  expandedGroups = new Set<string>();
+
+  toggleGroup(title: string): void {
+    if (this.expandedGroups.has(title)) {
+      this.expandedGroups.delete(title);
+    } else {
+      this.expandedGroups.add(title);
+    }
+  }
+
+  isGroupExpanded(title: string): boolean {
+    return this.expandedGroups.has(title);
+  }
 }

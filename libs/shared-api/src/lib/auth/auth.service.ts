@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, map, catchError, of, switchMap, forkJoin } from 'rxjs';
+import { API_URL } from '../tokens';
 
 export interface Persona {
   legajoId: number;
@@ -25,8 +27,16 @@ export interface Usuario {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly personaUrl = '/api/haberes/core/persona';
-  private readonly usuarioUrl = '/api/haberes/core/usuario';
+  private readonly router = inject(Router);
+  private readonly apiBase = inject(API_URL, { optional: true }) || '/api/haberes';
+
+  private get personaUrl(): string {
+    return `${this.apiBase}/core/persona`;
+  }
+
+  private get usuarioUrl(): string {
+    return `${this.apiBase}/core/usuario`;
+  }
 
   private currentUserSubject = new BehaviorSubject<Persona | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -51,7 +61,7 @@ export class AuthService {
   }
 
   getFacultad(facultadId: number): Observable<any> {
-    return this.http.get<any>(`/api/haberes/core/facultad/${facultadId}`);
+    return this.http.get<any>(`${this.apiBase}/core/facultad/${facultadId}`);
   }
 
   login(legajoId: number, password: string): Observable<{ success: boolean, usuario?: Usuario, error?: string }> {
@@ -101,6 +111,6 @@ export class AuthService {
 
   logout() {
     this.clearSession();
-    window.location.href = '/login';
+    this.router.navigate(['/login']);
   }
 }
