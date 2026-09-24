@@ -1,68 +1,99 @@
-<div class="flex flex-col h-[calc(100vh-6rem)] gap-3">
+<div class="flex flex-col h-[calc(100vh-6rem)] gap-4">
   
-  <!-- CABECERA: FILTROS -->
-  <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-end gap-3 shrink-0">
+  <!-- CABECERA: FILTROS Y CONTROLES -->
+  <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-wrap items-end gap-3.5 shrink-0">
     <div class="w-64">
-      <label for="asig-sede" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Sede</label>
-      <select id="asig-sede" [ngModel]="sedeSeleccionada()" (ngModelChange)="sedeSeleccionada.set($event)" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm bg-gray-50">
-        <option [ngValue]="null" disabled>Seleccione...</option>
+      <label for="asig-sede" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Sede</label>
+      <select id="asig-sede" [ngModel]="sedeSeleccionada()" (ngModelChange)="sedeSeleccionada.set($event)"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+        <option [ngValue]="null" disabled>Seleccione una sede...</option>
         @for (s of sedes(); track s.geograficaId) {
           <option [ngValue]="s.geograficaId">{{ s.nombre }}</option>
         }
       </select>
     </div>
 
-    <div class="flex items-center gap-1">
-      <div class="w-16">
-        <label for="asig-mes" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Mes</label>
-        <input id="asig-mes" type="number" [(ngModel)]="mes" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-center text-sm font-medium">
+    <!-- Período: Mes y Año agrupados -->
+    <div class="flex items-end gap-2">
+      <div>
+        <label for="asig-mes" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Mes</label>
+        <input id="asig-mes" type="number" [(ngModel)]="mes"
+               class="w-16 px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
       </div>
-      <div class="w-20">
-        <label for="asig-anho" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Año</label>
-        <input id="asig-anho" type="number" [(ngModel)]="anho" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-center text-sm font-medium">
+      <div>
+        <label for="asig-anho" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Año</label>
+        <input id="asig-anho" type="number" [(ngModel)]="anho"
+               class="w-20 px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
       </div>
-      <div class="flex flex-col mt-5">
-        <div class="flex gap-0.5">
-          <button (click)="cambiarMes(-1)" class="p-1 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200" aria-label="Mes anterior"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
-          <button (click)="cambiarMes(1)" class="p-1 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200" aria-label="Mes siguiente"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg></button>
-        </div>
+      <div class="flex gap-1">
+        <button (click)="cambiarMes(-1)" class="p-2 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200 text-slate-700 text-xs transition-colors cursor-pointer" aria-label="Mes anterior">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button (click)="cambiarMes(1)" class="p-2 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200 text-slate-700 text-xs transition-colors cursor-pointer" aria-label="Mes siguiente">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </div>
 
     <div class="flex-1 w-full min-w-[200px]">
-      <label for="filtro-curso-input" class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Filtro Curso</label>
-      <input id="filtro-curso-input" type="text" [ngModel]="filtroCurso()" (ngModelChange)="filtroCurso.set($event); loadCursos()" class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm" placeholder="Buscar curso...">
+      <label for="filtro-curso-input" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Filtro Curso</label>
+      <div class="relative">
+        <input id="filtro-curso-input" type="text" [ngModel]="filtroCurso()" (ngModelChange)="filtroCurso.set($event); loadCursos()"
+               class="w-full pl-9 pr-3.5 py-2 border border-slate-300 rounded-lg text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+               placeholder="Buscar por nombre de curso...">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
     </div>
 
-    <button (click)="imprimir()" [disabled]="isPrinting()" class="px-4 py-1.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 text-sm flex items-center gap-2">
+    <button (click)="imprimir()" [disabled]="isPrinting()"
+            class="px-4 py-2 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 text-xs shadow-2xs flex items-center gap-2 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors cursor-pointer">
       @if (isPrinting()) {
-        <div class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+        <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
+      }
+      @if (!isPrinting()) {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
       }
       Imprimir
     </button>
   </div>
 
-  <!-- SECCIÓN SUPERIOR: LISTA DE CURSOS -->
-  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden shrink-0 h-40 flex flex-col">
-    <div class="bg-gray-50 px-3 py-1.5 border-b border-gray-200 text-xs font-bold text-gray-600 uppercase tracking-wider flex justify-between">
+  <!-- SECCIÓN SUPERIOR: LISTA DE CURSOS DISPONIBLES -->
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden shrink-0 h-44 flex flex-col">
+    <div class="bg-slate-50/70 px-4 py-2.5 border-b border-slate-200/80 text-xs font-bold text-slate-800 uppercase tracking-wider flex justify-between items-center">
       <span>Cursos Disponibles ({{ cursos().length }})</span>
       @if (isLoading()) {
-        <span class="text-blue-500 animate-pulse">Cargando...</span>
+        <span class="text-blue-700 flex items-center gap-1.5 text-xs font-normal">
+          <span class="animate-spin h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+          Cargando...
+        </span>
       }
     </div>
     <div class="flex-1 overflow-y-auto custom-scrollbar">
-      <table class="min-w-full divide-y divide-gray-200 text-[11px]">
-        <thead class="bg-white sticky top-0 shadow-sm z-10 text-gray-400">
-          <tr><th class="px-3 py-1 text-left font-semibold">Curso</th><th class="px-3 py-1 text-left font-semibold w-24">Facultad</th><th class="px-3 py-1 text-left font-semibold w-24">Sede</th></tr>
+      <table class="min-w-full divide-y divide-slate-200 text-xs">
+        <thead class="bg-slate-50/50 sticky top-0 shadow-2xs z-10 text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
+          <tr>
+            <th class="px-4 py-2 text-left">Curso</th>
+            <th class="px-4 py-2 text-left w-28">Facultad</th>
+            <th class="px-4 py-2 text-left w-28">Sede</th>
+          </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-slate-100 bg-white">
           @for (c of cursos(); track c.cursoId) {
             <tr (click)="seleccionarCurso(c)" 
-                [class.bg-blue-100]="cursoSeleccionado()?.cursoId === c.cursoId"
-                class="hover:bg-blue-50 cursor-pointer">
-              <td class="px-3 py-1.5 font-medium text-gray-800">{{ c.nombre }}</td>
-              <td class="px-3 py-1.5 text-gray-500">{{ c.facultad?.reducido }}</td>
-              <td class="px-3 py-1.5 text-gray-500">{{ c.geografica?.reducido }}</td>
+                [class.bg-blue-50]="cursoSeleccionado()?.cursoId === c.cursoId"
+                [class.font-semibold]="cursoSeleccionado()?.cursoId === c.cursoId"
+                class="hover:bg-slate-50 cursor-pointer transition-colors">
+              <td class="px-4 py-2 text-slate-900">{{ c.nombre }}</td>
+              <td class="px-4 py-2 text-slate-500">{{ c.facultad?.reducido }}</td>
+              <td class="px-4 py-2 text-slate-500">{{ c.geografica?.reducido }}</td>
             </tr>
           }
         </tbody>
@@ -72,33 +103,45 @@
 
   <!-- SECCIÓN CENTRAL Y NOVEDADES (Se muestra solo si hay un curso seleccionado) -->
   @if (cursoSeleccionado()) {
-    <div class="flex-1 flex flex-col lg:flex-row gap-3 min-h-0">
+    <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
       
       <!-- COLUMNA IZQUIERDA: ALTA/MODIFICACION -->
       <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
         <!-- Formulario ALTA -->
-        <div class="bg-blue-50/50 rounded-xl border border-blue-200 shadow-sm p-3 shrink-0 relative">
+        <div class="bg-slate-50/60 rounded-xl border border-blue-200/80 shadow-2xs p-3.5 shrink-0 relative">
           @if (!canModify()) {
-            <div class="absolute inset-0 bg-gray-100/50 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]">
-              <span class="bg-white text-red-600 px-3 py-1 font-bold text-xs rounded shadow border border-red-200">PERÍODO ACREDITADO</span>
+            <div class="absolute inset-0 bg-slate-900/30 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]">
+              <span class="bg-white text-rose-700 px-3 py-1 font-bold text-xs rounded-lg shadow-sm border border-rose-200">PERÍODO ACREDITADO</span>
             </div>
           }
-          <h3 class="text-[11px] font-bold text-blue-800 uppercase tracking-widest mb-2 flex justify-between items-center">
-            <span>Proponer Alta / Cambio</span>
-            <button (click)="agregarCargoAlta()" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700">+</button>
-          </h3>
+          <div class="flex justify-between items-center mb-2.5">
+            <h3 class="text-xs font-bold text-blue-900 uppercase tracking-wider">
+              Proponer Alta / Cambio
+            </h3>
+            <button (click)="agregarCargoAlta()"
+                    class="bg-blue-700 text-white px-2.5 py-1 rounded-md text-xs font-semibold hover:bg-blue-800 transition-colors flex items-center gap-1 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Agregar</span>
+            </button>
+          </div>
           
-          <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
             <div class="col-span-2 relative">
-              <label for="asig-docente" class="block font-semibold text-gray-600 mb-0.5">Docente</label>
-              <input id="asig-docente" type="text" [ngModel]="personaInput()" (ngModelChange)="onSearchInput($event)" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+              <label for="asig-docente" class="block font-medium text-slate-700 mb-1">Docente</label>
+              <input id="asig-docente" type="text" [ngModel]="personaInput()" (ngModelChange)="onSearchInput($event)"
+                     placeholder="Buscar por legajo o apellido..."
+                     class="w-full px-3 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
               <!-- Dropdown local -->
               @if (showDropdown()) {
-                <div class="absolute z-50 w-full mt-1 bg-white rounded shadow-xl border border-blue-200 max-h-40 overflow-y-auto">
-                  <ul>
+                <div class="absolute z-50 w-full mt-1 bg-white rounded-xl shadow-lg border border-slate-200 max-h-40 overflow-y-auto">
+                  <ul class="p-1">
                     @for (res of resultadosBusqueda(); track res.legajoId) {
-                      <li (click)="seleccionarPersona(res)" (keyup.enter)="seleccionarPersona(res)" tabindex="0" role="button" class="px-2 py-1 hover:bg-blue-100 cursor-pointer border-b border-gray-50 text-[11px]">
-                        {{ res.apellidoNombre || (res.apellido + ', ' + res.nombre) }}
+                      <li (click)="seleccionarPersona(res)" (keyup.enter)="seleccionarPersona(res)" tabindex="0" role="button"
+                          class="px-3 py-1.5 hover:bg-slate-50 cursor-pointer rounded-md text-xs text-slate-800 flex justify-between items-center transition-colors">
+                        <span>{{ res.apellidoNombre || (res.apellido + ', ' + res.nombre) }}</span>
+                        <span class="font-mono text-[10px] text-slate-600">#{{ res.legajoId }}</span>
                       </li>
                     }
                   </ul>
@@ -106,45 +149,60 @@
               }
             </div>
             <div>
-              <label for="asig-cargo-tipo" class="block font-semibold text-gray-600 mb-0.5">Cargo</label>
-              <select id="asig-cargo-tipo" [(ngModel)]="cargoAltaSeleccionado" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+              <label for="asig-cargo-tipo" class="block font-medium text-slate-700 mb-1">Cargo</label>
+              <select id="asig-cargo-tipo" [(ngModel)]="cargoAltaSeleccionado"
+                      class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
                 @for (ct of cargosTipo(); track ct.cargoTipoId) {
                   <option [ngValue]="ct.cargoTipoId">{{ ct.nombre }}</option>
                 }
               </select>
             </div>
             <div>
-              <label for="asig-horas" class="block font-semibold text-gray-600 mb-0.5">Horas Semanales</label>
-              <input id="asig-horas" type="number" [(ngModel)]="horasSemanales" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+              <label for="asig-horas" class="block font-medium text-slate-700 mb-1">Horas Semanales</label>
+              <input id="asig-horas" type="number" [(ngModel)]="horasSemanales"
+                     class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
             </div>
-            <div class="flex items-end pb-1">
-              <label for="asig-desarraigo" class="flex items-center gap-1.5 font-semibold text-gray-700 cursor-pointer bg-white border border-blue-200 px-2 py-1 rounded w-full justify-center shadow-sm">
+            <div class="flex items-end pb-0.5">
+              <label for="asig-desarraigo" class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer bg-white border border-slate-300 px-3 py-1.5 rounded-lg w-full justify-center shadow-2xs hover:bg-slate-50 transition-colors">
                 <input id="asig-desarraigo" type="checkbox" [(ngModel)]="desarraigo" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
                 <span>Desarraigo</span>
               </label>
             </div>
             <div class="col-span-2">
-              <label for="asig-obs-alta" class="block font-semibold text-gray-600 mb-0.5">Observaciones</label>
-              <input id="asig-obs-alta" type="text" [(ngModel)]="observacionesAlta" class="w-full px-2 py-1 border border-blue-300 rounded bg-white">
+              <label for="asig-obs-alta" class="block font-medium text-slate-700 mb-1">Observaciones</label>
+              <input id="asig-obs-alta" type="text" [(ngModel)]="observacionesAlta"
+                     placeholder="Notas u observaciones de alta..."
+                     class="w-full px-3 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
             </div>
           </div>
         </div>
         
         <!-- Grilla Pendientes ALTA -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div class="bg-gray-50 px-2 py-1 border-b border-gray-200 text-[10px] font-bold text-gray-600 uppercase">Cargos Alta (Pendientes)</div>
+        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div class="bg-slate-50/70 px-3 py-2 border-b border-slate-200/80 text-[11px] font-bold text-slate-700 uppercase tracking-wider flex justify-between items-center">
+            <span>Cargos Alta (Pendientes)</span>
+            <span class="text-[10px] text-slate-500 font-mono">{{ cargosAlta().length }}</span>
+          </div>
           <div class="flex-1 overflow-y-auto custom-scrollbar">
-            <table class="min-w-full divide-y divide-gray-200 text-[11px]">
-              <tbody class="divide-y divide-gray-100">
+            <table class="min-w-full divide-y divide-slate-100 text-xs">
+              <tbody class="divide-y divide-slate-100">
                 @for (item of cargosAlta(); track (item.id || $index)) {
-                  <tr class="hover:bg-red-50">
-                    <td class="px-2 py-1 w-6"><button (click)="eliminarNovedad(item)" [disabled]="!canModify()" class="text-red-500 font-bold hover:bg-red-100 px-1 rounded">-</button></td>
-                    <td class="px-2 py-1">{{ item.cargoTipo?.nombre }}</td>
-                    <td class="px-2 py-1">{{ item.horasSemanales }}h</td>
-                    <td class="px-2 py-1 font-medium">{{ item.persona?.apellidoNombre }}</td>
-                    <td class="px-2 py-1 text-center">
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-2 py-1.5 w-8 text-center">
+                      <button (click)="eliminarNovedad(item)" [disabled]="!canModify()"
+                              class="text-rose-600 hover:text-rose-800 hover:bg-rose-50 p-1 rounded transition-colors disabled:opacity-40 cursor-pointer"
+                              title="Eliminar propuesta de alta">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </td>
+                    <td class="px-2.5 py-1.5 text-slate-700">{{ item.cargoTipo?.nombre }}</td>
+                    <td class="px-2 py-1.5 font-mono text-slate-600">{{ item.horasSemanales }}h</td>
+                    <td class="px-2.5 py-1.5 font-medium text-slate-900">{{ item.persona?.apellidoNombre }}</td>
+                    <td class="px-2 py-1.5 text-center">
                       @if (item.desarraigo === 1) {
-                        <span class="bg-blue-100 text-blue-700 px-1 rounded font-bold">Dsr</span>
+                        <span class="bg-blue-50 text-blue-800 border border-blue-200/60 px-1.5 py-0.5 rounded text-[10px] font-bold">Dsr</span>
                       }
                     </td>
                   </tr>
@@ -156,87 +214,116 @@
       </div>
 
       <!-- COLUMNA CENTRAL: GRILLA CARGOS ACTUALES -->
-      <div class="flex-[1.5] bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col min-h-0 overflow-hidden">
-         <div class="bg-blue-600 text-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-center">
-           Plantel Docente Actual
-         </div>
-         <div class="flex-1 overflow-y-auto custom-scrollbar">
-           <table class="min-w-full divide-y divide-gray-200 text-xs">
-             <thead class="bg-gray-50 sticky top-0 shadow-sm">
-               <tr class="text-left text-gray-500">
-                 <th class="px-3 py-1.5 font-semibold">Cargo</th>
-                 <th class="px-3 py-1.5 font-semibold w-16">Horas</th>
-                 <th class="px-3 py-1.5 font-semibold">Docente</th>
-                 <th class="px-2 py-1.5 font-semibold text-center w-16" title="Desarraigo">Desar.</th>
-               </tr>
-             </thead>
-             <tbody class="divide-y divide-gray-100">
-               @for (c of cargosActuales(); track c.cursoCargoId) {
-                 <tr (click)="seleccionarCargoActual(c)"
-                     [class.bg-yellow-100]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
-                     [class.text-gray-400]="c.isContratado"
-                     [class.bg-gray-50]="c.isContratado"
-                     class="hover:bg-yellow-50 cursor-pointer transition-colors">
-                   <td class="px-3 py-1.5 whitespace-nowrap">{{ c.cargoTipo?.nombre }}</td>
-                   <td class="px-3 py-1.5">{{ c.horasSemanales }}</td>
-                   <td class="px-3 py-1.5 font-medium truncate max-w-[150px]" [title]="c.persona?.apellidoNombre">{{ c.persona?.apellidoNombre }}</td>
-                   <td class="px-2 py-1.5 text-center">
-                     @if (c.desarraigo === 1) {
-                       <span class="font-bold text-green-600">✓</span>
-                     }
-                   </td>
-                 </tr>
-               }
-             </tbody>
-           </table>
-         </div>
+      <div class="flex-[1.5] bg-white rounded-xl border border-slate-200/80 shadow-2xs flex flex-col min-h-0 overflow-hidden">
+        <div class="bg-slate-50/70 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-blue-600"></span>
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Plantel Docente Actual</h3>
+          </div>
+          <span class="text-xs font-medium text-slate-500 tabular-nums">{{ cargosActuales().length }} cargos</span>
+        </div>
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+          <table class="min-w-full divide-y divide-slate-200 text-xs">
+            <thead class="bg-slate-50/50 sticky top-0 shadow-2xs text-[11px] font-semibold uppercase text-slate-500">
+              <tr>
+                <th class="px-3.5 py-2 text-left">Cargo</th>
+                <th class="px-3 py-2 text-center w-16">Horas</th>
+                <th class="px-3.5 py-2 text-left">Docente</th>
+                <th class="px-2 py-2 text-center w-16" title="Desarraigo">Desar.</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              @for (c of cargosActuales(); track c.cursoCargoId) {
+                <tr (click)="seleccionarCargoActual(c)"
+                    [class.bg-blue-50]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
+                    [class.border-l-2]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
+                    [class.border-blue-600]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
+                    [class.text-slate-400]="c.isContratado"
+                    [class.bg-slate-50]="c.isContratado"
+                    class="hover:bg-slate-50/80 cursor-pointer transition-colors">
+                  <td class="px-3.5 py-2 whitespace-nowrap text-slate-700">{{ c.cargoTipo?.nombre }}</td>
+                  <td class="px-3 py-2 text-center font-mono text-slate-700 tabular-nums">{{ c.horasSemanales }}</td>
+                  <td class="px-3.5 py-2 font-medium truncate max-w-[150px] text-slate-900" [title]="c.persona?.apellidoNombre">{{ c.persona?.apellidoNombre }}</td>
+                  <td class="px-2 py-2 text-center">
+                    @if (c.desarraigo === 1) {
+                      <span class="inline-flex items-center justify-center h-4 w-4 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">✓</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- COLUMNA DERECHA: BAJA -->
       <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
         <!-- Formulario BAJA -->
-        <div class="bg-red-50/50 rounded-xl border border-red-200 shadow-sm p-3 shrink-0 relative">
+        <div class="bg-slate-50/60 rounded-xl border border-rose-200/80 shadow-2xs p-3.5 shrink-0 relative">
           @if (!canModify()) {
-            <div class="absolute inset-0 bg-gray-100/50 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]"></div>
+            <div class="absolute inset-0 bg-slate-900/30 z-10 rounded-xl flex items-center justify-center backdrop-blur-[1px]"></div>
           }
-          <h3 class="text-[11px] font-bold text-red-800 uppercase tracking-widest mb-2 flex justify-between items-center">
-            <span>Proponer Baja</span>
-            <button (click)="agregarCargoBaja()" class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-red-700">+</button>
-          </h3>
-          <div class="text-xs space-y-2">
-            <div class="p-1.5 border border-red-100 rounded transition-colors" [ngClass]="cargoSeleccionado() && !cargoSeleccionado()?.isContratado ? 'bg-red-50 text-red-800 font-bold shadow-sm' : 'bg-white text-gray-500 italic'">
+          <div class="flex justify-between items-center mb-2.5">
+            <h3 class="text-xs font-bold text-rose-900 uppercase tracking-wider">
+              Proponer Baja
+            </h3>
+            <button (click)="agregarCargoBaja()"
+                    class="bg-rose-700 text-white px-2.5 py-1 rounded-md text-xs font-semibold hover:bg-rose-800 transition-colors flex items-center gap-1 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Baja</span>
+            </button>
+          </div>
+          <div class="text-xs space-y-2.5">
+            <div class="p-2 border rounded-lg transition-colors" [ngClass]="cargoSeleccionado() && !cargoSeleccionado()?.isContratado ? 'bg-rose-50 border-rose-200 text-rose-900 font-semibold' : 'bg-white border-slate-200 text-slate-400 italic'">
               @if (!cargoSeleccionado() || cargoSeleccionado()?.isContratado) {
                 <span>Seleccione un docente en la grilla central.</span>
               }
               @if (cargoSeleccionado() && !cargoSeleccionado()?.isContratado) {
-                <span class="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                <span class="flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
+                  </svg>
                   Baja a: {{ cargoSeleccionado()?.persona?.apellidoNombre }}
                 </span>
               }
             </div>
             <div>
-              <label for="asig-obs-baja" class="block font-semibold text-gray-600 mb-0.5">Observaciones</label>
-              <input id="asig-obs-baja" type="text" [(ngModel)]="observacionesBaja" class="w-full px-2 py-1 border border-red-300 rounded bg-white">
+              <label for="asig-obs-baja" class="block font-medium text-slate-700 mb-1">Observaciones</label>
+              <input id="asig-obs-baja" type="text" [(ngModel)]="observacionesBaja"
+                     placeholder="Motivo u observaciones de baja..."
+                     class="w-full px-3 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-600">
             </div>
           </div>
         </div>
         
         <!-- Grilla Pendientes BAJA -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div class="bg-gray-50 px-2 py-1 border-b border-gray-200 text-[10px] font-bold text-gray-600 uppercase">Cargos Baja (Pendientes)</div>
+        <div class="bg-white rounded-xl border border-slate-200/80 shadow-2xs flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div class="bg-slate-50/70 px-3 py-2 border-b border-slate-200/80 text-[11px] font-bold text-slate-700 uppercase tracking-wider flex justify-between items-center">
+            <span>Cargos Baja (Pendientes)</span>
+            <span class="text-[10px] text-slate-500 font-mono">{{ cargosBaja().length }}</span>
+          </div>
           <div class="flex-1 overflow-y-auto custom-scrollbar">
-            <table class="min-w-full divide-y divide-gray-200 text-[11px]">
-              <tbody class="divide-y divide-gray-100">
+            <table class="min-w-full divide-y divide-slate-100 text-xs">
+              <tbody class="divide-y divide-slate-100">
                 @for (item of cargosBaja(); track (item.id || $index)) {
-                  <tr class="hover:bg-red-50">
-                    <td class="px-2 py-1 w-6"><button (click)="eliminarNovedad(item)" [disabled]="!canModify()" class="text-red-500 font-bold hover:bg-red-100 px-1 rounded">-</button></td>
-                    <td class="px-2 py-1">{{ item.cargoTipo?.nombre }}</td>
-                    <td class="px-2 py-1">{{ item.horasSemanales }}h</td>
-                    <td class="px-2 py-1 font-medium">{{ item.persona?.apellidoNombre }}</td>
-                    <td class="px-2 py-1 text-center">
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-2 py-1.5 w-8 text-center">
+                      <button (click)="eliminarNovedad(item)" [disabled]="!canModify()"
+                              class="text-rose-600 hover:text-rose-800 hover:bg-rose-50 p-1 rounded transition-colors disabled:opacity-40 cursor-pointer"
+                              title="Eliminar propuesta de baja">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </td>
+                    <td class="px-2.5 py-1.5 text-slate-700">{{ item.cargoTipo?.nombre }}</td>
+                    <td class="px-2 py-1.5 font-mono text-slate-600">{{ item.horasSemanales }}h</td>
+                    <td class="px-2.5 py-1.5 font-medium text-slate-900">{{ item.persona?.apellidoNombre }}</td>
+                    <td class="px-2 py-1.5 text-center">
                       @if (item.desarraigo === 1) {
-                        <span class="bg-blue-100 text-blue-700 px-1 rounded font-bold">Dsr</span>
+                        <span class="bg-blue-50 text-blue-800 border border-blue-200/60 px-1.5 py-0.5 rounded text-[10px] font-bold">Dsr</span>
                       }
                     </td>
                   </tr>

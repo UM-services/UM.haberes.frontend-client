@@ -1,13 +1,13 @@
 import { Component, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { APP_ENV_INFO, AuthService, getEnvDisplay } from '@haberes/shared-api';
 
 @Component({
   selector: 'ui-navbar',
   templateUrl: './navbar.html',
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, RouterModule]
 })
 export class NavbarComponent {
   @Input() moduleName = "Haberes";

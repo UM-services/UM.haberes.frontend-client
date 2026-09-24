@@ -11,24 +11,24 @@ import { MENU_GROUPS } from './menu-options.data';
   selector: 'app-root',
   template: `
     @if (isLoggedIn$ | async; as loggedIn) {
-      <div class="flex h-screen overflow-hidden bg-gray-50">
+      <div class="flex h-screen overflow-hidden bg-slate-50/70">
         <ui-sidebar 
           moduleName="Liquidación" 
           [menuGroups]="menuGroups"
-          class="w-72 flex-shrink-0 border-r border-gray-200 bg-white hidden md:flex flex-col shadow-sm z-10">
+          class="w-72 shrink-0 border-r border-slate-200/80 bg-white hidden md:flex flex-col shadow-2xs z-10">
         </ui-sidebar>
         
         <div class="flex-1 flex flex-col w-full h-full min-w-0">
-          <ui-navbar class="h-16 flex-shrink-0 bg-white border-b border-gray-200 shadow-sm z-10"></ui-navbar>
-          <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50">
-            <div class="max-w-7xl mx-auto">
+          <ui-navbar class="h-14 shrink-0 bg-white border-b border-slate-200 z-10"></ui-navbar>
+          <main class="flex-1 overflow-y-auto bg-white min-w-0 custom-scrollbar">
+            <div class="w-full">
               <router-outlet></router-outlet>
             </div>
           </main>
         </div>
       </div>
     } @else {
-      <div class="min-h-screen bg-gray-50">
+      <div class="min-h-screen bg-slate-50/80">
         <router-outlet></router-outlet>
       </div>
     }
