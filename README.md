@@ -16,7 +16,8 @@ um.haberes.frontend-client/
 │   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos legajo y docentes sede
-│   └── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
+│   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
+│   └── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable y asientos individuales
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -26,19 +27,28 @@ um.haberes.frontend-client/
 | App | Puerto Dev | Descripción |
 |---|---|---|
 | `novedades` | 4208 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
-| `liquidacion` | 4209 | Módulo de liquidación de haberes |
+| `liquidacion` | 4209 | Módulo de liquidación de haberes y catálogo central de operaciones |
 
 ## Librerías
 
 | Librería | Alias | Propósito |
 |---|---|---|
-| `ui-layout` | `@haberes/ui-layout` | Componentes de layout (navbar, sidebar) |
-| `ui-auth` | `@haberes/ui-auth` | Formulario de login con validación |
-| `shared-api` | `@haberes/shared-api` | Lógica de autenticación y guards de rutas |
+| `ui-layout` | `@haberes/ui-layout` | Componentes de layout (navbar con soporte móvil, sidebar colapsable, pie con estado) |
+| `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo con validación y visualización del escudo institucional |
+| `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores y guards de rutas |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
+| `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
+
+## Estándares de Diseño y UI Institucional
+
+El sistema sigue lineamientos de diseño corporativo moderno (Tailwind CSS v4 + Inter):
+- **Paleta sobria**: Fondos `slate-50`, paneles blancos con bordes sutiles `border-slate-200/80` y acento institucional azul UM (`blue-700`).
+- **Datos contables**: Uso estricto de cifras tabulares (`tabular-nums`) y fuentes monoespaciadas (`font-mono`) alineadas a la derecha para importes y balances.
+- **Logotipo institucional**: Proporción apaisada 2:1 (`logo.png`). Dimensiones estándar: `h-11 w-auto` en sidebar desktop, `h-20/h-24 w-auto` en login, `h-8 w-auto` en móvil. No envolver en contenedores cuadrados.
+- **Nomenclatura limpia**: Prohibición de términos o referencias a Visual Basic 6 (`.frm`, `.vbp`, etc.) en cualquier título, badge o etiqueta visible al usuario. Ver detalle completo en [AGENTS.md](AGENTS.md) y en la skill de frontend.
 
 ## Comandos de Desarrollo
 
