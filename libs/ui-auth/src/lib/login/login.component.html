@@ -1,65 +1,86 @@
 
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <img class="mx-auto h-24 w-auto object-contain" src="/logo.png" alt="Universidad de Mendoza">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+<div class="min-h-screen bg-slate-50/80 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+    <div class="inline-flex items-center justify-center mb-5">
+      <img class="h-20 sm:h-24 w-auto object-contain rounded-xl shadow-md ring-1 ring-slate-900/10" src="/logo.png" alt="Universidad de Mendoza">
+    </div>
+    <h1 class="text-2xl font-bold tracking-tight text-slate-900">
       Acceso a Haberes
-    </h2>
+    </h1>
+    <p class="mt-1 text-xs text-slate-500">
+      Portal Institucional de Gestión Docente y Liquidaciones
+    </p>
   </div>
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+  <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white py-8 px-6 sm:px-10 rounded-xl border border-slate-200/90 shadow-sm relative overflow-hidden">
+      <!-- Institutional Accent Line -->
+      <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800"></div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
         <div>
-          <label for="legajoId" class="block text-sm font-medium text-gray-700">
-            Legajo
+          <label for="legajoId" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+            N° de Legajo
           </label>
-          <div class="mt-1">
+          <div class="relative">
             <input id="legajoId" formControlName="legajoId" type="text" (blur)="onLegajoBlur()" required
-                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                   placeholder="Ingrese su legajo..."
+                   class="block w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-300 rounded-lg shadow-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all">
           </div>
           @if (apellidoNombre()) {
-            <div class="mt-2 text-sm font-bold text-blue-800">
-              {{ apellidoNombre() }}
+            <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-50 border border-blue-200/60 text-blue-900 text-xs font-semibold animate-in fade-in duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>{{ apellidoNombre() }}</span>
             </div>
           }
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">
-            Password
+          <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+            Contraseña
           </label>
-          <div class="mt-1">
+          <div class="relative">
             <input id="password" formControlName="password" type="password" required
-                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                   placeholder="••••••••"
+                   class="block w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-300 rounded-lg shadow-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all">
           </div>
         </div>
 
         @if (isFirstTime()) {
-          <div>
-            <label for="rePassword" class="block text-sm font-medium text-gray-700">
-              Repetir Password
+          <div class="p-3 bg-amber-50/70 border border-amber-200/70 rounded-lg">
+            <label for="rePassword" class="block text-xs font-semibold uppercase tracking-wider text-amber-900 mb-1.5">
+              Confirmar Contraseña (Primer Ingreso)
             </label>
-            <div class="mt-1">
+            <div class="relative">
               <input id="rePassword" formControlName="rePassword" type="password"
-                     class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                     placeholder="Repetir contraseña..."
+                     class="block w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-amber-300 rounded-lg shadow-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 transition-all">
             </div>
           </div>
         }
 
         @if (errorMessage()) {
-          <div class="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-xs font-medium">
-            {{ errorMessage() }}
+          <div class="p-3 bg-red-50 border border-red-200/80 rounded-lg text-red-700 text-xs font-medium flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>{{ errorMessage() }}</span>
           </div>
         }
 
         <div>
           <button type="submit" [disabled]="loginForm.invalid"
-                  class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400">
-            Ingresar
+                  class="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-xs text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer">
+            Ingresar al Sistema
           </button>
         </div>
       </form>
     </div>
+
+    <p class="mt-6 text-center text-xs text-slate-500">
+      Universidad de Mendoza &bull; Sistema de Haberes
+    </p>
   </div>
 </div>

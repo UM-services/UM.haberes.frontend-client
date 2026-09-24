@@ -1,6 +1,22 @@
 # Changelog
 
+## [0.5.0] - 2026-09-24
+
+### Added
+- **feat(`feature-contabilidad`):** Nueva librería `@haberes/feature-contabilidad` para gestión de asientos contables individuales e imputación (`ImputacionIndividualComponent`, `ContabilidadService`, modelos y tests unitarios).
+- **feat(skills):** Skill `frontend-guidelines` para lineamientos de diseño corporativo, patrones de tablas contables, uso del logo y prevención de terminología legacy.
+
+### Changed
+- **refactor(ui):** Refactorización estética corporativa moderna (Enterprise Institutional Design System):
+  - Integración de tipografía Inter, cifras tabulares (`tabular-nums`) para montos y códigos contables, y paleta institucional Slate + Azul UM (`blue-700`).
+  - Rediseño de tablas de datos de alta densidad operativa con cabeceras fijas (`backdrop-blur-xs`), bordes tenues y alineación financiera rigurosa.
+  - Redimensionamiento y jerarquía del logotipo institucional (`logo.png`, 204×102 px): eliminación de contenedores cuadrados restrictivos y adopción de escala `h-11` (desktop sidebar), `h-20`/`h-24` (login) y `h-8` (móvil).
+  - Erradicación integral de referencias a Visual Basic 6 (`.frm`, `.vbp`, "migración de VB6") en títulos, tarjetas, badges y buscadores de toda la interfaz de usuario.
+- **docs:** Actualización de `AGENTS.md` y `README.md` con los lineamientos de diseño, reglas de logotipo y estándares de nomenclatura limpia.
+- **docs(architecture):** Actualización de `docs/architecture.mermaid` con `feature-contabilidad` (ImputacionIndividual) en la app `liquidacion`.
+
 ## [0.4.0] - 2026-09-22
+
 
 ### Added
 - **feat(`feature-bonos`):** Nueva librería `@haberes/feature-bonos` para el bono individual del docente (migración de `prjBonos` VB6).

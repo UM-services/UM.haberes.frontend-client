@@ -1,0 +1,20 @@
+{
+  "name": "feature-contabilidad",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/feature-contabilidad/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["type:feature", "scope:liquidacion"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "liquidacion:build:development",
+        "tsConfig": "libs/feature-contabilidad/tsconfig.spec.json"
+      }
+    }
+  }
+}

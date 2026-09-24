@@ -1,6 +1,50 @@
 @import 'tailwindcss';
 
-/* Escala global del 87.5% (~14px base) para mejorar la densidad visual en escritorio */
-html {
-  font-size: 87.5%;
+@layer base {
+  /* Escala global del 87.5% (~14px base) para mejorar la densidad visual en escritorio */
+  html {
+    font-size: 87.5%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ocultar flechas (spinners) en inputs numéricos en navegadores WebKit/Chromium */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Ocultar flechas (spinners) en inputs numéricos en Firefox y estándar */
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
+
+/* Scrollbar refinada y minimalista */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Cifras tabulares para alineación contable y financiera precisa */
+.tabular-nums, table td, table th {
+  font-variant-numeric: tabular-nums;
 }

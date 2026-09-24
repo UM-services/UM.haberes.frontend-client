@@ -1,20 +1,65 @@
-<div class="flex flex-col gap-4 max-w-4xl mx-auto mt-6">
+<div class="flex flex-col gap-6">
 
-  <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col gap-8">
+  <!-- Header Institucional con Acciones Primarias -->
+  <div class="border-b border-slate-200 pb-5">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200/70 mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span>Recibos de Sueldo</span>
+        </div>
+        <h1 class="text-xl font-bold text-slate-900 tracking-tight">Imprimir Bono Individual</h1>
+        <p class="text-slate-500 mt-1 text-xs md:text-sm leading-relaxed max-w-2xl">
+          Emisión de recibo oficial de haberes en PDF y notificación a casilla de correo institucional UM.
+        </p>
+      </div>
 
-    <div>
-      <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Imprimir Bono Individual</h2>
-      <p class="text-gray-500 mt-1 text-sm">
-        Genere el PDF del recibo de sueldo del personal para el período seleccionado, o envíelo por
-        e-mail a su casilla institucional.
-      </p>
+      <!-- Barra de Acciones Superior -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button (click)="salir()"
+                class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-transparent">
+          Salir
+        </button>
+
+        <button (click)="verificarIntegridad()"
+                [disabled]="!personaSeleccionada() || isVerifying()"
+                class="px-3.5 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-50 shadow-2xs transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed cursor-pointer">
+          {{ isVerifying() ? 'Verificando...' : 'Verif. Integridad' }}
+        </button>
+
+        <button (click)="enviar()"
+                [disabled]="!personaSeleccionada() || !mailInstitucional() || isSending()"
+                class="px-3.5 py-2 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-xs font-semibold hover:bg-blue-100 shadow-2xs transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed cursor-pointer">
+          {{ isSending() ? 'Enviando...' : 'Enviar por e-mail' }}
+        </button>
+
+        <button (click)="imprimir()"
+                [disabled]="!personaSeleccionada() || isPrinting()"
+                class="px-4 py-2 bg-blue-700 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 shadow-2xs transition-colors flex items-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed cursor-pointer">
+          @if (isPrinting()) {
+            <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
+            <span>Generando...</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>Imprimir Bono</span>
+          }
+        </button>
+      </div>
     </div>
+  </div>
 
-    <div class="flex flex-col md:flex-row gap-6 items-start">
+  <!-- Operational Configuration Bar -->
+  <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-5">
+    <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-3">Búsqueda de Personal y Período</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
 
-      <!-- Buscador -->
-      <div class="flex-1 relative w-full">
-        <label for="bono-persona-search" class="block text-xs uppercase font-bold text-gray-500 mb-2">
+      <!-- Buscador de Personal -->
+      <div class="md:col-span-7 relative">
+        <label for="bono-persona-search" class="block text-xs font-medium text-slate-700 mb-1.5">
           Personal (Legajo o Apellido, Nombre)
         </label>
         <div class="relative">
@@ -22,27 +67,31 @@
                  type="text"
                  [ngModel]="personaInput()"
                  (ngModelChange)="onSearchInput($event)"
-                 class="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all sm:text-sm shadow-sm"
-                 placeholder="Escriba para buscar...">
-          <div class="absolute left-4 top-3 text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                 class="w-full pl-9 pr-3.5 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-2xs text-slate-900 placeholder-slate-400 bg-white"
+                 placeholder="Escriba número de legajo o apellido para buscar...">
+          <div class="absolute left-3 top-2.5 text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
         </div>
 
         <!-- Dropdown -->
         @if (showDropdown()) {
-          <div class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-64 overflow-y-auto">
-            <ul class="p-2">
+          <div class="absolute z-20 w-full mt-1.5 bg-white rounded-xl shadow-lg border border-slate-200 max-h-60 overflow-y-auto">
+            <ul class="p-1">
               @if (isSearching()) {
-                <li class="px-4 py-3 text-sm text-gray-500 italic">Buscando...</li>
+                <li class="px-3.5 py-2 text-xs text-slate-500 italic">Buscando personal...</li>
               }
               @for (res of resultadosBusqueda(); track res.legajoId) {
                 <li (click)="seleccionarPersona(res)" (keyup.enter)="seleccionarPersona(res)" tabindex="0" role="button"
-                    class="px-4 py-3 hover:bg-blue-50 cursor-pointer rounded-lg flex items-center justify-between group transition-colors">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-bold text-gray-900 group-hover:text-blue-700">{{ res.apellidoNombre || ((res.apellido ?? '') + ', ' + (res.nombre ?? '')) }}</span>
-                    <span class="text-xs text-gray-500 font-mono">Legajo: {{ res.legajoId }}</span>
-                  </div>
+                    class="px-3.5 py-2 hover:bg-slate-50 cursor-pointer rounded-lg flex items-center justify-between group transition-colors">
+                  <span class="text-xs font-semibold text-slate-900 group-hover:text-blue-700">
+                    {{ res.apellidoNombre || ((res.apellido ?? '') + ', ' + (res.nombre ?? '')) }}
+                  </span>
+                  <span class="text-[11px] text-slate-600 font-mono bg-slate-100 px-1.5 py-0.5 rounded">
+                    #{{ res.legajoId }}
+                  </span>
                 </li>
               }
             </ul>
@@ -50,127 +99,141 @@
         }
       </div>
 
-      <!-- Fecha -->
-      <div class="flex gap-3 items-center">
-        <div>
-          <label for="bono-mes" class="block text-xs uppercase font-bold text-gray-500 mb-2">Mes</label>
-          <input id="bono-mes" type="number" min="1" max="12" [ngModel]="mes()" (ngModelChange)="mes.set($event)" class="w-20 px-3 py-3 border border-gray-300 rounded-xl text-center shadow-sm">
+      <!-- Selector de Período -->
+      <div class="md:col-span-5 flex items-end gap-2">
+        <div class="flex-1">
+          <label for="bono-mes" class="block text-xs font-medium text-slate-700 mb-1.5">Mes</label>
+          <input id="bono-mes" type="number" min="1" max="12" [ngModel]="mes()" (ngModelChange)="mes.set($event)"
+                 class="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 shadow-2xs bg-white">
         </div>
-        <div>
-          <label for="bono-anho" class="block text-xs uppercase font-bold text-gray-500 mb-2">Año</label>
-          <input id="bono-anho" type="number" [ngModel]="anho()" (ngModelChange)="anho.set($event)" class="w-24 px-3 py-3 border border-gray-300 rounded-xl text-center shadow-sm">
+        <div class="flex-1">
+          <label for="bono-anho" class="block text-xs font-medium text-slate-700 mb-1.5">Año</label>
+          <input id="bono-anho" type="number" [ngModel]="anho()" (ngModelChange)="anho.set($event)"
+                 class="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 shadow-2xs bg-white">
         </div>
-        <div class="flex flex-col gap-1 mt-6">
-          <div class="flex gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
-            <button (click)="cambiarMes(-1)" class="p-2 bg-white rounded-lg shadow-sm hover:bg-blue-50 hover:text-blue-600 transition-colors" aria-label="Mes anterior">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-            </button>
-            <button (click)="cambiarMes(1)" class="p-2 bg-white rounded-lg shadow-sm hover:bg-blue-50 hover:text-blue-600 transition-colors" aria-label="Mes siguiente">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-            </button>
+        <div class="flex gap-1">
+          <button (click)="cambiarMes(-1)" class="p-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 text-xs transition-colors cursor-pointer shadow-2xs" aria-label="Mes anterior">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button (click)="cambiarMes(1)" class="p-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 text-xs transition-colors cursor-pointer shadow-2xs" aria-label="Mes siguiente">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Ficha de Datos del Personal y Notificación -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+    
+    <!-- Detalle de Identidad -->
+    <div class="lg:col-span-7 border border-slate-200/80 rounded-xl p-5 bg-white flex flex-col justify-between">
+      <div>
+        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Identificación del Personal</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-3 bg-slate-50/70 rounded-lg border border-slate-200/70">
+            <label for="bono-legajo" class="block text-[11px] font-medium text-slate-500 mb-1">Legajo</label>
+            <input id="bono-legajo" type="text" readonly [ngModel]="personaSeleccionada()?.legajoId ?? '-'"
+                   class="w-full bg-transparent border-0 p-0 text-xs font-mono font-bold text-slate-900 focus:outline-none">
+          </div>
+          <div class="p-3 bg-slate-50/70 rounded-lg border border-slate-200/70">
+            <label for="bono-documento" class="block text-[11px] font-medium text-slate-500 mb-1">Documento</label>
+            <input id="bono-documento" type="text" readonly [ngModel]="personaSeleccionada()?.documento ?? '-'"
+                   class="w-full bg-transparent border-0 p-0 text-xs font-mono font-bold text-slate-900 focus:outline-none">
+          </div>
+          <div class="p-3 bg-slate-50/70 rounded-lg border border-slate-200/70">
+            <label for="bono-ape-nom" class="block text-[11px] font-medium text-slate-500 mb-1">Apellido y Nombre</label>
+            <input id="bono-ape-nom" type="text" readonly [ngModel]="personaSeleccionada() ? (personaSeleccionada()!.apellidoNombre || ((personaSeleccionada()!.apellido ?? '') + ', ' + (personaSeleccionada()!.nombre ?? ''))) : '-'"
+                   class="w-full bg-transparent border-0 p-0 text-xs font-bold text-slate-900 truncate focus:outline-none">
           </div>
         </div>
       </div>
 
-    </div>
-
-    <!-- Datos del personal -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div>
-        <label for="bono-documento" class="block text-xs uppercase font-bold text-gray-500 mb-2">Documento</label>
-        <input id="bono-documento" type="text" readonly [ngModel]="personaSeleccionada()?.documento ?? ''"
-               class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-600 shadow-inner">
-      </div>
-      <div>
-        <label for="bono-legajo" class="block text-xs uppercase font-bold text-gray-500 mb-2">Legajo</label>
-        <input id="bono-legajo" type="text" readonly [ngModel]="personaSeleccionada()?.legajoId ?? ''"
-               class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-600 shadow-inner">
-      </div>
-      <div>
-        <label for="bono-ape-nom" class="block text-xs uppercase font-bold text-gray-500 mb-2">Apellido, Nombre</label>
-        <input id="bono-ape-nom" type="text" readonly [ngModel]="personaSeleccionada() ? (personaSeleccionada()!.apellidoNombre || ((personaSeleccionada()!.apellido ?? '') + ', ' + (personaSeleccionada()!.nombre ?? ''))) : ''"
-               class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-600 shadow-inner">
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+        <span>Estado: {{ personaSeleccionada() ? 'Personal identificado' : 'Pendiente de selección' }}</span>
+        <span class="font-mono">Período: {{ mes() }}/{{ anho() }}</span>
       </div>
     </div>
 
-    <!-- e-mail institucional -->
-    <div class="max-w-md">
-      <label for="bono-mail" class="block text-xs uppercase font-bold text-gray-500 mb-2">e-mail institucional</label>
-      <input id="bono-mail"
-             type="email"
-             [ngModel]="mailInstitucional()"
-             (ngModelChange)="onMailInput($event)"
-             (blur)="onMailBlur()"
-             class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all sm:text-sm shadow-sm"
-             [class.border-red-500]="mailInvalido()"
-             [class.bg-red-50]="mailInvalido()"
-             placeholder="personal@um.edu.ar">
-      @if (mailInvalido()) {
-        <p class="text-xs text-red-600 mt-1">La dirección de e-mail no es válida.</p>
-      }
-    </div>
-
-    <!-- Resultados -->
-    @if (integridad(); as check) {
-      @if (check.ok) {
-        <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-sm text-green-800">
-          Verificación de integridad correcta.
+    <!-- Canal de Notificación e-mail -->
+    <div class="lg:col-span-5 border border-slate-200/80 rounded-xl p-5 bg-white flex flex-col justify-between">
+      <div>
+        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Despacho Institucional</div>
+        <label for="bono-mail" class="block text-xs font-medium text-slate-700 mb-1.5">e-mail oficial del destinatario</label>
+        <div class="relative">
+          <input id="bono-mail"
+                 type="email"
+                 [ngModel]="mailInstitucional()"
+                 (ngModelChange)="onMailInput($event)"
+                 (blur)="onMailBlur()"
+                 class="w-full pl-9 pr-3.5 py-2 border rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-2xs bg-white"
+                 [class.border-rose-400]="mailInvalido()"
+                 [class.bg-rose-50/40]="mailInvalido()"
+                 [class.border-slate-300]="!mailInvalido()"
+                 placeholder="ejemplo@um.edu.ar">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+          </svg>
         </div>
-      } @else {
-        <div class="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-          <p class="text-sm font-bold text-amber-800 mb-2">Datos incompletos para el período seleccionado:</p>
-          <ul class="list-disc list-inside space-y-1">
-            @for (mensaje of mensajesFaltantes(); track mensaje) {
-              <li class="text-sm text-amber-800">{{ mensaje }}</li>
-            }
-          </ul>
-        </div>
-      }
-    }
-
-    @if (error(); as mensajeError) {
-      <div class="rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
-        {{ mensajeError }}
-      </div>
-    }
-
-    @if (exito(); as mensajeExito) {
-      <div class="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-800">
-        {{ mensajeExito }}
-      </div>
-    }
-
-    <!-- Actions -->
-    <div class="border-t border-gray-100 pt-6 mt-2 flex flex-wrap justify-end gap-3">
-      <button (click)="salir()"
-              class="px-6 py-3 text-gray-600 rounded-xl font-bold hover:bg-gray-100 transition-colors">
-        Salir
-      </button>
-
-      <button (click)="verificarIntegridad()"
-              [disabled]="!personaSeleccionada() || isVerifying()"
-              class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-        {{ isVerifying() ? 'Verificando...' : 'Verif. Integridad' }}
-      </button>
-
-      <button (click)="enviar()"
-              [disabled]="!personaSeleccionada() || !mailInstitucional() || isSending()"
-              class="px-6 py-3 bg-white border border-blue-200 text-blue-700 rounded-xl font-bold hover:bg-blue-50 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-        {{ isSending() ? 'Enviando...' : 'Enviar por e-mail' }}
-      </button>
-
-      <button (click)="imprimir()"
-              [disabled]="!personaSeleccionada() || isPrinting()"
-              class="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-md shadow-blue-200 transition-all flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group">
-        @if (isPrinting()) {
-          <div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+        @if (mailInvalido()) {
+          <p class="text-[11px] text-rose-600 mt-1 font-medium">La dirección ingresada no cumple el formato de e-mail institucional.</p>
         }
-        @if (!isPrinting()) {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-        }
-        <span>{{ isPrinting() ? 'Generando bono...' : 'Imprimir' }}</span>
-      </button>
+      </div>
+
+      <p class="text-[11px] text-slate-400 mt-3">
+        El recibo se adjuntará con firma digital y marca temporal oficial.
+      </p>
     </div>
 
   </div>
+
+  <!-- Resultados y Avisos Operacionales -->
+  @if (integridad(); as check) {
+    @if (check.ok) {
+      <div class="rounded-lg border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-xs font-medium text-emerald-800 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Verificación de integridad correcta. Los datos liquidados son válidos y consistentes para el período.</span>
+      </div>
+    } @else {
+      <div class="rounded-lg border border-amber-200 bg-amber-50/70 px-4 py-3 text-xs">
+        <p class="font-bold text-amber-900 mb-1.5 flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>Datos incompletos o pendientes para el período seleccionado:</span>
+        </p>
+        <ul class="list-disc list-inside space-y-0.5 text-amber-800 ml-5 text-[11px]">
+          @for (mensaje of mensajesFaltantes(); track mensaje) {
+            <li>{{ mensaje }}</li>
+          }
+        </ul>
+      </div>
+    }
+  }
+
+  @if (error(); as mensajeError) {
+    <div class="rounded-lg border border-rose-200 bg-rose-50/70 px-4 py-3 text-xs text-rose-800 flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>{{ mensajeError }}</span>
+    </div>
+  }
+
+  @if (exito(); as mensajeExito) {
+    <div class="rounded-lg border border-blue-200 bg-blue-50/70 px-4 py-3 text-xs text-blue-900 flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      <span>{{ mensajeExito }}</span>
+    </div>
+  }
+
 </div>
