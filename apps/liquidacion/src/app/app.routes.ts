@@ -3,11 +3,20 @@ import { authGuard, unauthGuard } from '@haberes/shared-api';
 import { TODAS_LAS_OPCIONES } from './menu-options.data';
 
 // Opciones migradas a componentes reales: se excluyen de los placeholders generados
-const RUTAS_MIGRADAS = new Set(['/consultas/bono-individual']);
+const RUTAS_MIGRADAS = new Set([
+  '/consultas/bono-individual',
+  '/contabilidad/imputacion-individual'
+]);
 
 const bonoIndividualRoute: Route = {
   path: 'consultas/bono-individual',
   loadComponent: () => import('@haberes/feature-bonos').then(m => m.BonoIndividualComponent),
+  canActivate: [authGuard]
+};
+
+const imputacionIndividualRoute: Route = {
+  path: 'contabilidad/imputacion-individual',
+  loadComponent: () => import('@haberes/feature-contabilidad').then(m => m.ImputacionIndividualComponent),
   canActivate: [authGuard]
 };
 
@@ -38,6 +47,7 @@ export const appRoutes: Routes = [
     canActivate: [authGuard]
   },
   bonoIndividualRoute,
+  imputacionIndividualRoute,
   ...opcionesRoutes,
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },
   { path: '**', redirectTo: 'inicio' }

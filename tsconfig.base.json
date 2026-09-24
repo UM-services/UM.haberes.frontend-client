@@ -33,6 +33,9 @@
       ],
       "@haberes/feature-bonos": [
         "./libs/feature-bonos/src/index.ts"
+      ],
+      "@haberes/feature-contabilidad": [
+        "./libs/feature-contabilidad/src/index.ts"
       ]
     },
     "rootDir": "."

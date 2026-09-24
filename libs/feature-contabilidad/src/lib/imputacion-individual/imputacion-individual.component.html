@@ -1,0 +1,444 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Header Contable con Acciones de Comando -->
+  <div class="border-b border-slate-200 pb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200/70 mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          <span>Módulo Contable &bull; Asiento Individual</span>
+        </div>
+        <h1 class="text-xl font-bold text-slate-900 tracking-tight">Generar Imputación Individual</h1>
+        <p class="text-slate-500 mt-1 text-xs md:text-sm leading-relaxed max-w-2xl">
+          Generación y consulta de imputaciones contables por legajo para el período seleccionado.
+        </p>
+      </div>
+
+      <!-- Botones de Acción Primarios -->
+      <div class="flex items-center gap-2">
+        <button (click)="revisar()"
+                [disabled]="isLoading() || isGenerating()"
+                class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-2xs cursor-pointer">
+          @if (isLoading()) {
+            <div class="animate-spin h-3.5 w-3.5 border-2 border-slate-700 border-t-transparent rounded-full"></div>
+            <span>Consultando...</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>Revisar Período</span>
+          }
+        </button>
+
+        <button (click)="generar()"
+                [disabled]="isLoading() || isGenerating()"
+                class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-2xs cursor-pointer">
+          @if (isGenerating()) {
+            <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
+            <span>Generando...</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            <span>Generar Asiento</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operational Configuration Bar -->
+  <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-5">
+    <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-3">Parámetros de Imputación</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+      
+      <!-- Búsqueda General / Apellido y Nombre -->
+      <div class="md:col-span-5 relative">
+        <label for="asiento-persona-search" class="block text-xs font-medium text-slate-700 mb-1.5">
+          Buscar Personal (Nombre o Legajo)
+        </label>
+        <div class="relative">
+          <input id="asiento-persona-search"
+                 type="text"
+                 [ngModel]="personaInput()"
+                 (ngModelChange)="onSearchInput($event)"
+                 class="w-full pl-9 pr-3.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-xs text-slate-900 shadow-2xs placeholder-slate-400 bg-white"
+                 placeholder="Escriba legajo o apellido...">
+          <div class="absolute left-3 top-2.5 text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Dropdown de Resultados -->
+        @if (showDropdown()) {
+          <div class="absolute z-20 w-full mt-1.5 bg-white rounded-xl shadow-lg border border-slate-200 max-h-60 overflow-y-auto">
+            <ul class="p-1">
+              @if (isSearching()) {
+                <li class="px-3.5 py-2 text-xs text-slate-500 italic">Buscando...</li>
+              }
+              @for (res of resultadosBusqueda(); track res.legajoId) {
+                <li (click)="seleccionarPersona(res)"
+                    (keyup.enter)="seleccionarPersona(res)"
+                    tabindex="0"
+                    role="button"
+                    class="px-3.5 py-2 hover:bg-slate-50 cursor-pointer rounded-lg flex items-center justify-between group transition-colors">
+                  <span class="text-xs font-semibold text-slate-900 group-hover:text-blue-700">
+                    {{ obtenerNombreCompleto(res) }}
+                  </span>
+                  <span class="text-[11px] text-slate-600 font-mono bg-slate-100 px-1.5 py-0.5 rounded">
+                    Legajo: {{ res.legajoId }} @if (res.documento) { | DNI: {{ res.documento }} }
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+
+      <!-- Documento -->
+      <div class="md:col-span-2">
+        <label for="asiento-documento" class="block text-xs font-medium text-slate-700 mb-1.5">
+          Documento
+        </label>
+        <input id="asiento-documento"
+               type="text"
+               [ngModel]="documentoInput()"
+               (ngModelChange)="documentoInput.set($event)"
+               (keyup.enter)="buscarPorDocumento()"
+               placeholder="DNI + Enter"
+               class="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-xs text-slate-900 shadow-2xs text-center font-mono bg-white">
+      </div>
+
+      <!-- Legajo -->
+      <div class="md:col-span-2">
+        <label for="asiento-legajo" class="block text-xs font-medium text-slate-700 mb-1.5">
+          Legajo
+        </label>
+        <input id="asiento-legajo"
+               type="text"
+               [ngModel]="legajoInput()"
+               (ngModelChange)="legajoInput.set($event)"
+               (keyup.enter)="buscarPorLegajo()"
+               placeholder="Legajo + Enter"
+               class="w-full px-2.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-xs text-slate-900 shadow-2xs text-center font-mono bg-white">
+      </div>
+
+      <!-- Período: Mes y Año -->
+      <div class="md:col-span-3 flex items-end gap-2">
+        <div class="flex-1">
+          <label for="asiento-mes" class="block text-xs font-medium text-slate-700 mb-1.5">Mes</label>
+          <input id="asiento-mes"
+                 type="number"
+                 min="1"
+                 max="12"
+                 [ngModel]="mes()"
+                 (ngModelChange)="mes.set($event)"
+                 class="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-semibold text-slate-900 shadow-2xs focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 bg-white">
+        </div>
+        <div class="flex-1">
+          <label for="asiento-anho" class="block text-xs font-medium text-slate-700 mb-1.5">Año</label>
+          <input id="asiento-anho"
+                 type="number"
+                 [ngModel]="anho()"
+                 (ngModelChange)="anho.set($event)"
+                 class="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-semibold text-slate-900 shadow-2xs focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 bg-white">
+        </div>
+        <div class="flex gap-1 mb-0.5">
+          <button (click)="cambiarMes(-1)"
+                  class="p-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 text-xs transition-colors cursor-pointer shadow-2xs"
+                  title="Mes Anterior"
+                  aria-label="Mes anterior">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button (click)="cambiarMes(1)"
+                  class="p-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 text-xs transition-colors cursor-pointer shadow-2xs"
+                  title="Mes Siguiente"
+                  aria-label="Mes siguiente">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mensajes de Alerta -->
+  @if (error()) {
+    <div class="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg flex items-center justify-between text-xs shadow-2xs">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ error() }}</span>
+      </div>
+      <button (click)="error.set(null)" class="text-rose-400 hover:text-rose-700 text-xs font-bold cursor-pointer">✕</button>
+    </div>
+  }
+
+  @if (exito()) {
+    <div class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg flex items-center justify-between text-xs shadow-2xs">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>{{ exito() }}</span>
+      </div>
+      <button (click)="exito.set(null)" class="text-emerald-400 hover:text-emerald-700 text-xs font-bold cursor-pointer">✕</button>
+    </div>
+  }
+
+  <!-- Banner de Descuadre Contable (Diferencia == 1) -->
+  @if (imputacionData() && imputacionData()!.diferencia === 1) {
+    <div class="p-4 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg flex items-center gap-3 text-xs shadow-2xs">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <div>
+        <span class="font-bold">Advertencia de Descuadre Contable:</span>
+        Existe diferencia entre los totales imputados y los montos liquidados del legajo en este período.
+      </div>
+    </div>
+  }
+
+  <!-- Grillas de Imputación Contable -->
+  @if (imputacionData()) {
+    <div class="flex flex-col gap-6">
+
+      <!-- Tabla 1: Cargos (Categorías) -->
+      <div class="border border-slate-200/80 rounded-xl overflow-hidden bg-white">
+        <div class="px-5 py-3 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-blue-600"></span>
+            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Cargos por Categoría</h3>
+          </div>
+          <span class="text-xs px-2.5 py-0.5 bg-white border border-slate-200 text-slate-600 rounded-full font-medium tabular-nums">
+            {{ imputacionData()!.cargos.length }} registros
+          </span>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3 w-14 text-center">Cat#</th>
+                <th class="py-2.5 px-3">Categoría</th>
+                <th class="py-2.5 px-3 w-14 text-center">Dep#</th>
+                <th class="py-2.5 px-3">Dependencia</th>
+                <th class="py-2.5 px-3 w-14 text-center">Fac#</th>
+                <th class="py-2.5 px-3">Facultad</th>
+                <th class="py-2.5 px-3 w-14 text-center">Geo#</th>
+                <th class="py-2.5 px-3">Sede</th>
+                <th class="py-2.5 px-3 text-right">Básico</th>
+                <th class="py-2.5 px-3 text-right">Antigüedad</th>
+                <th class="py-2.5 px-3 text-center">Cuenta</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              @for (cargo of imputacionData()!.cargos; track $index) {
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ cargo.categoriaId }}</td>
+                  <td class="py-2 px-3 font-medium text-slate-900">{{ cargo.categoriaNombre }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ cargo.dependenciaId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ cargo.dependenciaAcronimo }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ cargo.facultadId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ cargo.facultadNombre }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ cargo.geograficaId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ cargo.geograficaNombre }}</td>
+                  <td class="py-2 px-3 text-right font-mono font-medium text-slate-900 tabular-nums">{{ cargo.basico | number:'1.2-2' }}</td>
+                  <td class="py-2 px-3 text-right font-mono font-medium text-slate-900 tabular-nums">{{ cargo.antiguedad | number:'1.2-2' }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ cargo.cuentaSueldos ?? '-' }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="11" class="py-6 text-center text-slate-400 italic text-xs">No registra cargos por categoría en este período.</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-slate-900">
+              <tr>
+                <td colspan="8" class="py-2.5 px-3 text-right uppercase tracking-wider text-[11px] text-slate-600">Totales Cargos:</td>
+                <td class="py-2.5 px-3 text-right font-mono text-xs tabular-nums text-slate-900">
+                  {{ imputacionData()!.totales.totalCargosBasico | number:'1.2-2' }}
+                </td>
+                <td class="py-2.5 px-3 text-right font-mono text-xs tabular-nums text-slate-900">
+                  {{ imputacionData()!.totales.totalCargosAntiguedad | number:'1.2-2' }}
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabla 2: Cargos con Clase (Docentes) -->
+      <div class="border border-slate-200/80 rounded-xl overflow-hidden bg-white">
+        <div class="px-5 py-3 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-indigo-600"></span>
+            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Cargos con Clase</h3>
+          </div>
+          <span class="text-xs px-2.5 py-0.5 bg-white border border-slate-200 text-slate-600 rounded-full font-medium tabular-nums">
+            {{ imputacionData()!.cargosClase.length }} registros
+          </span>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3 w-14 text-center">Cla#</th>
+                <th class="py-2.5 px-3">Cargo con Clase</th>
+                <th class="py-2.5 px-3 w-14 text-center">Dep#</th>
+                <th class="py-2.5 px-3">Dependencia</th>
+                <th class="py-2.5 px-3 w-14 text-center">Fac#</th>
+                <th class="py-2.5 px-3">Facultad</th>
+                <th class="py-2.5 px-3 w-14 text-center">Geo#</th>
+                <th class="py-2.5 px-3">Sede</th>
+                <th class="py-2.5 px-3 text-right">Básico</th>
+                <th class="py-2.5 px-3 text-right">Antigüedad</th>
+                <th class="py-2.5 px-3 text-center">Cuenta</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              @for (clase of imputacionData()!.cargosClase; track $index) {
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ clase.cargoClaseId }}</td>
+                  <td class="py-2 px-3 font-medium text-slate-900">{{ clase.cargoClaseNombre }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ clase.dependenciaId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ clase.dependenciaAcronimo }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ clase.facultadId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ clase.facultadNombre }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ clase.geograficaId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ clase.geograficaNombre }}</td>
+                  <td class="py-2 px-3 text-right font-mono font-medium text-slate-900 tabular-nums">{{ clase.basico | number:'1.2-2' }}</td>
+                  <td class="py-2 px-3 text-right font-mono font-medium text-slate-900 tabular-nums">{{ clase.antiguedad | number:'1.2-2' }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ clase.cuentaSueldos ?? '-' }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="11" class="py-6 text-center text-slate-400 italic text-xs">No registra cargos con clase en este período.</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-slate-900">
+              <tr>
+                <td colspan="8" class="py-2.5 px-3 text-right uppercase tracking-wider text-[11px] text-slate-600">Totales Cargos con Clase:</td>
+                <td class="py-2.5 px-3 text-right font-mono text-xs tabular-nums text-slate-900">
+                  {{ imputacionData()!.totales.totalClasesBasico | number:'1.2-2' }}
+                </td>
+                <td class="py-2.5 px-3 text-right font-mono text-xs tabular-nums text-slate-900">
+                  {{ imputacionData()!.totales.totalClasesAntiguedad | number:'1.2-2' }}
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabla 3: Códigos -->
+      <div class="border border-slate-200/80 rounded-xl overflow-hidden bg-white">
+        <div class="px-5 py-3 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">Códigos Imputados</h3>
+          </div>
+          <span class="text-xs px-2.5 py-0.5 bg-white border border-slate-200 text-slate-600 rounded-full font-medium tabular-nums">
+            {{ imputacionData()!.codigos.length }} registros
+          </span>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3 w-14 text-center">Cod#</th>
+                <th class="py-2.5 px-3">Código</th>
+                <th class="py-2.5 px-3 text-center w-28">Tipo</th>
+                <th class="py-2.5 px-3 w-14 text-center">Dep#</th>
+                <th class="py-2.5 px-3">Dependencia</th>
+                <th class="py-2.5 px-3 w-14 text-center">Fac#</th>
+                <th class="py-2.5 px-3">Facultad</th>
+                <th class="py-2.5 px-3 w-14 text-center">Geo#</th>
+                <th class="py-2.5 px-3">Sede</th>
+                <th class="py-2.5 px-3 text-right">Importe</th>
+                <th class="py-2.5 px-3 text-center">Cuenta</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              @for (codigo of imputacionData()!.codigos; track $index) {
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ codigo.codigoId }}</td>
+                  <td class="py-2 px-3 font-medium text-slate-900">{{ codigo.codigoNombre }}</td>
+                  <td class="py-2 px-3 text-center">
+                    @if (codigo.remunerativo) {
+                      <span class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+                        Remunerativo
+                      </span>
+                    } @else {
+                      <span class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-md bg-blue-50 text-blue-800 border border-blue-200/60">
+                        No Remunerativo
+                      </span>
+                    }
+                  </td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ codigo.dependenciaId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ codigo.dependenciaAcronimo }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ codigo.facultadId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ codigo.facultadNombre }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ codigo.geograficaId }}</td>
+                  <td class="py-2 px-3 text-slate-600">{{ codigo.geograficaNombre }}</td>
+                  <td class="py-2 px-3 text-right font-mono font-medium text-slate-900 tabular-nums">{{ codigo.importe | number:'1.2-2' }}</td>
+                  <td class="py-2 px-3 text-center font-mono text-slate-500">{{ codigo.cuentaSueldos ?? '-' }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="11" class="py-6 text-center text-slate-400 italic text-xs">No registra códigos imputados en este período.</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot class="bg-slate-50 border-t-2 border-slate-200 font-bold text-slate-900">
+              <tr>
+                <td colspan="9" class="py-2.5 px-3 text-right uppercase tracking-wider text-[11px] text-slate-600">Total Códigos:</td>
+                <td class="py-2.5 px-3 text-right font-mono text-xs tabular-nums text-slate-900">
+                  {{ imputacionData()!.totales.totalCodigosImporte | number:'1.2-2' }}
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Resumen de Totales Finales Consolidado -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-slate-50/70 p-5 rounded-xl border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span class="text-xs uppercase font-bold text-slate-700 tracking-wider">Total Bruto Imputable</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Básicos + Antigüedades + Códigos Remunerativos</p>
+          </div>
+          <div class="text-xl font-mono font-bold text-slate-900 bg-white px-3.5 py-1.5 rounded-lg border border-slate-200 tabular-nums shadow-2xs">
+            $ {{ imputacionData()!.totales.totalBruto | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <div class="bg-blue-50/40 p-5 rounded-xl border border-blue-200/70 flex items-center justify-between">
+          <div>
+            <span class="text-xs uppercase font-bold text-blue-900 tracking-wider">Total No Remunerativo</span>
+            <p class="text-[11px] text-blue-700/80 mt-0.5">Asignaciones y Adicionales No Remunerativos</p>
+          </div>
+          <div class="text-xl font-mono font-bold text-blue-900 bg-white px-3.5 py-1.5 rounded-lg border border-blue-200 tabular-nums shadow-2xs">
+            $ {{ imputacionData()!.totales.totalNoRemunerativo | number:'1.2-2' }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>
