@@ -134,9 +134,18 @@ services:
 
 ## CI/CD
 
+Los tres entornos comparten un único pipeline reutilizable (`deploy-pipeline.yml`)
+que ejecuta `verify` (`npm ci` + lint + test + build), `build-images` (`npm ci` +
+build + artefactos), `publish-docker` (Buildx + push a Docker Hub, matriz:
+`liquidacion`, `novedades`) y `deploy` (runner self-hosted, solo `develop`/`staging`).
+
 | Workflow | Trigger | Descripción |
 |---|---|---|
-| `docker-publish.yml` | Push a `main` | Build y push de imágenes Docker a Docker Hub (matriz: `liquidacion`, `novedades`). Tags: `latest` + `sha`. |
+| `ci.yml` | PR a `main` | Validación affected con `npm ci`: lint, test y build de los proyectos impactados. |
+| `deploy-pipeline.yml` | `workflow_call` | Pipeline reutilizable de verify + build + publish + deploy (fuente única para los tres entornos). |
+| `docker-publish.yml` | Push a `main` | Llama al pipeline con environment `production`; publica imágenes Docker Hub con tags `<sha>` + `latest`. |
+| `deploy-develop.yml` | PR/push a `develop` | Llama al pipeline con environment `develop`; publica `<sha>` y despliega vía runner self-hosted. |
+| `deploy-staging.yml` | PR/push a `staging` | Llama al pipeline con environment `staging`; publica `<sha>` y despliega vía runner self-hosted. |
 | `generate-docs.yml` | Push a `main` | Genera dashboard documental en GitHub Pages con grafo Nx, historial de commits/PRs y diagrama de arquitectura. |
 
 ## Tecnologías
