@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0] - 2026-09-28
+
+### Added
+- **feat(`ui-layout`):** Shell institucional unificado `UiShellComponent` (`<ui-shell>`) en `@haberes/ui-layout`, composición J2 que reemplaza el ensamblado `ui-navbar` + `ui-sidebar`: sidebar oscuro (`bg-um-sidebar`) con marca UM y nombre de módulo, menú polimórfico (lineal vía `menuItems` para `novedades`; acordeón colapsable vía `menuGroups` para `liquidación`), badge de entorno (`APP_ENV_INFO` con label, color y tooltip con versión), perfil de usuario con sede y facultad, cierre de sesión, header móvil accesible con menú desplegable y vista limpia del `router-outlet` para login/desautenticación.
+- **feat(`ui-layout`):** Tema compartido J2 en `libs/ui-layout/src/styles/tokens.css`, importado por el `styles.css` de ambas apps: tokens `@theme static` (paleta `um-*`: `bg-um-sidebar`, `text-um-ink`, `border-um-border`, `bg-um-surface`, `text-um-primary`, tipografía Inter, escala tipográfica y radios) y capa `@layer components` con clases semánticas `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`) y `.um-table`.
+- **feat(`ui-layout`):** Tipos `ShellMenuItem` y `ShellMenuGroup` exportados desde el barrel, con alias de compatibilidad `MenuItem`/`MenuGroup` para los datos de menú existentes (`menu-options.data.ts`).
+- **feat(tests):** `ui-shell.spec.ts` que valida el renderizado del shell (menú lineal y agrupado, badge de entorno, usuario/logout y vista desautenticada), reemplazando la antigua especificación de navbar.
+
+### Changed
+- **refactor(apps):** `AppComponent` de `novedades` y `liquidación` reducida al uso declarativo de `<ui-shell>` (`moduleName`, `menuSectionLabel`, `menuItems`/`menuGroups`); el control de sesión (`isLoggedIn$`) ahora vive en el shell, eliminando los templates raíz `app.html`/`app.css` y los imports directos de `AuthService` en las apps.
+- **refactor(ui):** Migración de todas las vistas al tema J2 con clases `um-*` (en lugar de cadenas de utilidades ad-hoc): `AnotadorComponent`, `BonoIndividualComponent`, `CargosLegajoComponent`, `DocentesSedeComponent`, `ImputacionIndividualComponent`, `AsigCursosComponent`, `DesignacionesComponent` y el login de `ui-auth` (encabezado `um-eyebrow`/`um-page-title`, alertas `um-alert` y logo `h-16 w-auto`).
+- **docs:** `README.md` y `AGENTS.md` documentan el sistema de diseño J2 de cuatro capas (tokens, base/densidad, shell estructural y utilidades de componente); actualizados `libs/ui-layout/README.md`, `docs/architecture.mermaid` y el diagrama del pipeline `generate-docs.yml` para reflejar `ui-shell` en lugar de Navbar/Sidebar.
+
+### Removed
+- **refactor(`ui-layout`):** Eliminados `NavbarComponent` y `SidebarComponent` (componentes, templates y spec) del barrel público: su responsabilidad se unifica en `UiShellComponent`.
+
 ## [0.5.0] - 2026-09-24
 
 ### Added
