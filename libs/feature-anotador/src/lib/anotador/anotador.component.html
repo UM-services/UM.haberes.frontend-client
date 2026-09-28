@@ -1,24 +1,24 @@
 <div class="flex flex-col h-[calc(100vh-6rem)] gap-4">
   <!-- Cabecera de Filtros y Búsqueda -->
-  <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-wrap items-end gap-3.5 shrink-0">
+  <div class="um-card p-3.5 flex flex-wrap items-end gap-3.5 shrink-0">
     <div class="flex items-end gap-2">
       <div>
-        <label for="mes-input" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Mes</label>
+        <label for="mes-input" class="um-label">Mes</label>
         <input id="mes-input" type="number" [(ngModel)]="mes"
-               class="w-16 px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 shadow-2xs">
+               class="um-input w-16 text-center font-medium">
       </div>
       <div>
-        <label for="anho-input" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Año</label>
+        <label for="anho-input" class="um-label">Año</label>
         <input id="anho-input" type="number" [(ngModel)]="anho"
-               class="w-20 px-2.5 py-2 border border-slate-300 rounded-lg text-center text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 shadow-2xs">
+               class="um-input w-20 text-center font-medium">
       </div>
       <div class="flex gap-1">
-        <button (click)="cambiarMes(-1)" class="p-2 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200 text-slate-700 text-xs transition-colors cursor-pointer" aria-label="Mes anterior">
+        <button (click)="cambiarMes(-1)" class="um-btn-secondary p-2" aria-label="Mes anterior">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <button (click)="cambiarMes(1)" class="p-2 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200 text-slate-700 text-xs transition-colors cursor-pointer" aria-label="Mes siguiente">
+        <button (click)="cambiarMes(1)" class="um-btn-secondary p-2" aria-label="Mes siguiente">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
@@ -26,33 +26,33 @@
       </div>
     </div>
 
-    <div class="h-8 w-px bg-slate-200 mx-1 hidden md:block"></div>
+    <div class="h-8 w-px bg-um-border mx-1 hidden md:block"></div>
 
     <div class="flex-1 relative min-w-[280px]">
-      <label for="persona-search-input" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Buscador de Docente</label>
+      <label for="persona-search-input" class="um-label">Buscador de Docente</label>
       <div class="relative">
         <input id="persona-search-input" type="text" [ngModel]="personaInput()" (ngModelChange)="onSearchInput($event)"
-               class="w-full pl-9 pr-3.5 py-2 border border-slate-300 rounded-lg text-xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 shadow-2xs"
+               class="um-input pl-9"
                placeholder="Buscar por legajo o apellido...">
-        <div class="absolute left-3 top-2.5 text-slate-400">
+        <div class="absolute left-3 top-2.5 text-um-muted">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
       </div>
       @if (showDropdown()) {
-        <div class="absolute z-20 w-full mt-1.5 bg-white rounded-xl shadow-lg border border-slate-200 max-h-60 overflow-y-auto">
+        <div class="absolute z-20 w-full mt-1.5 bg-white rounded shadow-lg border border-um-border max-h-60 overflow-y-auto">
           <ul class="p-1">
             @if (isSearching()) {
-              <li class="px-3.5 py-2 text-xs text-slate-500 italic">Buscando en servidor...</li>
+              <li class="px-3.5 py-2 text-xs text-um-muted italic">Buscando en servidor...</li>
             }
             @for (res of resultadosBusqueda(); track res.legajoId) {
               <li (click)="seleccionarPersona(res)" (keyup.enter)="seleccionarPersona(res)" tabindex="0"
-                  class="px-3.5 py-2 hover:bg-slate-50 cursor-pointer rounded-lg flex items-center justify-between group transition-colors">
-                <span class="text-xs font-semibold text-slate-900 group-hover:text-blue-700">
+                  class="px-3.5 py-2 hover:bg-um-surface cursor-pointer rounded flex items-center justify-between group transition-colors">
+                <span class="text-xs font-semibold text-um-ink group-hover:text-um-primary">
                   {{ res.apellidoNombre || (res.apellido + ', ' + res.nombre) }}
                 </span>
-                <span class="text-[11px] text-slate-600 font-mono bg-slate-100 px-1.5 py-0.5 rounded">
+                <span class="text-[11px] text-um-muted font-mono bg-um-surface px-1.5 py-0.5 rounded">
                   #{{ res.legajoId }}
                 </span>
               </li>
@@ -62,8 +62,8 @@
       }
     </div>
 
-    <button (click)="revisar()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <button (click)="revisar()" class="um-btn-primary flex items-center gap-1.5 shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
       </svg>
       <span>Revisar Período</span>
@@ -73,22 +73,22 @@
   <!-- Contenedor Principal: Split View -->
   <div class="flex-1 flex flex-col md:flex-row gap-4 min-h-0 overflow-hidden">
     <!-- Panel Izquierdo: Lista de Personal con Solicitudes -->
-    <div class="w-full md:w-80 flex flex-col bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden shrink-0">
-      <div class="p-1.5 bg-slate-50/70 border-b border-slate-200/80 flex gap-1">
+    <div class="w-full md:w-80 flex flex-col bg-white rounded-lg border border-um-border shadow-sm overflow-hidden shrink-0">
+      <div class="p-1.5 bg-um-surface border-b border-um-border flex gap-1">
         <button (click)="cambiarTab('pendientes')" 
                 [class.bg-white]="activeTab() === 'pendientes'"
-                [class.shadow-2xs]="activeTab() === 'pendientes'"
-                [class.text-blue-800]="activeTab() === 'pendientes'"
-                [class.font-semibold]="activeTab() === 'pendientes'"
-                class="flex-1 py-1.5 text-xs rounded-lg transition-all text-slate-500 hover:text-slate-900 cursor-pointer">
+                [class.shadow-sm]="activeTab() === 'pendientes'"
+                [class.text-um-primary]="activeTab() === 'pendientes'"
+                [class.font-bold]="activeTab() === 'pendientes'"
+                class="flex-1 py-1.5 text-xs rounded transition-all text-um-muted hover:text-um-ink cursor-pointer">
           Pendientes ({{ pendientes().length }})
         </button>
         <button (click)="cambiarTab('revisados')"
                 [class.bg-white]="activeTab() === 'revisados'"
-                [class.shadow-2xs]="activeTab() === 'revisados'"
+                [class.shadow-sm]="activeTab() === 'revisados'"
                 [class.text-emerald-800]="activeTab() === 'revisados'"
-                [class.font-semibold]="activeTab() === 'revisados'"
-                class="flex-1 py-1.5 text-xs rounded-lg transition-all text-slate-500 hover:text-slate-900 cursor-pointer">
+                [class.font-bold]="activeTab() === 'revisados'"
+                class="flex-1 py-1.5 text-xs rounded transition-all text-um-muted hover:text-um-ink cursor-pointer">
           Revisados ({{ revisados().length }})
         </button>
       </div>
@@ -96,8 +96,8 @@
       <div class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
         @if (isLoadingList()) {
           <div class="py-10 text-center">
-             <div class="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-             <span class="text-xs text-slate-400">Cargando personal...</span>
+             <div class="animate-spin h-5 w-5 border-2 border-um-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+             <span class="text-xs text-um-muted">Cargando personal...</span>
           </div>
         }
         @if (activeTab() === 'pendientes') {
@@ -106,15 +106,15 @@
                  (keyup.enter)="seleccionarPersona(item.persona || {legajoId: item.legajoId, apellidoNombre: 'Legajo ' + item.legajoId})"
                  tabindex="0"
                  role="button"
-                 [class.border-blue-500]="personaSeleccionada()?.legajoId === item.legajoId"
-                 [class.bg-blue-50/80]="personaSeleccionada()?.legajoId === item.legajoId"
-                 class="p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
-              <p class="text-xs font-semibold text-slate-900 truncate group-hover:text-blue-700">
+                 [class.border-um-primary]="personaSeleccionada()?.legajoId === item.legajoId"
+                 [class.bg-um-selected]="personaSeleccionada()?.legajoId === item.legajoId"
+                 class="p-2.5 border border-um-border rounded hover:bg-um-surface cursor-pointer transition-colors group">
+              <p class="text-xs font-semibold text-um-ink truncate group-hover:text-um-primary">
                 {{ item.persona?.apellidoNombre || ('Legajo ' + item.legajoId) }}
               </p>
               <div class="flex justify-between items-center mt-1">
-                <span class="text-[10px] font-mono text-slate-600">#{{ item.legajoId }}</span>
-                <span class="px-1.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200/60 text-[10px] font-semibold rounded">
+                <span class="text-[10px] font-mono text-um-muted">#{{ item.legajoId }}</span>
+                <span class="px-1.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-semibold rounded">
                   PENDIENTE
                 </span>
               </div>
@@ -128,15 +128,15 @@
                  tabindex="0"
                  role="button"
                  [class.border-emerald-500]="personaSeleccionada()?.legajoId === item.legajoId"
-                 [class.bg-emerald-50/80]="personaSeleccionada()?.legajoId === item.legajoId"
-                 class="p-2.5 border border-slate-100 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
-              <p class="text-xs font-semibold text-slate-900 truncate group-hover:text-emerald-700">
+                 [class.bg-emerald-50/60]="personaSeleccionada()?.legajoId === item.legajoId"
+                 class="p-2.5 border border-um-border rounded hover:bg-um-surface cursor-pointer transition-colors group">
+              <p class="text-xs font-semibold text-um-ink truncate group-hover:text-emerald-700">
                 {{ item.persona?.apellidoNombre || ('Legajo ' + item.legajoId) }}
               </p>
               <div class="flex justify-between items-center mt-1">
-                <span class="text-[10px] font-mono text-slate-600">#{{ item.legajoId }}</span>
-                <span [class.bg-emerald-50]="item.autorizado" [class.text-emerald-800]="item.autorizado" [class.border-emerald-200]="item.autorizado"
-                      [class.bg-rose-50]="item.rechazado" [class.text-rose-800]="item.rechazado" [class.border-rose-200]="item.rechazado"
+                <span class="text-[10px] font-mono text-um-muted">#{{ item.legajoId }}</span>
+                <span [class.bg-green-50]="item.autorizado" [class.text-green-800]="item.autorizado" [class.border-green-200]="item.autorizado"
+                      [class.bg-red-50]="item.rechazado" [class.text-red-800]="item.rechazado" [class.border-red-200]="item.rechazado"
                       class="px-1.5 py-0.5 text-[10px] font-semibold rounded border uppercase">
                   {{ item.autorizado ? 'Autorizado' : (item.rechazado ? 'Rechazado' : 'Revisado') }}
                 </span>
@@ -149,55 +149,55 @@
 
     <!-- Panel Derecho: Historial y Redacción de Anotaciones -->
     <div class="flex-1 flex flex-col min-w-0">
-      <div class="flex-1 bg-white rounded-t-xl border-x border-t border-slate-200/80 shadow-2xs flex flex-col overflow-hidden min-h-0">
-        <div class="px-4 py-3 bg-slate-50/70 border-b border-slate-200/80 flex justify-between items-center shrink-0">
+      <div class="flex-1 bg-white rounded-t-lg border-x border-t border-um-border shadow-sm flex flex-col overflow-hidden min-h-0">
+        <div class="px-4 py-3 bg-um-surface border-b border-um-border flex justify-between items-center shrink-0">
           <div>
-            <h3 class="text-xs font-bold text-slate-900">
+            <h3 class="text-xs font-bold text-um-ink">
               {{ personaSeleccionada()?.apellidoNombre || 'Seleccione un docente de la lista o buscador' }}
             </h3>
             @if (personaSeleccionada()) {
-              <p class="text-[11px] text-slate-500">Historial de novedades y anotaciones de liquidación</p>
+              <p class="text-[11px] text-um-muted">Historial de novedades y anotaciones de liquidación</p>
             }
           </div>
           @if (!canAdd()) {
-            <div class="px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold rounded-md uppercase">
+            <div class="px-2.5 py-0.5 bg-um-surface text-um-muted border border-um-border text-[10px] font-bold rounded uppercase">
               Solo Lectura
             </div>
           }
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar bg-slate-50/40">
+        <div class="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar bg-um-surface/30">
           @for (h of historial(); track (h.id || $index)) {
             <div class="flex flex-col gap-1.5 max-w-2xl">
               <!-- Comentario Solicitante -->
-              <div class="bg-white p-3.5 rounded-lg border border-slate-200/80 shadow-2xs">
-                <div class="flex items-center justify-between text-[11px] text-slate-500 mb-2 pb-1.5 border-b border-slate-100">
+              <div class="bg-white p-3.5 rounded border border-um-border shadow-sm">
+                <div class="flex items-center justify-between text-[11px] text-um-muted mb-2 pb-1.5 border-b border-um-border">
                   <div class="flex items-center gap-1.5 font-medium">
-                    <span class="text-slate-800 font-semibold">{{ h.user }}</span>
+                    <span class="text-um-ink font-semibold">{{ h.user }}</span>
                     <span>&bull;</span>
-                    <span class="font-mono text-slate-600">{{ h.mes }}/{{ h.anho }}</span>
+                    <span class="font-mono text-um-muted">{{ h.mes }}/{{ h.anho }}</span>
                   </div>
                   <span [class.bg-amber-50]="h.pendiente" [class.text-amber-800]="h.pendiente" [class.border-amber-200]="h.pendiente"
-                        [class.bg-emerald-50]="h.autorizado" [class.text-emerald-800]="h.autorizado" [class.border-emerald-200]="h.autorizado"
-                        [class.bg-rose-50]="h.rechazado" [class.text-rose-800]="h.rechazado" [class.border-rose-200]="h.rechazado"
+                        [class.bg-green-50]="h.autorizado" [class.text-green-800]="h.autorizado" [class.border-green-200]="h.autorizado"
+                        [class.bg-red-50]="h.rechazado" [class.text-red-800]="h.rechazado" [class.border-red-200]="h.rechazado"
                         class="px-2 py-0.5 text-[10px] font-semibold uppercase rounded border">
                     {{ h.autorizado ? 'Aprobado' : (h.rechazado ? 'Rechazado' : 'Pendiente') }}
                   </span>
                 </div>
-                <p class="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{{ h.anotacion }}</p>
+                <p class="text-xs text-um-text whitespace-pre-wrap leading-relaxed">{{ h.anotacion }}</p>
                 
                 <!-- Respuesta Threaded / Anidada -->
                 @if (h.respuesta) {
-                  <div class="mt-3 p-3 bg-blue-50/60 border-l-2 border-blue-600 rounded-r-lg">
-                    <span class="text-[10px] font-bold text-blue-900 uppercase tracking-wider block mb-1">Respuesta Central de Haberes:</span>
-                    <p class="text-xs text-blue-950 leading-relaxed font-medium">{{ h.respuesta }}</p>
+                  <div class="mt-3 p-3 bg-um-selected border-l-2 border-um-primary rounded-r">
+                    <span class="text-[10px] font-bold text-um-primary uppercase tracking-wider block mb-1">Respuesta Central de Haberes:</span>
+                    <p class="text-xs text-um-ink leading-relaxed font-medium">{{ h.respuesta }}</p>
                   </div>
                 }
               </div>
             </div>
           }
           @if (historial().length === 0 && personaSeleccionada()) {
-            <div class="py-12 text-center text-slate-400 text-xs italic">
+            <div class="py-12 text-center text-um-muted text-xs italic">
               No hay anotaciones registradas para el docente en este período.
             </div>
           }
@@ -205,15 +205,15 @@
       </div>
 
       <!-- Área de Redacción Inferior -->
-      <div class="bg-white p-3.5 border border-slate-200/80 rounded-b-xl shrink-0 shadow-2xs">
+      <div class="bg-white p-3.5 border border-um-border rounded-b-lg shrink-0 shadow-sm">
         <div class="relative">
           <textarea [(ngModel)]="nuevaAnotacion" [disabled]="!canAdd() || !personaSeleccionada()" rows="3"
-                    class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all text-xs text-slate-900 resize-none disabled:bg-slate-100 disabled:cursor-not-allowed placeholder-slate-400"
+                    class="um-input resize-none"
                     [placeholder]="canAdd() ? (personaSeleccionada() ? 'Escriba una nueva anotación u observación...' : 'Seleccione un docente para registrar anotaciones.') : 'Período CERRADO para modificaciones.'"></textarea>
           
           <div class="flex justify-end mt-2">
             <button (click)="agregarAnotacion()" [disabled]="!canAdd() || !personaSeleccionada() || !nuevaAnotacion().trim() || isSubmitting()"
-                    class="px-4 py-1.5 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400 transition-colors flex items-center gap-1.5 text-xs font-semibold shadow-2xs cursor-pointer">
+                    class="um-btn-primary flex items-center gap-1.5 text-xs">
               @if (isSubmitting()) {
                 <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
                 <span>Enviando...</span>

@@ -1,2 +1,1 @@
-export * from './lib/navbar';
-export * from './lib/sidebar';
+export * from './lib/ui-shell/ui-shell';

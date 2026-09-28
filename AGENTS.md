@@ -16,6 +16,7 @@
 - Lint one project with `npx nx run <project>:lint` or all lint targets with `npx nx run-many -t lint`.
 - Test one project with `npx nx test <project>` or all test targets with `npx nx run-many -t test --watch=false`.
 - Routes use standalone `loadComponent` lazy loading for shared login and feature components; preserve this instead of reintroducing eager imports.
+- UI design follows the shared J2 theme: tokens and component utilities live in `libs/ui-layout/src/styles/tokens.css`, every app shell is `@haberes/ui-layout`'s `<ui-shell>`, and views use `um-*` classes (`.um-input`, `.um-btn-primary`, `.um-table`, ...) instead of ad-hoc palettes or one-off class strings.
 
 ## Verification And Deployment
 
@@ -27,27 +28,27 @@
 ## UI & Enterprise Design System (Estándares Visuales Institucionales)
 
 - **Aesthetic Philosophy**: Modern enterprise university portal ("anti-vibecoding"). Interfaces must convey institutional solidity, high data density, clear visual hierarchy, and sober elegance. Avoid decorative gimmicks, toy-like floating cards, excessive borders, or gratuitous heavy gradients.
-- **Styling Architecture**: Tailwind CSS v4 (`@tailwindcss/postcss`). Keep custom CSS minimal in `styles.css` (custom scrollbars, Inter font import); all component templates must use utility classes with consistent tokens.
+- **Styling Architecture**: Tailwind CSS v4 (`@tailwindcss/postcss`). Keep custom CSS minimal in `styles.css` (custom scrollbars); the shared J2 theme `libs/ui-layout/src/styles/tokens.css` is the single source of corporate tokens. Component templates must use the semantic `um-*` classes (`.um-input`, `.um-btn-primary`, `.um-card`, `.um-table`, ...) first and utility classes with theme tokens for layout, instead of ad-hoc palettes or one-off class strings.
 - **Color Palette & Semantic Roles**:
-  - *Neutrals (Slate-first)*: Page canvas `bg-slate-50`, cards/surfaces `bg-white`, hairline borders `border-slate-200/80` or `border-slate-100`, primary text `text-slate-900`, secondary `text-slate-600`, muted micro-copy `text-slate-400`/`text-slate-500`.
-  - *Brand & Primary Accent*: Universidad de Mendoza deep cobalt/royal blue (`text-blue-700`, `bg-blue-600 hover:bg-blue-700`, active states `bg-blue-50/90 text-blue-800 ring-1 ring-blue-600/10`).
+  - *Neutrals (um tokens)*: Page canvas `bg-um-canvas`, secondary surfaces `bg-um-surface`, cards `bg-white`, hairline borders `border-um-border` / `border-um-border-strong`, primary text `text-um-ink`, secondary `text-um-text`, muted micro-copy `text-um-muted`; dark shell sidebar `bg-um-sidebar` with `text-um-sidebar-text` / `text-um-sidebar-muted`.
+  - *Brand & Primary Accent*: Universidad de Mendoza deep cobalt/royal blue via um tokens (`text-um-primary`, `bg-um-primary hover:bg-um-primary-hover`, selected states `bg-um-selected text-um-primary`, sidebar active `bg-um-sidebar-active text-white`).
   - *Semantics*: Emerald for positive balances/reconciled entries (`text-emerald-700 bg-emerald-50 border-emerald-200`), Amber for pending/auditing (`text-amber-700 bg-amber-50 border-amber-200`), Rose for errors/unbalanced entries (`text-rose-700 bg-rose-50 border-rose-200`).
 - **Typography & Numerical Data**:
-  - Global font: **Inter** (`font-sans`), subpixel rendering (`antialiased text-slate-800`).
+  - Global font: **Inter** (`var(--font-um)`), subpixel rendering (`antialiased text-um-ink`).
   - Numeric & currency alignment: Always use tabular numbers (`tabular-nums`) and monospace font (`font-mono`) for monetary amounts, legajo numbers, accounting codes, and balance totals. Right-align all numerical and financial columns in data tables.
   - Micro-labels and section headers: Crisp, compact metadata using `text-[10px]` or `text-[11px]`, `font-bold` or `font-semibold`, uppercase, with `tracking-wider`.
 - **Data Tables & Density**:
-  - Design for enterprise workflows: sticky `thead` with `bg-slate-50/90 backdrop-blur-xs`, compact cell padding (`py-2 px-3`), hairline row dividers (`border-b border-slate-150` or `divide-y divide-slate-100`), and subtle hover feedback (`hover:bg-slate-50/80`).
+  - Design for enterprise workflows: use the semantic `.um-table` (compact `text-sm`, uppercase micro-headers in `text-um-muted`, hairline `border-um-border` row dividers); for bespoke tables keep sticky `thead`, compact cell padding (`py-2 px-3`) and subtle hover feedback.
 - **Form Controls & Inputs**:
-  - Compact height (`py-1.5 px-3 text-xs`), subtle borders (`border-slate-200`), and subdued focus rings (`focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500`).
+  - Use `.um-input` (`.um-input-invalid` for error state), `.um-label`, `.um-btn-primary` and `.um-btn-secondary` instead of per-field class strings; compact height and subdued focus rings come from the theme.
 
 ## Brand & Logo Display Standards (Logotipo Institucional)
 
 - **Asset**: `apps/liquidacion/public/logo.png` (Dimensions: 204 × 102 px, 2:1 landscape rectangular ratio; navy blue badge with UM shield and 65th-anniversary lettering).
 - **Proportions Rule**: NEVER wrap `logo.png` in a rigid square container (e.g., `w-9 h-9`, `w-10 h-10`). Because the image is twice as wide as it is tall, square constraints collapse the logo's effective height to ~14 px, rendering the emblem and text unreadable.
 - **Sizing Specifications**:
-  - *Desktop Sidebar*: `h-11 w-auto` (44 px height × ~88 px width), paired with a vertical hairline divider (`h-7 w-px bg-slate-200`) and the subsystem subtitle.
-  - *Login Screen*: `h-20 sm:h-24 w-auto` (80–96 px height), with soft elevation and ring border.
+  - *Desktop Sidebar*: `h-10 w-auto` (40 px height × ~80 px width) on the dark `ui-shell` sidebar, with the institutional white filter (`filter: brightness(0) invert(1)`) or text fallback (`UM · Haberes`), paired with a vertical hairline divider (`h-6 w-px bg-white/20`) and the subsystem subtitle.
+  - *Login Screen*: `h-16 w-auto` (64 px height), `object-contain` and `rounded-md`, over `bg-um-canvas`.
   - *Mobile Header/Navbar*: `h-8 w-auto` (32 px height).
 
 ## Nomenclature & Legacy VB6 Strict Ban (Nomenclatura y Limpieza de UI)
