@@ -4,16 +4,16 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
-import { AuthService } from '@haberes/shared-api';
+import { AuthService, Persona } from '@haberes/shared-api';
 
-import { BonoIndividualComponent, BonoPersona } from './bono-individual.component';
+import { BonoIndividualComponent } from './bono-individual.component';
 import { BonoImpresionResponse, IntegridadBonoResponse } from './bono.models';
 
 describe('BonoIndividualComponent', () => {
   let component: BonoIndividualComponent;
   let httpMock: HttpTestingController;
 
-  const persona: BonoPersona = {
+  const persona: Persona = {
     legajoId: 123,
     documento: 30123456,
     apellido: 'García',
@@ -57,7 +57,62 @@ describe('BonoIndividualComponent', () => {
     req.flush({ legajoId: 123, mailInstitucional: 'ana@um.edu.ar' });
 
     expect(component.personaSeleccionada()).toEqual(persona);
+    expect(component.legajoInput()).toBe('123');
+    expect(component.documentoInput()).toBe('30123456');
     expect(component.mailInstitucional()).toBe('ana@um.edu.ar');
+  });
+
+  it('buscarPorLegajo carga la ficha por el camino legacy del ENTER (GET /persona/{legajoId})', () => {
+    component.legajoInput.set('123');
+    component.buscarPorLegajo();
+
+    const req = httpMock.expectOne('/api/haberes/core/persona/123');
+    expect(req.request.method).toBe('GET');
+    req.flush(persona);
+
+    httpMock.expectOne('/api/haberes/core/contacto/123').flush({ legajoId: 123, mailInstitucional: 'ana@um.edu.ar' });
+
+    expect(component.personaSeleccionada()?.legajoId).toBe(123);
+    expect(component.mailInstitucional()).toBe('ana@um.edu.ar');
+  });
+
+  it('buscarPorDocumento usa GET /persona/documento/{documento}', () => {
+    component.documentoInput.set('30123456');
+    component.buscarPorDocumento();
+
+    const req = httpMock.expectOne('/api/haberes/core/persona/documento/30123456');
+    expect(req.request.method).toBe('GET');
+    req.flush(persona);
+
+    httpMock.expectOne('/api/haberes/core/contacto/123').flush({ legajoId: 123 });
+    expect(component.personaSeleccionada()?.legajoId).toBe(123);
+  });
+
+  it('no consulta el legajo si el valor no cambió o no es numérico', () => {
+    component.seleccionarPersona(persona);
+    httpMock.expectOne('/api/haberes/core/contacto/123').flush({ legajoId: 123 });
+
+    component.legajoInput.set('123');
+    component.buscarPorLegajo();
+
+    component.legajoInput.set('abc');
+    component.buscarPorLegajo();
+
+    httpMock.expectNone('/api/haberes/core/persona/123');
+  });
+
+  it('un 400 en buscarPorLegajo muestra el mensaje del core sin romper la selección', () => {
+    component.seleccionarPersona(persona);
+    httpMock.expectOne('/api/haberes/core/contacto/123').flush({ legajoId: 123 });
+
+    component.legajoInput.set('999999');
+    component.buscarPorLegajo();
+    httpMock
+      .expectOne('/api/haberes/core/persona/999999')
+      .flush({ message: 'Persona no encontrada' }, { status: 400, statusText: 'Bad Request' });
+
+    expect(component.error()).toBe('Persona no encontrada');
+    expect(component.personaSeleccionada()?.legajoId).toBe(123);
   });
 
   it('verificarIntegridad muestra los mensajes de faltantes del core', () => {

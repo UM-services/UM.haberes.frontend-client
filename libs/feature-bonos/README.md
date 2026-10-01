@@ -35,13 +35,16 @@ por lo que ya no se envía ningún placeholder.
 ## Componentes
 
 - **`BonoIndividualComponent`**: pantalla `/consultas/bono-individual` de la app
-  `liquidacion` (migración de `frmImprimirInd.frm`): búsqueda de personal por legajo o
-  apellido, período mes/año con navegación, verificación de integridad, impresión
+  `liquidacion` (migración de `frmImprimirInd.frm`): búsqueda de personal con el
+  buscador estándar `ui-persona-search` (multi-término como `frmSearchREST`) y
+  acceso directo por los campos Legajo/Documento con ENTER (`GET /persona/{legajoId}`
+  y `GET /persona/documento/{documento}`), período mes/año con navegación, verificación
+  de integridad, impresión
   (descarga/apertura del PDF y auditoría con la IP real en el core) y envío por e-mail
   con validación de mail vía `POST /api/haberes/core/tool/mailvalidate` (equivalente a
   `modValidate.validateMail` de VB6).
 
 ## Dependencias
 
-- `@haberes/shared-api` (AuthService para el legajo solicitante)
-- `@haberes/feature-designaciones` (búsqueda de personas, patrón de feature-cargos)
+- `@haberes/shared-api` (AuthService para el legajo solicitante, PersonaSearchService para los accesos por legajo/documento)
+- `@haberes/ui-layout` (buscador estándar `ui-persona-search`)

@@ -1,1 +1,2 @@
 export * from './lib/ui-shell/ui-shell';
+export * from './lib/persona-search/persona-search.component';

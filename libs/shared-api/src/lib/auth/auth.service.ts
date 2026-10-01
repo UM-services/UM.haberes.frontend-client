@@ -4,11 +4,19 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, map, catchError, of, switchMap, forkJoin } from 'rxjs';
 import { API_URL } from '../tokens';
 
+/**
+ * Modelo compartido de persona (DTO PersonaResponse/PersonaSearchResponse de
+ * haberes-core). Es el tipo que mueve el buscador estándar ui-persona-search
+ * y las pantallas que buscan a alguien.
+ */
 export interface Persona {
   legajoId: number;
   apellido: string;
   nombre: string;
   apellidoNombre?: string;
+  documento?: number | string | null;
+  estado?: number | null;
+  dependenciaId?: number | null;
   id?: number;
   facultadId?: number;
   facultadNombre?: string;

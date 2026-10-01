@@ -2,13 +2,13 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DesignacionesService } from './designaciones.service';
-import { AuthService } from '@haberes/shared-api';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError } from 'rxjs';
+import { AuthService, Persona } from '@haberes/shared-api';
+import { PersonaSearchComponent } from '@haberes/ui-layout';
 
 @Component({
   selector: 'haberes-designaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './designaciones.component.html'
 })
 export class DesignacionesComponent {
@@ -17,14 +17,9 @@ export class DesignacionesComponent {
 
   anho = signal<number>(new Date().getFullYear());
   mes = signal<number>(new Date().getMonth() + 1);
-  
-  personaInput = signal<string>('');
-  personaSeleccionada = signal<any | null>(null);
-  resultadosBusqueda = signal<any[]>([]);
-  isSearching = signal<boolean>(false);
-  showDropdown = signal<boolean>(false);
-  
-  private searchSubject = new Subject<string>();
+
+  // Búsqueda de personas: buscador estándar del portal (ui-persona-search).
+  personaSeleccionada = signal<Persona | null>(null);
 
   cursosCargo = signal<any[]>([]);
   cursosFusion = signal<any[]>([]);
@@ -36,40 +31,8 @@ export class DesignacionesComponent {
     return fid;
   });
 
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(() => this.isSearching.set(true)),
-      switchMap(rawTerm => {
-        const term = rawTerm.trim();
-        if (!term || term.length < 3) return of([]);
-        if (!isNaN(Number(term))) {
-           return this.service.getPersonaByLegajo(Number(term)).pipe(
-               switchMap(p => of([p])),
-               catchError(() => of([]))
-           );
-        }
-        return this.service.searchPersonas(term).pipe(catchError(() => of([])));
-      })
-    ).subscribe(resultados => {
-      this.resultadosBusqueda.set(resultados);
-      this.isSearching.set(false);
-      this.showDropdown.set(resultados.length > 0);
-    });
-  }
-
-  onSearchInput(value: string) {
-    this.personaInput.set(value);
-    this.personaSeleccionada.set(null);
-    this.cleanGrids();
-    this.searchSubject.next(value);
-  }
-
-  seleccionarPersona(persona: any) {
+  onPersonaSeleccionada(persona: Persona | null) {
     this.personaSeleccionada.set(persona);
-    this.personaInput.set(persona.apellidoNombre || persona.apellido + ', ' + persona.nombre);
-    this.showDropdown.set(false);
     this.cleanGrids();
   }
 
@@ -91,7 +54,7 @@ export class DesignacionesComponent {
   revisar() {
     const persona = this.personaSeleccionada();
     const facId = this.facultadId();
-    
+
     if (!persona) {
       alert("Seleccione un docente");
       return;
@@ -113,7 +76,7 @@ export class DesignacionesComponent {
       next: (data) => this.cursosFusion.set(data),
       error: () => this.cursosFusion.set([])
     });
-    
+
     setTimeout(() => this.isLoading.set(false), 500);
   }
 }
