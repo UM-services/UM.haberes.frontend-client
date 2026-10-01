@@ -1,20 +1,19 @@
-import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsignacionCursosService } from './asig-cursos.service';
-import { DesignacionesService } from '../designaciones/designaciones.service';
-import { AuthService } from '@haberes/shared-api';
+import { AuthService, Persona } from '@haberes/shared-api';
+import { PersonaSearchComponent } from '@haberes/ui-layout';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'haberes-asig-cursos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './asig-cursos.component.html'
 })
 export class AsigCursosComponent implements OnInit {
   private readonly service = inject(AsignacionCursosService);
-  private readonly desigService = inject(DesignacionesService);
   private readonly auth = inject(AuthService);
 
   anho = signal<number>(new Date().getFullYear());
@@ -32,13 +31,9 @@ export class AsigCursosComponent implements OnInit {
   cursos = signal<any[]>([]);
   cursoSeleccionado = signal<any | null>(null);
 
-  // Buscador Docente
-  personaInput = signal<string>('');
-  personaSeleccionada = signal<any | null>(null);
-  resultadosBusqueda = signal<any[]>([]);
-  isSearching = signal<boolean>(false);
-  showDropdown = signal<boolean>(false);
-  private searchSubject = new Subject<string>();
+  // Buscador Docente: buscador estándar del portal (ui-persona-search).
+  personaSeleccionada = signal<Persona | null>(null);
+  @ViewChild(PersonaSearchComponent) docenteSearch?: PersonaSearchComponent;
 
   // Grillas
   cargosActuales = signal<any[]>([]); // Combines titulares and contratados
@@ -65,27 +60,6 @@ export class AsigCursosComponent implements OnInit {
   });
 
   constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(() => this.isSearching.set(true)),
-      switchMap(rawTerm => {
-        const term = rawTerm.trim();
-        if (!term || term.length < 3) return of([]);
-        if (!isNaN(Number(term))) {
-           return this.desigService.getPersonaByLegajo(Number(term)).pipe(
-               switchMap(p => of([p])),
-               catchError(() => of([]))
-           );
-        }
-        return this.desigService.searchPersonas(term).pipe(catchError(() => of([])));
-      })
-    ).subscribe(resultados => {
-      this.resultadosBusqueda.set(resultados);
-      this.isSearching.set(false);
-      this.showDropdown.set(resultados.length > 0);
-    });
-
     effect(() => {
       this.checkAcreditacion();
       if (this.sedeSeleccionada() !== null) {
@@ -145,8 +119,8 @@ export class AsigCursosComponent implements OnInit {
   seleccionarCurso(curso: any) {
     this.cursoSeleccionado.set(curso);
     this.cargoSeleccionado.set(null);
-    this.personaInput.set('');
     this.personaSeleccionada.set(null);
+    this.docenteSearch?.limpiar();
     this.horasSemanales.set(null);
     this.cargoAltaSeleccionado.set(null);
     this.desarraigo.set(false);
@@ -184,17 +158,9 @@ export class AsigCursosComponent implements OnInit {
     this.cargosBaja.set([]);
   }
 
-  // Búsqueda de personas
-  onSearchInput(value: string) {
-    this.personaInput.set(value);
-    this.personaSeleccionada.set(null);
-    this.searchSubject.next(value);
-  }
-
-  seleccionarPersona(p: any) {
-    this.personaSeleccionada.set(p);
-    this.personaInput.set(p.apellidoNombre || p.apellido + ', ' + p.nombre);
-    this.showDropdown.set(false);
+  // Búsqueda de personas: el buscador estándar entrega la persona ya recargada por legajo.
+  onDocente(persona: Persona | null) {
+    this.personaSeleccionada.set(persona);
   }
 
   // Interacción Grilla Central
@@ -206,7 +172,7 @@ export class AsigCursosComponent implements OnInit {
        this.cargoAltaSeleccionado.set(cargo.cargoTipoId);
        this.horasSemanales.set(cargo.horasSemanales);
        this.desarraigo.set(cargo.desarraigo === 1);
-       if (cargo.persona) this.seleccionarPersona(cargo.persona);
+       if (cargo.persona) this.personaSeleccionada.set(cargo.persona as Persona);
     }
   }
 

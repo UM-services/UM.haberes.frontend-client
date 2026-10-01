@@ -3,46 +3,27 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import {
-  Subject,
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  of,
-  switchMap,
-  take,
-  tap
-} from 'rxjs';
+import { switchMap, take } from 'rxjs';
 
-import { AuthService } from '@haberes/shared-api';
-// Reutiliza la búsqueda de personas expuesta por Designaciones (patrón de feature-cargos)
-import { DesignacionesService } from '@haberes/feature-designaciones';
+import { AuthService, Persona, PersonaSearchService } from '@haberes/shared-api';
+// Buscador estándar de personas: respeta la forma de buscar del sistema legacy
+// (tipeo continuo + ENTER de selección sobre la lista de coincidencias).
+import { PersonaSearchComponent } from '@haberes/ui-layout';
 
 import { BonoReportService } from './bono-report.service';
 import { IntegridadBonoResponse } from './bono.models';
 
-export interface BonoPersona {
-  legajoId: number;
-  documento?: number | string | null;
-  apellido?: string;
-  nombre?: string;
-  apellidoNombre?: string;
-}
-
 @Component({
   selector: 'haberes-bono-individual',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './bono-individual.component.html'
 })
 export class BonoIndividualComponent {
   private readonly auth = inject(AuthService);
-  private readonly searchService = inject(DesignacionesService);
+  private readonly personas = inject(PersonaSearchService);
   private readonly bonoService = inject(BonoReportService);
   private readonly router = inject(Router);
-
-  private readonly searchSubject = new Subject<string>();
 
   private readonly mensajesFaltantesMap: Record<string, string> = {
     DEPENDENCIA: 'ERROR: Legajo SIN Dependencia',
@@ -55,11 +36,11 @@ export class BonoIndividualComponent {
   anho = signal<number>(new Date().getFullYear());
   mes = signal<number>(new Date().getMonth() + 1);
 
-  personaInput = signal<string>('');
-  personaSeleccionada = signal<BonoPersona | null>(null);
-  resultadosBusqueda = signal<BonoPersona[]>([]);
-  isSearching = signal<boolean>(false);
-  showDropdown = signal<boolean>(false);
+  personaSeleccionada = signal<Persona | null>(null);
+  // Como en el legacy, Legajo y Documento son campos de acceso: ENTER (o salir
+  // del campo con un valor nuevo) busca la persona exacta por esa clave.
+  legajoInput = signal<string>('');
+  documentoInput = signal<string>('');
 
   mailInstitucional = signal<string>('');
   mailInvalido = signal<boolean>(false);
@@ -86,46 +67,22 @@ export class BonoIndividualComponent {
         this.legajoSolicitante.set(usuario.legajoId);
       }
     });
-
-    this.searchSubject
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        tap(() => this.isSearching.set(true)),
-        switchMap((rawTerm) => {
-          const term = rawTerm.trim();
-          if (!term || term.length < 3) {
-            return of([] as BonoPersona[]);
-          }
-          if (!isNaN(Number(term))) {
-            return this.searchService
-              .getPersonaByLegajo(Number(term))
-              .pipe(map((persona) => (persona ? [persona as BonoPersona] : [])));
-          }
-          return this.searchService
-            .searchPersonas(term)
-            .pipe(map((lista) => (Array.isArray(lista) ? lista : []) as BonoPersona[]));
-        }),
-        catchError(() => of([] as BonoPersona[]))
-      )
-      .subscribe((resultados) => {
-        this.resultadosBusqueda.set(resultados);
-        this.isSearching.set(false);
-        this.showDropdown.set(resultados.length > 0);
-      });
   }
 
-  onSearchInput(value: string): void {
-    this.personaInput.set(value);
+  onPersonaSeleccionada(persona: Persona | null): void {
+    if (persona) {
+      this.seleccionarPersona(persona);
+      return;
+    }
     this.personaSeleccionada.set(null);
     this.integridad.set(null);
-    this.searchSubject.next(value);
   }
 
-  seleccionarPersona(persona: BonoPersona): void {
+  // Equivalente a fillForm del legacy: ficha del legajo + mail institucional del contacto.
+  seleccionarPersona(persona: Persona): void {
     this.personaSeleccionada.set(persona);
-    this.personaInput.set(BonoIndividualComponent.textoPersona(persona));
-    this.showDropdown.set(false);
+    this.legajoInput.set(String(persona.legajoId));
+    this.documentoInput.set(persona.documento === null || persona.documento === undefined ? '' : String(persona.documento));
     this.integridad.set(null);
     this.error.set(null);
     this.exito.set(null);
@@ -138,6 +95,37 @@ export class BonoIndividualComponent {
         this.mailInstitucional.set('');
         this.mailInvalido.set(false);
       }
+    });
+  }
+
+  buscarPorLegajo(): void {
+    const texto = this.legajoInput().trim();
+    if (!/^\d+$/.test(texto)) {
+      return;
+    }
+    const legajoId = Number(texto);
+    if (this.personaSeleccionada()?.legajoId === legajoId) {
+      return;
+    }
+    this.personas.getPersonaByLegajo(legajoId).subscribe({
+      next: (persona) => this.seleccionarPersona(persona),
+      error: (err: HttpErrorResponse) =>
+        this.error.set(this.mensajeHttp(err, `No se encontró personal con legajo ${texto}.`))
+    });
+  }
+
+  buscarPorDocumento(): void {
+    const texto = this.documentoInput().trim();
+    if (!/^\d+$/.test(texto)) {
+      return;
+    }
+    if (String(this.personaSeleccionada()?.documento ?? '') === texto) {
+      return;
+    }
+    this.personas.getPersonaByDocumento(texto).subscribe({
+      next: (persona) => this.seleccionarPersona(persona),
+      error: (err: HttpErrorResponse) =>
+        this.error.set(this.mensajeHttp(err, `No se encontró personal con documento ${texto}.`))
     });
   }
 
@@ -248,7 +236,7 @@ export class BonoIndividualComponent {
         mailInstitucional: mail,
         legajoIdSolicitud: solicitante
       })
-       .pipe(switchMap(() => this.bonoService.sendBono(persona.legajoId, this.anho(), this.mes())))
+      .pipe(switchMap(() => this.bonoService.sendBono(persona.legajoId, this.anho(), this.mes())))
       .subscribe({
         next: (mensaje) => {
           this.exito.set(mensaje?.trim() || 'Bono enviado.');
@@ -265,7 +253,7 @@ export class BonoIndividualComponent {
     this.router.navigate(['/inicio']);
   }
 
-  private descargarPdf(persona: BonoPersona, legajoIdSolicitud: number): void {
+  private descargarPdf(persona: Persona, legajoIdSolicitud: number): void {
     const legajoId = persona.legajoId;
     this.bonoService.downloadBonoPdf(legajoId, this.anho(), this.mes()).subscribe({
       next: (blob) => {
@@ -285,7 +273,7 @@ export class BonoIndividualComponent {
   }
 
   // Mismo formato que VB6 (clsCtlPrint.cls): apellido.nombre.legajoId.anho.mes.pdf
-  private nombreBono(persona: BonoPersona): string {
+  private nombreBono(persona: Persona): string {
     const limpiar = (valor?: string | number | null): string =>
       (valor === undefined || valor === null ? '' : String(valor)).replace(/[\\/:*?"<>|\r\n\t]/g, '-').trim();
     return `${limpiar(persona.apellido)}.${limpiar(persona.nombre)}.${persona.legajoId}.${this.anho()}.${this.mes()}.pdf`;
@@ -316,9 +304,5 @@ export class BonoIndividualComponent {
       return body.message;
     }
     return generico;
-  }
-
-  static textoPersona(persona: BonoPersona): string {
-    return persona.apellidoNombre || `${persona.apellido ?? ''}, ${persona.nombre ?? ''}`;
   }
 }

@@ -42,6 +42,20 @@
 - **Form Controls & Inputs**:
   - Use `.um-input` (`.um-input-invalid` for error state), `.um-label`, `.um-btn-primary` and `.um-btn-secondary` instead of per-field class strings; compact height and subdued focus rings come from the theme.
 
+## Standard Person Search (Buscador de Personas Estándar)
+
+- Every screen that looks up a person MUST use the standard search: the `<ui-persona-search>` component from `@haberes/ui-layout`, backed by `PersonaSearchService` from `@haberes/shared-api`. Do NOT re-implement search pipelines (Subject/debounce/dropdown wiring) inside feature libs, and do NOT add persona-search methods to feature services.
+- `PersonaSearchService` is the only client for haberes-core's `/api/haberes/core/persona` endpoints; the backend already implements the query semantics, so it must not be modified for UI search needs:
+  - `searchPersonas(termino)` / `buscar(termino)`: `POST /search` with the term split by spaces into an array of words (each one is an AND `LIKE '%word%'` condition over `vw_persona_search.search`, ordered by apellido/nombre, top 50 server-side). `buscar` searches from the first character (no minimum length) and only falls back to the exact legajo when the term is numeric and the text search found nothing.
+  - `getPersonaByLegajo(legajoId)` → `GET /persona/{legajoId}`; `getPersonaByDocumento(documento)` → `GET /persona/documento/{documento}`.
+- `<ui-persona-search>` behavior (mirrors the legacy typeahead modal: multi-word list, keyboard selection):
+  - Results render as `Apellido, Nombre (legajo)`; ArrowDown/ArrowUp move the highlight, ENTER confirms, ESC closes the panel.
+  - On selection it re-fetches the complete persona by legajo before emitting `(seleccionada)`; when the user edits the text after a selection it emits `null` once and keeps the typed text intact (parent echoes through `[persona]` are ignored).
+  - Inputs: `label`, `placeholder`, `buscandoLabel`, `panelClases` (panels inside `overflow-hidden` cards pass `panelClases="z-50 max-h-40"`), `[persona]` for parent-side preselections, and the `limpiar()` method to reset the field without emitting.
+- Exact-key lookups (legajo/DNI) belong in their own editable form fields firing on ENTER and blur via `getPersonaByLegajo` / `getPersonaByDocumento` (see `bono-individual`), not in the search box. Never re-add a numeric branch inside a feature's own search call.
+- The shared type is `Persona` (`@haberes/shared-api`, defined in `auth.service.ts`, with `documento`, `estado` and `dependenciaId`); do not define per-feature duplicate persona interfaces.
+- Exception: `feature-contabilidad` belongs to another backend and keeps its own service; do not migrate it to the standard search or "unify" its endpoints.
+
 ## Brand & Logo Display Standards (Logotipo Institucional)
 
 - **Asset**: `apps/liquidacion/public/logo.png` (Dimensions: 204 × 102 px, 2:1 landscape rectangular ratio; navy blue badge with UM shield and 65th-anniversary lettering).

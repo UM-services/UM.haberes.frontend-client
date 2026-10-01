@@ -129,24 +129,13 @@
           
           <div class="grid grid-cols-2 gap-2.5 text-xs">
             <div class="col-span-2 relative">
-              <label for="asig-docente" class="um-label">Docente</label>
-              <input id="asig-docente" type="text" [ngModel]="personaInput()" (ngModelChange)="onSearchInput($event)"
-                     placeholder="Buscar por legajo o apellido..."
-                     class="um-input">
-              <!-- Dropdown local -->
-              @if (showDropdown()) {
-                <div class="absolute z-50 w-full mt-1 bg-white rounded shadow-lg border border-um-border max-h-40 overflow-y-auto">
-                  <ul class="p-1">
-                    @for (res of resultadosBusqueda(); track res.legajoId) {
-                      <li (click)="seleccionarPersona(res)" (keyup.enter)="seleccionarPersona(res)" tabindex="0" role="button"
-                          class="px-3 py-1.5 hover:bg-um-surface cursor-pointer rounded text-xs text-um-ink flex justify-between items-center transition-colors">
-                        <span>{{ res.apellidoNombre || (res.apellido + ', ' + res.nombre) }}</span>
-                        <span class="font-mono text-[10px] text-um-muted">#{{ res.legajoId }}</span>
-                      </li>
-                    }
-                  </ul>
-                </div>
-              }
+              <ui-persona-search
+                label="Docente"
+                placeholder="Buscar por legajo o apellido..."
+                panelClases="z-50 max-h-40"
+                [persona]="personaSeleccionada()"
+                (seleccionada)="onDocente($event)"
+              />
             </div>
             <div>
               <label for="asig-cargo-tipo" class="um-label">Cargo</label>
