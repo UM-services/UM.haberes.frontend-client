@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.7.0] - 2026-10-01
+
+### Added
+- **feat(`shared-api`):** `PersonaSearchService`, exportado desde el barrel como acceso único a `/api/haberes/core/persona` de haberes-core: `searchPersonas(termino)` (el término se parte por espacios y cada palabra viaja como condición AND a `POST /search`, equivalentes a `clsREPPersona.formSearch`), `buscar(termino)` (busca desde el primer carácter y sólo cae al legajo exacto si el término es numérico sin coincidencias), `getPersonaByLegajo(legajoId)` (`GET /{legajoId}`) y `getPersonaByDocumento(documento)` (`GET /documento/{documento}`), más el helper `textoPersona`. Especificación con 7 casos unitarios.
+- **feat(`ui-layout`):** Buscador estándar `<ui-persona-search>` (`PersonaSearchComponent`, standalone) para todos los formularios del portal (equivale al modal `frmSearchREST` del legacy): coincidencias como `Apellido, Nombre (legajo)`, selección por teclado (flechas resaltan, ENTER confirma, ESC descarta), recarga de la persona completa por legajo antes de emitir `(seleccionada)`, binding `[persona]` para preselecciones del padre, método `limpiar()` y entradas `label`, `placeholder`, `buscandoLabel` y `panelClases`. Incluye especificación del componente.
+- **feat(`shared-api`):** Campos opcionales `documento`, `estado` y `dependenciaId` en la interfaz compartida `Persona` (DTO `PersonaResponse`/`PersonaSearchResponse` de haberes-core), tipo único para todos los flujos de búsqueda de personas.
+- **feat(`feature-bonos`):** Acceso exacto por legajo y documento en `bono-individual` mediante campos editables propios que consultan `getPersonaByLegajo` / `getPersonaByDocumento` al presionar ENTER o salir del campo.
+
+### Changed
+- **refactor(features):** Todas las pantallas que buscan personas migraron al buscador estándar (`<ui-persona-search>` + `PersonaSearchService`): `AnotadorComponent`, `BonoIndividualComponent`, `CargosLegajoComponent`, `DesignacionesComponent` y `AsigCursosComponent`, eliminando las pipelines duplicadas de Subject/debounce/dropdown dentro de cada feature y los imports cruzados a `@haberes/feature-designaciones` para buscar personas.
+- **docs:** `AGENTS.md` documenta la nueva sección "Standard Person Search (Buscador de Personas Estándar)" (uso obligatorio del buscador, semántica de `PersonaSearchService`, comportamiento de teclado, accesos exactos por legajo/DNI, tipo compartido `Persona` y excepción de `feature-contabilidad`); actualizados los READMEs de `shared-api`, `ui-layout`, `feature-anotador`, `feature-bonos`, `feature-cargos` y `feature-designaciones`; `docs/architecture.mermaid` refleja ahora el servicio de personas en `shared-api` y `ui-persona-search` en `ui-layout`.
+
+### Removed
+- **refactor(`feature-designaciones`):** Eliminados `searchPersonas` y `getPersonaByLegajo` de `DesignacionesService`, que queda sólo con las consultas de cursos cargo y cursos fusión (la búsqueda de personas pertenece al buscador estándar).
+- **refactor(`feature-bonos`):** Eliminada la interfaz duplicada `BonoPersona` y el helper local `textoPersona` del componente: se usa el tipo compartido `Persona` y el helper de `@haberes/shared-api`.
+
 ## [0.6.0] - 2026-09-28
 
 ### Added
