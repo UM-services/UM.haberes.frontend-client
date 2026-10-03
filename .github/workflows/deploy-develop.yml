@@ -18,6 +18,7 @@ jobs:
     uses: ./.github/workflows/deploy-pipeline.yml
     with:
       environment: develop
+      apps: '["liquidacion", "novedades"]'
       deploy: true
       deployRunner: develop
       deployScript: /kibaig0ahNgashee/infraestructura/um/env-develop/deploy-haberes-frontend-develop.sh
