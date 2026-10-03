@@ -8,7 +8,8 @@ Frontend corporativo para la gestión de haberes universitarios. Monorepo Nx con
 um.haberes.frontend-client/
 ├── apps/
 │   ├── liquidacion/          # App de Liquidación de Haberes
-│   └── novedades/            # App de Gestión de Novedades, Designaciones, Anotaciones y Cargos
+│   ├── novedades/            # App de Gestión de Novedades, Designaciones, Anotaciones y Cargos
+│   └── novedades-e2e/        # Tests E2E (Playwright) de novedades
 ├── libs/
 │   ├── ui-layout/            # @haberes/ui-layout — Shell institucional J2 unificado (ui-shell)
 │   ├── ui-auth/              # @haberes/ui-auth — Componente de login J2
@@ -68,6 +69,9 @@ nx build novedades --configuration=production
 nx test liquidacion
 nx test novedades
 
+# Tests E2E (levanta novedades en 4208; BASE_URL apunta a una app desplegada)
+nx e2e novedades-e2e
+
 # Linting
 nx lint liquidacion
 nx lint novedades
@@ -78,20 +82,30 @@ nx graph
 
 ## Arquitectura
 
-Cada app es un SPA independiente servido por Nginx con SSL. Las peticiones `/api/` se redirigen al backend `haberes-gateway-service:8091`. La URL del backend se inyecta en runtime mediante variables de entorno.
+Cada app es un SPA independiente servido por Nginx con SSL. Las peticiones `/api/` se redirigen al backend `haberes-gateway-service:8091`. La URL del backend se inyecta en runtime mediante variables de entorno. La imagen se construye con el multinodo `docker/app.Dockerfile` (ver sección Docker).
 
 Ver [docs/architecture.mermaid](docs/architecture.mermaid) para el diagrama de arquitectura.
 
 ## Docker
 
+La imagen es **multietapa**: compila la app con Nx *dentro* del contenedor, por
+lo que depende sólo del código fuente y nunca de un `dist/` local (reconstruir
+la imagen siempre refleja el working tree).
+
 ```bash
-# Build imagen Docker
-docker build -t liquidacion -f apps/liquidacion/Dockerfile .
-docker build -t novedades -f apps/novedades/Dockerfile .
+# Build de una app (requiere exportar LOCAL_RESOURCE si usás compose)
+docker build -f docker/app.Dockerfile --build-arg APP=novedades -t um-haberes-novedades-client .
+
+# O vía compose, conservando nombre de imagen y red del stack:
+npm run docker:app -- novedades        # build + up -d
+npm run docker:app -- liquidacion --no-up
 
 # Ejecutar con backend personalizado + entorno/version
-docker run -e BACKEND_URL=http://backend:8091 -e ENV_NAME=develop -e APP_VERSION=abc123 -p 443:443 liquidacion
+docker run -e BACKEND_URL=http://backend:8091 -e ENV_NAME=develop -e APP_VERSION=abc123 -p 443:443 um-haberes-novedades-client
 ```
+
+La config propia de cada app (`nginx.conf`, `entrypoint.sh`) sigue viviendo en
+`apps/<app>/`; `docker/app.Dockerfile` sólo parametriza el nombre con `APP=`.
 
 ## Indicador de entorno (runtime)
 
@@ -138,14 +152,15 @@ services:
 ## CI/CD
 
 Los tres entornos comparten un único pipeline reutilizable (`deploy-pipeline.yml`)
-que ejecuta `verify` (`npm ci` + lint + test + build), `build-images` (`npm ci` +
-build + artefactos), `publish-docker` (Buildx + push a Docker Hub, matriz:
-`liquidacion`, `novedades`) y `deploy` (runner self-hosted, solo `develop`/`staging`).
+que ejecuta `verify` (`npm ci` + lint + test, y build de producción sólo en PR),
+`publish-docker` (Buildx + push a Docker Hub compilando dentro de la imagen
+multietapa `docker/app.Dockerfile`, matriz desde el input `apps`) y `deploy`
+(runner self-hosted, solo `develop`/`staging`).
 
 | Workflow | Trigger | Descripción |
 |---|---|---|
 | `ci.yml` | PR a `main` | Validación affected con `npm ci`: lint, test y build de los proyectos impactados. |
-| `deploy-pipeline.yml` | `workflow_call` | Pipeline reutilizable de verify + build + publish + deploy (fuente única para los tres entornos). |
+| `deploy-pipeline.yml` | `workflow_call` | Pipeline reutilizable de verify + publish (imagen multietapa) + deploy (fuente única para los tres entornos). |
 | `docker-publish.yml` | Push a `main` | Llama al pipeline con environment `production`; publica imágenes Docker Hub con tags `<sha>` + `latest`. |
 | `deploy-develop.yml` | PR/push a `develop` | Llama al pipeline con environment `develop`; publica `<sha>` y despliega vía runner self-hosted. |
 | `deploy-staging.yml` | PR/push a `staging` | Llama al pipeline con environment `staging`; publica `<sha>` y despliega vía runner self-hosted. |
@@ -158,4 +173,5 @@ build + artefactos), `publish-docker` (Buildx + push a Docker Hub, matriz:
 - Tailwind CSS 4
 - TypeScript 5.9
 - Vitest
+- Playwright (E2E)
 - Docker + Nginx

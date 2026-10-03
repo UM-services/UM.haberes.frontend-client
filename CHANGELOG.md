@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.0] - 2026-10-03
+
+### Added
+- **feat(e2e):** Nuevo proyecto `apps/novedades-e2e` con Playwright (chromium) basado en `nxE2EPreset`: smoke de acceso (sin sesión el guard redirige a `/login` y el formulario renderiza usuario y contraseña sin backend), `webServer` que levanta `novedades:serve` en 4208 con `reuseExistingServer` y variable `BASE_URL` para probar una aplicación ya desplegada. Ejecución vía `npx nx e2e novedades-e2e`. Nuevas devDependencies `@nx/playwright`, `@playwright/test` y `eslint-plugin-playwright` con configuración ESLint flat propia del proyecto.
+- **feat(docker):** Dockerfile multinodo compartido `docker/app.Dockerfile` para todas las apps (`--build-arg APP=<app>`): la etapa Node (`npm ci` con cache mount + `npx nx build <app> --configuration=production --skip-nx-cache`) compila dentro de la imagen y la etapa Nginx copia el bundle junto con la config propia de cada app (`nginx.conf`, `entrypoint.sh`), generando el certificado SSL auto-firmado al vuelo; la imagen pasa a ser función exclusiva del código fuente y nunca de un `dist/` local. Nuevo `.dockerignore` que excluye `node_modules`, `dist`, `.angular`, `.nx` y `.git` del contexto de build.
+- **feat(`package.json`):** Script `docker:app` (`scripts/docker-image.mjs`) que reconstruye la imagen de una sola app: si encuentra el compose del stack (resuelto vía `LOCAL_RESOURCE`/`HABERES_COMPOSE`) usa `docker compose build` y luego `up -d --no-deps` —o sólo build con `--no-up`—, conservando nombre de imagen (`um-haberes-<app>-client`) y red; si no lo encuentra, cae a `docker build` suelto con `docker/app.Dockerfile`. Valida que el nombre pasado exista en `apps/` (ignora proyectos `-e2e`).
+- **feat(tests):** Especificaciones unitarias de servicios de feature con `HttpTestingController`: `AnotadorService` (pendientes y revisados por facultad/año/mes, historial de anotaciones por legajo, acreditación del período y alta de la anotación como cuerpo del POST), `CargosReportService` (detalle de cargos y docentes por sede como blob de reporte, geográficas del core) y `AsignacionCursosService` (sedes, filtro de cursos partido en palabras AND sin condiciones si está vacío, plantel titular/contratado, novedades pendientes de alta/baja, envío de novedad y acreditación del período). `feature-anotador`, `feature-cargos` y `feature-designaciones` reciben el target `test` con executor `@angular/build:unit-test` atado a `novedades:build:development` y su `tsconfig.spec.json`.
+- **chore(nx):** Registrados los plugins `@nx/playwright/plugin` (target `e2e`) y `@nx/eslint/plugin` (target `lint`); cache de tareas habilitado para `e2e`; generadores por defecto `e2eTestRunner: playwright` en aplicaciones y `unitTestRunner: vitest-angular` en aplicaciones y librerías; `analytics: false`.
+
+### Changed
+- **ci(deploy):** El workflow reutilizable `deploy-pipeline.yml` recibe la matriz de apps como input `apps` (JSON list) y construye/publica las imágenes desde `docker/app.Dockerfile` en el push: eliminados el job `build-images` y el upload/download del artefacto `dist/apps` (la imagen depende sólo del commit chequeado); `nx run-many -t build --configuration=production` corre únicamente en PRs, porque en el push la compilación multietapa dentro de la imagen es el chequeo de compilación. `docker-publish.yml`, `deploy-develop.yml` y `deploy-staging.yml` pasan `apps: ["liquidacion", "novedades"]`; matriz con `fail-fast: false`.
+- **ci(docs):** `generate-docs.yml` instala dependencias con `npm ci` en lugar de `npm install`, garantizando reproducibilidad desde el lockfile.
+- **docs:** README: sección Docker reescrita con el build multinodo y el script `docker:app`, estructura y comandos documentan `apps/novedades-e2e`, y el párrafo de CI/CD describe el pipeline actualizado; `AGENTS.md` documenta el proyecto e2e, los tests de librerías vía `@angular/build:unit-test`, el comando `docker:app` y los criterios de CI multi-entorno (imagen multietapa como chequeo de compilación en push, tags `sha` y `latest` sólo en `main`).
+
+### Removed
+- **chore(docker):** Eliminados los Dockerfiles de runtime `apps/novedades/Dockerfile` y `apps/liquidacion/Dockerfile`, que sólo hacían `COPY dist/apps/<app>/browser` de un build previo y servían bundles obsoletos si no se reejecutaba `nx build`; los reemplaza `docker/app.Dockerfile`. El script `docker:app` y los workflows ya no dependen de `dist/` local.
+
 ## [0.7.0] - 2026-10-01
 
 ### Added

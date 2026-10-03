@@ -1,13 +1,14 @@
 {
   "name": "um.haberes.frontend-client",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "scripts": {
     "ng": "ng",
     "start": "nx serve",
     "serve:all": "npx concurrently \"nx serve novedades --port 4208\" \"nx serve liquidacion --port 4209\"",
     "build": "nx build",
     "watch": "nx build --watch --configuration development",
-    "test": "nx test"
+    "test": "nx test",
+    "docker:app": "node scripts/docker-image.mjs"
   },
   "private": true,
   "packageManager": "npm@11.6.2",
@@ -32,9 +33,11 @@
     "@nx/eslint": "22.7.1",
     "@nx/eslint-plugin": "22.7.1",
     "@nx/js": "22.7.1",
+    "@nx/playwright": "^22.7.1",
     "@nx/web": "22.7.1",
     "@nx/workspace": "22.7.1",
     "@oxc-project/runtime": "^0.115.0",
+    "@playwright/test": "^1.63.0",
     "@schematics/angular": "^21.2.8",
     "@swc-node/register": "~1.11.1",
     "@swc/core": "~1.15.5",
@@ -44,6 +47,7 @@
     "angular-eslint": "^21.2.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
+    "eslint-plugin-playwright": "^1.8.3",
     "jsdom": "^28.0.0",
     "nx": "22.7.1",
     "postcss": "^8.5.3",
