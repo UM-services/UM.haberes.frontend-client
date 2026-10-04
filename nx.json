@@ -10,7 +10,6 @@
       "default",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/**/*.spec.[jt]s",
-      "!{projectRoot}/karma.conf.js",
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/eslint.config.mjs"
     ]
@@ -29,9 +28,11 @@
     "test": {
       "inputs": [
         "default",
-        "^production",
-        "{workspaceRoot}/karma.conf.js"
+        "^production"
       ],
+      "cache": true
+    },
+    "e2e": {
       "cache": true
     },
     "@angular/build:application": {
@@ -63,17 +64,31 @@
       ]
     }
   },
-  "analytics": true,
+  "plugins": [
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
+      }
+    },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    }
+  ],
+  "analytics": false,
   "generators": {
     "@nx/angular:application": {
-      "e2eTestRunner": "none",
+      "e2eTestRunner": "playwright",
       "linter": "eslint",
       "style": "css",
       "unitTestRunner": "vitest-angular"
     },
     "@nx/angular:library": {
       "linter": "eslint",
-      "unitTestRunner": "none"
+      "unitTestRunner": "vitest-angular"
     },
     "@nx/angular:component": {
       "style": "css"

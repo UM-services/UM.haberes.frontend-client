@@ -1,35 +1,27 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError } from 'rxjs';
 
-import { AuthService } from '@haberes/shared-api';
-// Reusing the search logic from Designaciones (they expose searchPersonas)
-import { DesignacionesService } from '@haberes/feature-designaciones';
+import { AuthService, Persona } from '@haberes/shared-api';
+import { PersonaSearchComponent } from '@haberes/ui-layout';
 import { CargosReportService } from './cargos-report.service';
 
 @Component({
   selector: 'haberes-cargos-legajo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './cargos-legajo.component.html'
 })
 export class CargosLegajoComponent {
   private readonly auth = inject(AuthService);
-  private readonly searchService = inject(DesignacionesService);
   private readonly reportService = inject(CargosReportService);
 
   anho = signal<number>(new Date().getFullYear());
   mes = signal<number>(new Date().getMonth() + 1);
-  
-  personaInput = signal<string>('');
-  personaSeleccionada = signal<any | null>(null);
-  resultadosBusqueda = signal<any[]>([]);
-  isSearching = signal<boolean>(false);
-  showDropdown = signal<boolean>(false);
+
+  // Buscador de personas: buscador estándar del portal (ui-persona-search).
+  personaSeleccionada = signal<Persona | null>(null);
   isDownloading = signal<boolean>(false);
-  
-  private searchSubject = new Subject<string>();
 
   facultadId = computed(() => {
     let fid = null;
@@ -37,39 +29,8 @@ export class CargosLegajoComponent {
     return fid;
   });
 
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(() => this.isSearching.set(true)),
-      switchMap(rawTerm => {
-        const term = rawTerm.trim();
-        if (!term || term.length < 3) return of([]);
-        if (!isNaN(Number(term))) {
-           return this.searchService.getPersonaByLegajo(Number(term)).pipe(
-               switchMap(p => of([p])),
-               catchError(() => of([]))
-           );
-        }
-        return this.searchService.searchPersonas(term).pipe(catchError(() => of([])));
-      })
-    ).subscribe(resultados => {
-      this.resultadosBusqueda.set(resultados);
-      this.isSearching.set(false);
-      this.showDropdown.set(resultados.length > 0);
-    });
-  }
-
-  onSearchInput(value: string) {
-    this.personaInput.set(value);
-    this.personaSeleccionada.set(null);
-    this.searchSubject.next(value);
-  }
-
-  seleccionarPersona(p: any) {
-    this.personaSeleccionada.set(p);
-    this.personaInput.set(p.apellidoNombre || `${p.apellido}, ${p.nombre}`);
-    this.showDropdown.set(false);
+  onPersonaSeleccionada(persona: Persona | null) {
+    this.personaSeleccionada.set(persona);
   }
 
   cambiarMes(incremento: number) {
@@ -84,7 +45,7 @@ export class CargosLegajoComponent {
   descargar() {
     const persona = this.personaSeleccionada();
     const facId = this.facultadId();
-    
+
     if (!persona) {
       alert("Seleccione un docente");
       return;

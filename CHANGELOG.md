@@ -1,5 +1,99 @@
 # Changelog
 
+## [0.8.0] - 2026-10-03
+
+### Added
+- **feat(e2e):** Nuevo proyecto `apps/novedades-e2e` con Playwright (chromium) basado en `nxE2EPreset`: smoke de acceso (sin sesión el guard redirige a `/login` y el formulario renderiza usuario y contraseña sin backend), `webServer` que levanta `novedades:serve` en 4208 con `reuseExistingServer` y variable `BASE_URL` para probar una aplicación ya desplegada. Ejecución vía `npx nx e2e novedades-e2e`. Nuevas devDependencies `@nx/playwright`, `@playwright/test` y `eslint-plugin-playwright` con configuración ESLint flat propia del proyecto.
+- **feat(docker):** Dockerfile multinodo compartido `docker/app.Dockerfile` para todas las apps (`--build-arg APP=<app>`): la etapa Node (`npm ci` con cache mount + `npx nx build <app> --configuration=production --skip-nx-cache`) compila dentro de la imagen y la etapa Nginx copia el bundle junto con la config propia de cada app (`nginx.conf`, `entrypoint.sh`), generando el certificado SSL auto-firmado al vuelo; la imagen pasa a ser función exclusiva del código fuente y nunca de un `dist/` local. Nuevo `.dockerignore` que excluye `node_modules`, `dist`, `.angular`, `.nx` y `.git` del contexto de build.
+- **feat(`package.json`):** Script `docker:app` (`scripts/docker-image.mjs`) que reconstruye la imagen de una sola app: si encuentra el compose del stack (resuelto vía `LOCAL_RESOURCE`/`HABERES_COMPOSE`) usa `docker compose build` y luego `up -d --no-deps` —o sólo build con `--no-up`—, conservando nombre de imagen (`um-haberes-<app>-client`) y red; si no lo encuentra, cae a `docker build` suelto con `docker/app.Dockerfile`. Valida que el nombre pasado exista en `apps/` (ignora proyectos `-e2e`).
+- **feat(tests):** Especificaciones unitarias de servicios de feature con `HttpTestingController`: `AnotadorService` (pendientes y revisados por facultad/año/mes, historial de anotaciones por legajo, acreditación del período y alta de la anotación como cuerpo del POST), `CargosReportService` (detalle de cargos y docentes por sede como blob de reporte, geográficas del core) y `AsignacionCursosService` (sedes, filtro de cursos partido en palabras AND sin condiciones si está vacío, plantel titular/contratado, novedades pendientes de alta/baja, envío de novedad y acreditación del período). `feature-anotador`, `feature-cargos` y `feature-designaciones` reciben el target `test` con executor `@angular/build:unit-test` atado a `novedades:build:development` y su `tsconfig.spec.json`.
+- **chore(nx):** Registrados los plugins `@nx/playwright/plugin` (target `e2e`) y `@nx/eslint/plugin` (target `lint`); cache de tareas habilitado para `e2e`; generadores por defecto `e2eTestRunner: playwright` en aplicaciones y `unitTestRunner: vitest-angular` en aplicaciones y librerías; `analytics: false`.
+
+### Changed
+- **ci(deploy):** El workflow reutilizable `deploy-pipeline.yml` recibe la matriz de apps como input `apps` (JSON list) y construye/publica las imágenes desde `docker/app.Dockerfile` en el push: eliminados el job `build-images` y el upload/download del artefacto `dist/apps` (la imagen depende sólo del commit chequeado); `nx run-many -t build --configuration=production` corre únicamente en PRs, porque en el push la compilación multietapa dentro de la imagen es el chequeo de compilación. `docker-publish.yml`, `deploy-develop.yml` y `deploy-staging.yml` pasan `apps: ["liquidacion", "novedades"]`; matriz con `fail-fast: false`.
+- **ci(docs):** `generate-docs.yml` instala dependencias con `npm ci` en lugar de `npm install`, garantizando reproducibilidad desde el lockfile.
+- **docs:** README: sección Docker reescrita con el build multinodo y el script `docker:app`, estructura y comandos documentan `apps/novedades-e2e`, y el párrafo de CI/CD describe el pipeline actualizado; `AGENTS.md` documenta el proyecto e2e, los tests de librerías vía `@angular/build:unit-test`, el comando `docker:app` y los criterios de CI multi-entorno (imagen multietapa como chequeo de compilación en push, tags `sha` y `latest` sólo en `main`).
+
+### Removed
+- **chore(docker):** Eliminados los Dockerfiles de runtime `apps/novedades/Dockerfile` y `apps/liquidacion/Dockerfile`, que sólo hacían `COPY dist/apps/<app>/browser` de un build previo y servían bundles obsoletos si no se reejecutaba `nx build`; los reemplaza `docker/app.Dockerfile`. El script `docker:app` y los workflows ya no dependen de `dist/` local.
+
+## [0.7.0] - 2026-10-01
+
+### Added
+- **feat(`shared-api`):** `PersonaSearchService`, exportado desde el barrel como acceso único a `/api/haberes/core/persona` de haberes-core: `searchPersonas(termino)` (el término se parte por espacios y cada palabra viaja como condición AND a `POST /search`, equivalentes a `clsREPPersona.formSearch`), `buscar(termino)` (busca desde el primer carácter y sólo cae al legajo exacto si el término es numérico sin coincidencias), `getPersonaByLegajo(legajoId)` (`GET /{legajoId}`) y `getPersonaByDocumento(documento)` (`GET /documento/{documento}`), más el helper `textoPersona`. Especificación con 7 casos unitarios.
+- **feat(`ui-layout`):** Buscador estándar `<ui-persona-search>` (`PersonaSearchComponent`, standalone) para todos los formularios del portal (equivale al modal `frmSearchREST` del legacy): coincidencias como `Apellido, Nombre (legajo)`, selección por teclado (flechas resaltan, ENTER confirma, ESC descarta), recarga de la persona completa por legajo antes de emitir `(seleccionada)`, binding `[persona]` para preselecciones del padre, método `limpiar()` y entradas `label`, `placeholder`, `buscandoLabel` y `panelClases`. Incluye especificación del componente.
+- **feat(`shared-api`):** Campos opcionales `documento`, `estado` y `dependenciaId` en la interfaz compartida `Persona` (DTO `PersonaResponse`/`PersonaSearchResponse` de haberes-core), tipo único para todos los flujos de búsqueda de personas.
+- **feat(`feature-bonos`):** Acceso exacto por legajo y documento en `bono-individual` mediante campos editables propios que consultan `getPersonaByLegajo` / `getPersonaByDocumento` al presionar ENTER o salir del campo.
+
+### Changed
+- **refactor(features):** Todas las pantallas que buscan personas migraron al buscador estándar (`<ui-persona-search>` + `PersonaSearchService`): `AnotadorComponent`, `BonoIndividualComponent`, `CargosLegajoComponent`, `DesignacionesComponent` y `AsigCursosComponent`, eliminando las pipelines duplicadas de Subject/debounce/dropdown dentro de cada feature y los imports cruzados a `@haberes/feature-designaciones` para buscar personas.
+- **docs:** `AGENTS.md` documenta la nueva sección "Standard Person Search (Buscador de Personas Estándar)" (uso obligatorio del buscador, semántica de `PersonaSearchService`, comportamiento de teclado, accesos exactos por legajo/DNI, tipo compartido `Persona` y excepción de `feature-contabilidad`); actualizados los READMEs de `shared-api`, `ui-layout`, `feature-anotador`, `feature-bonos`, `feature-cargos` y `feature-designaciones`; `docs/architecture.mermaid` refleja ahora el servicio de personas en `shared-api` y `ui-persona-search` en `ui-layout`.
+
+### Removed
+- **refactor(`feature-designaciones`):** Eliminados `searchPersonas` y `getPersonaByLegajo` de `DesignacionesService`, que queda sólo con las consultas de cursos cargo y cursos fusión (la búsqueda de personas pertenece al buscador estándar).
+- **refactor(`feature-bonos`):** Eliminada la interfaz duplicada `BonoPersona` y el helper local `textoPersona` del componente: se usa el tipo compartido `Persona` y el helper de `@haberes/shared-api`.
+
+## [0.6.0] - 2026-09-28
+
+### Added
+- **feat(`ui-layout`):** Shell institucional unificado `UiShellComponent` (`<ui-shell>`) en `@haberes/ui-layout`, composición J2 que reemplaza el ensamblado `ui-navbar` + `ui-sidebar`: sidebar oscuro (`bg-um-sidebar`) con marca UM y nombre de módulo, menú polimórfico (lineal vía `menuItems` para `novedades`; acordeón colapsable vía `menuGroups` para `liquidación`), badge de entorno (`APP_ENV_INFO` con label, color y tooltip con versión), perfil de usuario con sede y facultad, cierre de sesión, header móvil accesible con menú desplegable y vista limpia del `router-outlet` para login/desautenticación.
+- **feat(`ui-layout`):** Tema compartido J2 en `libs/ui-layout/src/styles/tokens.css`, importado por el `styles.css` de ambas apps: tokens `@theme static` (paleta `um-*`: `bg-um-sidebar`, `text-um-ink`, `border-um-border`, `bg-um-surface`, `text-um-primary`, tipografía Inter, escala tipográfica y radios) y capa `@layer components` con clases semánticas `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`) y `.um-table`.
+- **feat(`ui-layout`):** Tipos `ShellMenuItem` y `ShellMenuGroup` exportados desde el barrel, con alias de compatibilidad `MenuItem`/`MenuGroup` para los datos de menú existentes (`menu-options.data.ts`).
+- **feat(tests):** `ui-shell.spec.ts` que valida el renderizado del shell (menú lineal y agrupado, badge de entorno, usuario/logout y vista desautenticada), reemplazando la antigua especificación de navbar.
+
+### Changed
+- **refactor(apps):** `AppComponent` de `novedades` y `liquidación` reducida al uso declarativo de `<ui-shell>` (`moduleName`, `menuSectionLabel`, `menuItems`/`menuGroups`); el control de sesión (`isLoggedIn$`) ahora vive en el shell, eliminando los templates raíz `app.html`/`app.css` y los imports directos de `AuthService` en las apps.
+- **refactor(ui):** Migración de todas las vistas al tema J2 con clases `um-*` (en lugar de cadenas de utilidades ad-hoc): `AnotadorComponent`, `BonoIndividualComponent`, `CargosLegajoComponent`, `DocentesSedeComponent`, `ImputacionIndividualComponent`, `AsigCursosComponent`, `DesignacionesComponent` y el login de `ui-auth` (encabezado `um-eyebrow`/`um-page-title`, alertas `um-alert` y logo `h-16 w-auto`).
+- **docs:** `README.md` y `AGENTS.md` documentan el sistema de diseño J2 de cuatro capas (tokens, base/densidad, shell estructural y utilidades de componente); actualizados `libs/ui-layout/README.md`, `docs/architecture.mermaid` y el diagrama del pipeline `generate-docs.yml` para reflejar `ui-shell` en lugar de Navbar/Sidebar.
+
+### Removed
+- **refactor(`ui-layout`):** Eliminados `NavbarComponent` y `SidebarComponent` (componentes, templates y spec) del barrel público: su responsabilidad se unifica en `UiShellComponent`.
+
+## [0.5.0] - 2026-09-24
+
+### Added
+- **feat(`feature-contabilidad`):** Nueva librería `@haberes/feature-contabilidad` para gestión de asientos contables individuales e imputación (`ImputacionIndividualComponent`, `ContabilidadService`, modelos y tests unitarios).
+- **feat(skills):** Skill `frontend-guidelines` para lineamientos de diseño corporativo, patrones de tablas contables, uso del logo y prevención de terminología legacy.
+
+### Changed
+- **refactor(ui):** Refactorización estética corporativa moderna (Enterprise Institutional Design System):
+  - Integración de tipografía Inter, cifras tabulares (`tabular-nums`) para montos y códigos contables, y paleta institucional Slate + Azul UM (`blue-700`).
+  - Rediseño de tablas de datos de alta densidad operativa con cabeceras fijas (`backdrop-blur-xs`), bordes tenues y alineación financiera rigurosa.
+  - Redimensionamiento y jerarquía del logotipo institucional (`logo.png`, 204×102 px): eliminación de contenedores cuadrados restrictivos y adopción de escala `h-11` (desktop sidebar), `h-20`/`h-24` (login) y `h-8` (móvil).
+  - Erradicación integral de referencias a Visual Basic 6 (`.frm`, `.vbp`, "migración de VB6") en títulos, tarjetas, badges y buscadores de toda la interfaz de usuario.
+- **docs:** Actualización de `AGENTS.md` y `README.md` con los lineamientos de diseño, reglas de logotipo y estándares de nomenclatura limpia.
+- **docs(architecture):** Actualización de `docs/architecture.mermaid` con `feature-contabilidad` (ImputacionIndividual) en la app `liquidacion`.
+
+## [0.4.0] - 2026-09-22
+
+
+### Added
+- **feat(`feature-bonos`):** Nueva librería `@haberes/feature-bonos` para el bono individual del docente (migración de `prjBonos` VB6).
+  - `BonoIndividualComponent`: validación de integridad del bono, preparación, descarga de PDF, registro de auditoría con legajo solicitante y envío por email con validación de casilla.
+  - `BonoReportService` sobre `/api/haberes/core/bono` y `/api/haberes/report/bono` (endpoints de front `/ui/generatePdf` y `/ui/sendBono`; la IP de auditoría la resuelve el backend, nunca el browser).
+  - Modelos tipados (`IntegridadBonoResponse`, `ActividadResponse`, `BonoImpresionResponse`, etc.) exportados desde el barrel.
+- **feat(`liquidacion`):** Nueva ruta lazy `/consultas/bono-individual` que monta `BonoIndividualComponent`.
+- **feat(`liquidacion`):** Catálogo de opciones del sistema migrado de VB6 (`menu-options.data.ts`) con panel `/inicio` de búsqueda y filtrado por grupos funcionales, y rutas placeholder autogeneradas para las opciones aún no migradas.
+- **feat(`ui-layout`):** Sidebar con menús colapsables por grupos (`MenuGroup`, input `menuGroups`); navbar con badge de entorno (label, color y tooltip con versión) junto al usuario.
+- **feat(`shared-api`):** Indicador de entorno en runtime: token `APP_ENV_INFO` + `provideAppEnvInfo` (prefija el `document.title`) y `getEnvDisplay()` que normaliza `ENV_NAME` a LOCAL/DESARROLLO/STAGING/PRODUCCIÓN, mostrando "SIN DEFINIR" en rojo si falta.
+- **feat(`shared-api`):** Token `API_URL` consumido por `AuthService` y `errorInterceptor` que cierra sesión y redirige a `/login` ante 401/403; ambos registrados en `app.config.ts` de las dos apps.
+- **feat(apps):** `environment.development.ts` con `fileReplacements` en el target `build:development` de cada app: en `ng serve` el badge muestra LOCAL sin Docker.
+- **feat(apps):** `entrypoint.sh` sustituye además `ENV_NAME_PLACEHOLDER` y `APP_VERSION_PLACEHOLDER` en los `.js` servidos, con defaults evidenciables (`desconocido`/`sin-version`).
+- **feat(`package.json`):** Script `serve:all` que levanta novedades (4208) y liquidacion (4209) con concurrently.
+- **feat(ci):** Nuevos workflows `ci.yml` (validación de PR a `main`: chequeo de sincronización package/lock, `npm ci`, `nx affected` de lint/test/build), `deploy-develop.yml` y `deploy-staging.yml` (verify + build + deploy multi-entorno).
+- **chore(workspace):** Etiquetas `type:*`/`scope:*` en todos los proyectos y reglas `depConstraints` de dirección de dependencias en ESLint; path mapping `@haberes/feature-bonos`; targets de test (Vitest vía `@angular/build:unit-test`) para `shared-api`, `ui-layout` y `feature-bonos`.
+
+### Changed
+- **perf(`novedades`):** Todas las rutas pasan a lazy loading con `loadComponent`, eliminando los imports eager de las feature libraries.
+- **ci(docker):** Los `Dockerfile` consumen el artefacto `dist/` pre-construido por el pipeline en lugar de compilar multi-stage en la imagen.
+- **ci(nginx):** `proxy_pass` del gateway con variable y `resolver 127.0.0.11` para resolución DNS dinámica en Docker.
+- **refactor(`shared-api`):** `AuthService.logout()` navega con `Router` en lugar de `window.location.href`; URLs derivadas de `API_URL`.
+- **ui:** Puertos de desarrollo porteados a 4208 (novedades) y 4209 (liquidacion) alineados con `docker-compose.yml`; escala tipográfica global 87.5%; marca "Haberes" en navbar/sidebar.
+- **chore(nx):** Inputs de lint/test limpiados de `karma.conf.js` obsoleto; fix de `npm ci` y lint en `package-lock.json` (PRs #11 y #12).
+
+### Fixed
+- **fix(`ui-layout`):** Especificación de `NavbarComponent` para el badge de entorno (label/color/tooltip y ausencia de badge sin `APP_ENV_INFO`).
+
 ## [0.3.1] - 2026-07-10
 
 ### Added

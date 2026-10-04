@@ -2,19 +2,17 @@ import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnotadorService } from './anotador.service';
-import { AuthService } from '@haberes/shared-api';
-import { DesignacionesService } from '@haberes/feature-designaciones';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError } from 'rxjs';
+import { AuthService, Persona } from '@haberes/shared-api';
+import { PersonaSearchComponent } from '@haberes/ui-layout';
 
 @Component({
   selector: 'haberes-anotador',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './anotador.component.html'
 })
 export class AnotadorComponent {
   private readonly service = inject(AnotadorService);
-  private readonly desigService = inject(DesignacionesService);
   private readonly auth = inject(AuthService);
 
   anho = signal<number>(new Date().getFullYear());
@@ -25,19 +23,14 @@ export class AnotadorComponent {
   activeTab = signal<'pendientes' | 'revisados'>('pendientes');
   isLoadingList = signal<boolean>(false);
 
-  personaSeleccionada = signal<any | null>(null);
+  // Buscador de personas: buscador estándar del portal (ui-persona-search).
+  personaSeleccionada = signal<Persona | null>(null);
   historial = signal<any[]>([]);
   isLoadingHistory = signal<boolean>(false);
 
   nuevaAnotacion = signal<string>('');
   canAdd = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
-
-  personaInput = signal<string>('');
-  resultadosBusqueda = signal<any[]>([]);
-  isSearching = signal<boolean>(false);
-  showDropdown = signal<boolean>(false);
-  private searchSubject = new Subject<string>();
 
   facultadId = computed(() => {
     let fid = null;
@@ -46,27 +39,6 @@ export class AnotadorComponent {
   });
 
   constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(() => this.isSearching.set(true)),
-      switchMap(rawTerm => {
-        const term = rawTerm.trim();
-        if (!term || term.length < 3) return of([]);
-        if (!isNaN(Number(term))) {
-           return this.desigService.getPersonaByLegajo(Number(term)).pipe(
-               switchMap(p => of([p])),
-               catchError(() => of([]))
-           );
-        }
-        return this.desigService.searchPersonas(term).pipe(catchError(() => of([])));
-      })
-    ).subscribe(resultados => {
-      this.resultadosBusqueda.set(resultados);
-      this.isSearching.set(false);
-      this.showDropdown.set(resultados.length > 0);
-    });
-
     effect(() => {
       this.checkAcreditacion();
       this.revisar();
@@ -90,16 +62,28 @@ export class AnotadorComponent {
     });
   }
 
-  onSearchInput(value: string) {
-    this.personaInput.set(value);
-    this.searchSubject.next(value);
+  // Tanto la selección en el buscador como el click en las listas de novedades
+  // pasan por acá: fija la persona y carga su historial.
+  seleccionarPersona(persona: Persona | null) {
+    if (!persona) {
+      return;
+    }
+    this.personaSeleccionada.set(persona);
+    this.loadHistorial(persona.legajoId);
   }
 
-  seleccionarPersona(p: any) {
-    this.personaSeleccionada.set(p);
-    this.personaInput.set(p.apellidoNombre || `${p.apellido}, ${p.nombre}`);
-    this.showDropdown.set(false);
-    this.loadHistorial(p.legajoId);
+  // Las filas de novedades pueden traer la persona cargada o sólo el legajo;
+  // se construye la persona mínima para reutilizar el mismo flujo de selección.
+  personaDeNovedad(item: any): Persona {
+    if (item.persona) {
+      return item.persona as Persona;
+    }
+    return {
+      legajoId: item.legajoId,
+      apellido: '',
+      nombre: '',
+      apellidoNombre: `Legajo ${item.legajoId}`
+    };
   }
 
   revisar() {
