@@ -4,10 +4,20 @@
   "sourceRoot": "libs/feature-cargos/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": ["type:feature", "scope:novedades"],
+  "tags": [
+    "type:feature",
+    "scope:novedades"
+  ],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "novedades:build:development",
+        "tsConfig": "libs/feature-cargos/tsconfig.spec.json"
+      }
     }
   }
 }

@@ -4,8 +4,9 @@
 
 - This is an Nx 22.7.1 monorepo using Angular 21, TypeScript 5.9, Vitest 4, and npm 11.6.2; use Node.js 20+.
 - Install from the lockfile with `npm ci`; do not use another package manager.
-- Applications live under `apps/`: `novedades` (port 4208) and `liquidacion` (port 4209).
-- Shared libraries live under `libs/`: `shared-api`, `ui-auth`, `ui-layout`, `feature-designaciones`, `feature-anotador`, `feature-cargos`, `feature-bonos`, and `feature-contabilidad`.
+- Applications live under `apps/`: `novedades` (port 4208) and `liquidacion` (port 4209). Apps are thin shells: root component with `<ui-shell>`, `app.config.ts`, and `app.routes.ts` only; feature views never live inside `apps/<app>/src/app/`.
+- Shared libraries live under `libs/`: `shared-api`, `ui-auth`, `ui-layout`, `feature-designaciones`, `feature-anotador`, `feature-cargos`, `feature-bonos`, and `feature-contabilidad`. Each feature library owns its screens and services and is consumed by the app whose scope tag it carries.
+- `apps/novedades-e2e` is a Playwright project (chromium); its generated `e2e` target starts the novedades dev server on 4208. Set `BASE_URL` to test an already deployed app.
 - Use the configured `@haberes/*` path aliases for shared libraries and import public symbols through each library's `src/index.ts`. Nx ESLint enforces module boundaries using project tags (`type:*` and `scope:*`) and dependency direction rules.
 
 ## Commands
@@ -14,7 +15,9 @@
 - Run all local app servers with `npm run serve:all`.
 - Build one project with `npx nx build <project>` or all projects with `npx nx run-many -t build`.
 - Lint one project with `npx nx run <project>:lint` or all lint targets with `npx nx run-many -t lint`.
-- Test one project with `npx nx test <project>` or all test targets with `npx nx run-many -t test --watch=false`.
+- Test one project with `npx nx test <project>` or all test targets with `npx nx run-many -t test --watch=false`. Library unit tests use the `@angular/build:unit-test` executor wired to `novedades:build:development` (see each lib's `test` target and `tsconfig.spec.json`).
+- Run E2E with `npx nx e2e novedades-e2e`; set `BASE_URL` to point at a deployed app instead of booting the dev server.
+- Rebuild one app's image with `npm run docker:app -- <app>` (multistage `docker/app.Dockerfile`, compiles inside the image); `--no-up` only builds. Requires the compose stack or `docker build -f docker/app.Dockerfile --build-arg APP=<app> .` as fallback.
 - Routes use standalone `loadComponent` lazy loading for shared login and feature components; preserve this instead of reintroducing eager imports.
 - UI design follows the shared J2 theme: tokens and component utilities live in `libs/ui-layout/src/styles/tokens.css`, every app shell is `@haberes/ui-layout`'s `<ui-shell>`, and views use `um-*` classes (`.um-input`, `.um-btn-primary`, `.um-table`, ...) instead of ad-hoc palettes or one-off class strings.
 
@@ -22,8 +25,9 @@
 
 - TypeScript and Angular template checking are strict (`strict`, `strictTemplates`, strict injection parameters); preserve those checks rather than loosening compiler options.
 - Production builds enforce initial bundle limits of 500 kB warning / 1 MB error and component-style limits of 4 kB warning / 8 kB error.
-- All applications use `apps/<app>/Dockerfile`. Single-origin Nginx proxy with SSL on port 443 routes `/api/` to `haberes-gateway-service:8091`.
-- Each app registers the shared `errorInterceptor` and `API_URL` provider.
+- All applications build from the shared multistage `docker/app.Dockerfile` with `--build-arg APP=<app>`: the Node stage runs `npm ci` and `npx nx build <app> --configuration=production`, and the Nginx stage copies that build. Images depend only on source, never on a local `dist/apps/`, so do not reintroduce runtime-only Dockerfiles that `COPY dist/`. Per-app config (`nginx.conf`, `entrypoint.sh`) stays in `apps/<app>/`. Keep `node_modules`, `dist`, `.angular`, `.nx` and `.git` out of the build context in `.dockerignore`. Rebuilding through Compose requires `--build` (or `npm run docker:app -- <app>`) because `up -d` reuses an existing image without looking at the source.
+- CI criteria (shared with um.tesoreria.frontend-client): PRs to `main` run affected lint/test/build via `ci.yml`; `develop`/`staging` PRs run full verify and pushes additionally publish images, while `main` pushes publish with `latest`. All environments flow through the reusable `.github/workflows/deploy-pipeline.yml`, which takes `apps` (JSON list) and never builds `dist/` in CI to copy into images (the multistage Dockerfile is the compile check on push). Image tags: full commit sha, plus `latest` only on main.
+- Each app registers the shared `errorInterceptor` and `API_URL` provider. Haberes auth has no bearer token (legacy `isuservalid` session model against haberes-core): do not introduce an `auth.interceptor` unless the backend starts issuing tokens.
 
 ## UI & Enterprise Design System (Estándares Visuales Institucionales)
 
