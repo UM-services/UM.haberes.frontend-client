@@ -8,6 +8,13 @@
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "novedades:build:development",
+        "tsConfig": "libs/ui-auth/tsconfig.spec.json"
+      }
     }
   }
 }

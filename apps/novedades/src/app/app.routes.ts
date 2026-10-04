@@ -29,8 +29,13 @@ export const appRoutes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'inicio',
+    path: 'designaciones',
     loadComponent: () => import('@haberes/feature-designaciones').then(m => m.DesignacionesComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'inicio',
+    loadComponent: () => import('./inicio.component').then(m => m.InicioComponent),
     canActivate: [authGuard]
   },
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },

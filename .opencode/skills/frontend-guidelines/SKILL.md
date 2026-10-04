@@ -1,6 +1,6 @@
 ---
 name: frontend-guidelines
-description: "UI/UX design system and frontend guidelines for UM Haberes. USE WHEN creating or modifying Angular components, editing templates, writing Tailwind CSS classes, displaying logos, styling data tables or forms, or ensuring consistent enterprise aesthetics and preventing legacy VB6 mentions in the UI."
+description: "UI/UX design system and frontend guidelines for UM Haberes. USE WHEN creating or modifying Angular components, editing templates, writing Tailwind CSS classes, styling the institutional brand mark, styling data tables or forms, or ensuring consistent enterprise aesthetics and preventing legacy VB6 mentions in the UI."
 ---
 
 # UM Haberes Frontend & Design System Guidelines
@@ -50,15 +50,12 @@ The UM Haberes suite manages university payroll, novelties, accounting, and teac
 
 ---
 
-## 4. Logo & Brand Asset Specifications
+## 4. Brand Mark Specifications
 
-- **Asset**: `apps/liquidacion/public/logo.png`
-- **Aspect Ratio**: 204 × 102 px (2:1 landscape rectangle; UM shield + 65th-anniversary legend).
-- **CRITICAL RULE**: **NEVER** wrap the logo in a rigid square container (`w-9 h-9`, `w-10 h-10`, `rounded-full`). Doing so squashes the logo height to ~14 px, destroying legibility.
-- **Approved Sizing**:
-  - **Sidebar (Desktop)**: `h-11 w-auto object-contain rounded-md shadow-2xs` (44 px height × ~88 px width).
-  - **Login / Auth Card**: `h-20 sm:h-24 w-auto object-contain` (80–96 px height).
-  - **Mobile Header**: `h-8 w-auto object-contain` (32 px height).
+- **Text Brand Only**: The `<ui-shell>` sidebar, mobile header, and login use the institutional **text** brand (`UM · Haberes`); there is no `logo.png` asset and no `logoUrl` input (mirrors the tesoreria-frontend shell).
+- **Desktop Sidebar**: `UM · Haberes` (`text-lg font-bold leading-6`) stacked over the module name (`text-sm text-um-sidebar-muted`).
+- **Mobile Header**: brand text + environment badge, no logo and no module name.
+- **Login**: `um-eyebrow` + `um-page-title` text header; never reintroduce a logo image.
 
 ---
 

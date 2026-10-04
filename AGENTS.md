@@ -60,14 +60,12 @@
 - The shared type is `Persona` (`@haberes/shared-api`, defined in `auth.service.ts`, with `documento`, `estado` and `dependenciaId`); do not define per-feature duplicate persona interfaces.
 - Exception: `feature-contabilidad` belongs to another backend and keeps its own service; do not migrate it to the standard search or "unify" its endpoints.
 
-## Brand & Logo Display Standards (Logotipo Institucional)
+## Brand Display Standards (Marca Institucional)
 
-- **Asset**: `apps/liquidacion/public/logo.png` (Dimensions: 204 × 102 px, 2:1 landscape rectangular ratio; navy blue badge with UM shield and 65th-anniversary lettering).
-- **Proportions Rule**: NEVER wrap `logo.png` in a rigid square container (e.g., `w-9 h-9`, `w-10 h-10`). Because the image is twice as wide as it is tall, square constraints collapse the logo's effective height to ~14 px, rendering the emblem and text unreadable.
-- **Sizing Specifications**:
-  - *Desktop Sidebar*: `h-10 w-auto` (40 px height × ~80 px width) on the dark `ui-shell` sidebar, with the institutional white filter (`filter: brightness(0) invert(1)`) or text fallback (`UM · Haberes`), paired with a vertical hairline divider (`h-6 w-px bg-white/20`) and the subsystem subtitle.
-  - *Login Screen*: `h-16 w-auto` (64 px height), `object-contain` and `rounded-md`, over `bg-um-canvas`.
-  - *Mobile Header/Navbar*: `h-8 w-auto` (32 px height).
+- **Text Brand Mark, No Logos**: The `<ui-shell>` brand is always text — there is no `logoUrl` input and no institutional logo image anywhere in the shell or login (mirrors the tesoreria-frontend shell).
+- **Desktop Sidebar**: `UM · Haberes` (`text-lg font-bold leading-6`) stacked over the module name (`text-sm text-um-sidebar-muted`), inside the `border-b border-white/20 px-3 pb-6` block.
+- **Mobile Header**: brand text `UM · Haberes` plus the environment badge; no logo and no module name, same as tesorería.
+- **Login**: text-only header (`um-eyebrow` "Haberes" + `um-page-title` "UM Haberes"); do not reintroduce a `logo.png` image.
 
 ## Nomenclature & Legacy VB6 Strict Ban (Nomenclatura y Limpieza de UI)
 
