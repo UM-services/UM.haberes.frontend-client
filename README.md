@@ -10,8 +10,8 @@ um.haberes.frontend-client/
 │   ├── liquidacion/          # App de Liquidación de Haberes
 │   └── novedades/            # App de Gestión de Novedades, Designaciones, Anotaciones y Cargos
 ├── libs/
-│   ├── ui-layout/            # @haberes/ui-layout — Shell institucional J2 unificado (ui-shell)
-│   ├── ui-auth/              # @haberes/ui-auth — Componente de login J2
+│   ├── ui-layout/            # @haberes/ui-layout — Shell institucional J2 unificado (ui-shell, ui-opciones-panel)
+│   ├── ui-auth/              # @haberes/ui-auth — Login y cambio de clave J2
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards, env
 │   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
@@ -33,8 +33,8 @@ um.haberes.frontend-client/
 
 | Librería | Alias | Propósito |
 |---|---|---|
-| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno y usuario |
-| `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo con validación y visualización del escudo institucional bajo diseño J2 |
+| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`) y panel de opciones (`ui-opciones-panel`) |
+| `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo bajo diseño J2 (marca sólo texto) y modal de cambio de clave (`lib-cambio-clave-modal`) |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
@@ -48,9 +48,9 @@ Todas las aplicaciones comparten el tema visual **J2** institucional de 4 capas,
 
 - **Tokens (`@theme static`)**: Paleta `um-*` (`bg-um-sidebar`, `text-um-ink`, `border-um-border`, `bg-um-surface`, `text-um-primary`), tipografía Inter institucional, espaciados y radios. Es la única fuente de colores corporativos.
 - **Base y Densidad (`@layer base`)**: Escala global del `87.5%` (~14px base) para maximizar la densidad visual en escritorio, normalización de spinners numéricos y cifras tabulares (`tabular-nums`) para alineación contable precisa.
-- **Shell Estructural (`<ui-shell>`)**: Shell J2 (`@haberes/ui-layout`) con sidebar oscuro institucional, badge de ambiente coloreado según entorno (`APP_ENV_INFO`), usuario, sede, logout y menú polimórfico (lineal para `novedades` y agrupado para `liquidacion`).
+- **Shell Estructural (`<ui-shell>`)**: Shell J2 (`@haberes/ui-layout`) con sidebar oscuro institucional, badge de ambiente coloreado según entorno (`APP_ENV_INFO`), usuario, sede, cambio de clave, logout y menú polimórfico (lineal para `novedades` y agrupado para `liquidacion`).
 - **Utilidades de Componentes (`@layer components`)**: Clases semánticas `.um-*`: `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`.um-input-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`) y `.um-table`.
-- **Logotipo institucional**: Proporción apaisada 2:1 (`logo.png`). Dimensiones estándar: `h-10 w-auto` en sidebar desktop con filtro institucional o texto alternativo, `h-16 w-auto` en login, `h-8 w-auto` en móvil.
+- **Marca institucional**: La marca del shell y del login es siempre texto (`UM · Haberes` + nombre del módulo en el sidebar; `um-eyebrow`/`um-page-title` en login), espejo de tesoreria-frontend; no se usan logos ni imágenes de marca.
 - **Nomenclatura limpia**: Prohibición de términos o referencias a Visual Basic 6 (`.frm`, `.vbp`, etc.) en cualquier título, badge o etiqueta visible al usuario. Ver detalle completo en [AGENTS.md](AGENTS.md).
 
 ## Comandos de Desarrollo

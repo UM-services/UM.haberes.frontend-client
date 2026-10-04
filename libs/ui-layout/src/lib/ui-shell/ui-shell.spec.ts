@@ -21,7 +21,10 @@ const STORED_USER = {
 async function createShell(
   envInfo?: AppEnvInfo,
   overrides: Partial<
-    Pick<UiShellComponent, 'moduleName' | 'menuSectionLabel' | 'menuItems' | 'menuGroups' | 'logoUrl'>
+    Pick<
+      UiShellComponent,
+      'moduleName' | 'menuSectionLabel' | 'menuItems' | 'menuGroups'
+    >
   > = {},
 ): Promise<ComponentFixture<UiShellComponent>> {
   localStorage.setItem('haberes_user', JSON.stringify(STORED_USER));
@@ -59,7 +62,8 @@ describe('UiShellComponent', () => {
     const { nativeElement } = await createShell();
 
     expect(nativeElement.textContent).toContain('Novedades');
-    expect(nativeElement.textContent).toContain('Haberes UM');
+    expect(nativeElement.textContent).toContain('UM · Haberes');
+    expect(nativeElement.querySelector('aside img')).toBeNull();
   });
 
   it('renders linear menu items when menuItems is provided', async () => {
@@ -105,5 +109,28 @@ describe('UiShellComponent', () => {
     });
 
     expect(nativeElement.textContent).toContain('DESARROLLO');
+  });
+
+  it('opens and closes the change password modal from the sidebar', async () => {
+    const fixture = await createShell();
+    const component = fixture.componentInstance;
+    expect(component.isCambioClaveOpen()).toBe(false);
+
+    const changePasswordBtn = [...fixture.nativeElement.querySelectorAll('aside button')].find(
+      (b) => b.textContent?.includes('Cambiar clave'),
+    );
+    expect(changePasswordBtn).toBeTruthy();
+
+    changePasswordBtn!.click();
+    fixture.detectChanges();
+    expect(component.isCambioClaveOpen()).toBe(true);
+    expect(fixture.nativeElement.querySelector('#modal-title')?.textContent?.trim()).toBe(
+      'Cambiar Clave',
+    );
+
+    component.cerrarCambioClave();
+    fixture.detectChanges();
+    expect(component.isCambioClaveOpen()).toBe(false);
+    expect(fixture.nativeElement.querySelector('#modal-title')).toBeNull();
   });
 });

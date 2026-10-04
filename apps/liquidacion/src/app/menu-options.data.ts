@@ -545,3 +545,12 @@ export const MENU_GROUPS: GrupoOpciones[] = [
 ];
 
 export const TODAS_LAS_OPCIONES: OpcionSistema[] = MENU_GROUPS.flatMap(g => g.items);
+
+/**
+ * Opciones que ya tienen componente real migrado; el resto abre un placeholder
+ * "en desarrollo". Fuente única: la usan app.routes.ts y el panel de inicio.
+ */
+export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
+  '/consultas/bono-individual',
+  '/contabilidad/imputacion-individual'
+]);

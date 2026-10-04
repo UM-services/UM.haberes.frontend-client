@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, map, catchError, of, switchMap, forkJoin } from 'rxjs';
 import { API_URL } from '../tokens';
+import { ChangePasswordRequest } from './auth.models';
 
 /**
  * Modelo compartido de persona (DTO PersonaResponse/PersonaSearchResponse de
@@ -64,6 +65,21 @@ export class AuthService {
     return this.http.get<Persona>(`${this.personaUrl}/${legajoId}`);
   }
 
+  /** Lectura sincronica de la sesion (espejo del AuthService de tesoreria-frontend). */
+  get currentUserValue(): Persona | null {
+    return this.currentUserSubject.value;
+  }
+
+  /**
+   * Cambio de clave contra `PUT /usuario/cambiarclave` (haberes-core). La
+   * verificacion de la clave anterior es server-side; en exito devuelve 204 y
+   * la sesion local (Persona) no cambia, por lo que no hay que revalidar.
+   * Los errores de negocio llegan como ProblemDetail con el mensaje en `detail`.
+   */
+  changePassword(data: ChangePasswordRequest): Observable<void> {
+    return this.http.put<void>(`${this.usuarioUrl}/cambiarclave`, data);
+  }
+
   getUsuario(legajoId: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.usuarioUrl}/${legajoId}`);
   }
@@ -72,39 +88,42 @@ export class AuthService {
     return this.http.get<any>(`${this.apiBase}/core/facultad/${facultadId}`);
   }
 
-  login(legajoId: number, password: string): Observable<{ success: boolean, usuario?: Usuario, error?: string }> {
-    const url_isvalid = this.usuarioUrl + "/isuservalid";
-    const url_lastlog = this.usuarioUrl + "/lastlog/" + legajoId + "/1";
-    
+  login(
+    legajoId: number,
+    password: string,
+  ): Observable<{ success: boolean; usuario?: Usuario; error?: string }> {
+    const url_isvalid = this.usuarioUrl + '/isuservalid';
+    const url_lastlog = this.usuarioUrl + '/lastlog/' + legajoId + '/1';
+
     return this.http.put<boolean>(url_isvalid, { legajoId, password }).pipe(
-      switchMap(isValid => {
+      switchMap((isValid) => {
         if (!isValid) return of({ success: false, error: 'ERROR: Password INCORRECTO' });
-        
+
         return this.getUsuario(legajoId).pipe(
-          switchMap(usuario => {
+          switchMap((usuario) => {
             const persona$ = this.getPersona(legajoId);
             const lastLog$ = this.http.get(url_lastlog);
             const facultad$ = usuario.facultadId ? this.getFacultad(usuario.facultadId) : of(null);
-            
+
             return forkJoin({
               persona: persona$,
               lastLog: lastLog$,
-              facultad: facultad$
+              facultad: facultad$,
             }).pipe(
               map(({ persona, facultad }) => {
                 persona.id = persona.legajoId;
                 persona.facultadId = usuario.facultadId;
                 persona.facultadNombre = facultad ? facultad.nombre : null;
-                persona.sede = "Sede Central";
+                persona.sede = 'Sede Central';
                 this.currentUserSubject.next(persona);
                 localStorage.setItem('haberes_user', JSON.stringify(persona));
                 return { success: true, usuario };
-              })
+              }),
             );
-          })
+          }),
         );
       }),
-      catchError(() => of({ success: false, error: 'Error en el servidor de autenticación' }))
+      catchError(() => of({ success: false, error: 'Error en el servidor de autenticación' })),
     );
   }
 
