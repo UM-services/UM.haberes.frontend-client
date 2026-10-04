@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.9.0] - 2026-10-03
+
+### Added
+- **feat(`shared-api`):** Cambio de clave sobre haberes-core: `AuthService.changePassword(data)` (`PUT /api/haberes/core/usuario/cambiarclave`; la verificación de la clave anterior es server-side, responde 204 y la sesión local no se modifica) con el payload tipado `ChangePasswordRequest` en el nuevo `auth.models.ts` (exportados ambos desde el barrel), más el getter sincrónico `currentUserValue` (espejo del AuthService de tesoreria-frontend). Nueva `auth.service.spec.ts` con 3 casos (`HttpTestingController`: payload exacto del PUT, propagación del `detail` del ProblemDetail 400 e hidratación/inalterabilidad de la sesión).
+- **feat(`ui-auth`):** `CambioClaveModalComponent` (`<lib-cambio-clave-modal>`, standalone y exportado desde el barrel), espejo del modal de tesoreria-frontend adaptado a Haberes: legajo y nombre precargados de la sesión en sólo lectura, validación de campos completos y de coincidencia de la nueva clave, éxito con "Cambio REALIZADO" y autocierre, y mapeo del error de negocio desde ProblemDetail `detail`, cuerpo en texto plano o `message`. Al abrirse (`isOpen`) resetea el formulario. Nueva especificación con 8 casos y target `test` de librería (`@angular/build:unit-test` atado a `novedades:build:development` + `tsconfig.spec.json`).
+- **feat(`ui-layout`):** `UiOpcionesPanelComponent` (`<ui-opciones-panel>`, exportado desde el barrel): panel principal de opciones con la presentación del hub estático de tesorería — cabecera `um-page-header` con contador "disponibles de totales", búsqueda en vivo por nombre/descripción/grupo, secciones por grupo y grilla auto-fill de `um-card` con punto de estado (esmeralda "Disponible" / ámbar "En desarrollo") y badge monoespaciado con el código de la ruta. Tipos `OpcionPanel` y `GrupoPanel`; el estado es estático (lo definen los datos de cada app) porque las rutas internas no se pueden verificar con un ping.
+- **feat(`novedades`):** Panel principal `/inicio` con el nuevo `InicioComponent` sobre `<ui-opciones-panel>` y su catálogo `menu-options.data.ts` (`NOVEDADES_GRUPOS`: Designaciones y Consultas, con las cinco opciones migradas marcadas `disponible`); nuevo ítem "Panel Principal" en el sidebar.
+- **feat(`liquidacion`):** `RUTAS_MIGRADAS` como fuente única en `menu-options.data.ts`: alimenta a la vez la generación de placeholders de `app.routes.ts` y el estado "Disponible" del panel de `/inicio`.
+
+### Changed
+- **feat(`ui-layout`):** El `<ui-shell>` integra el modal de cambio de clave: botón "Cambiar clave" en el bloque de usuario del sidebar y en el header móvil, que abre `<lib-cambio-clave-modal>` (`@haberes/ui-auth`) vía la señal `isCambioClaveOpen` (la dependencia `ui-layout` → `ui-auth` está permitida por las etiquetas `type:ui`). La especificación del shell cubre apertura/cierre del modal.
+- **refactor(`ui-layout`):** La marca del `<ui-shell>` pasa a ser siempre texto, espejo del shell de tesoreria-frontend: el sidebar muestra `UM · Haberes` (`text-lg font-bold`) sobre el nombre del módulo (eliminados el bloque horizontal logo + divisor + leyenda "Haberes UM" y el enlace "Ir al inicio") y el header móvil muestra la marca junto al badge de entorno, sin logo ni módulo. Se elimina el input `logoUrl`, cuyo default `/logo.png` renderizaba una imagen rota en `novedades` (el asset sólo existía en `liquidacion`). Actualizada la especificación del shell.
+- **refactor(`ui-auth`):** El login prescinde de la imagen `logo.png` (rota en `novedades`) y conserva sólo la cabecera de texto (`um-eyebrow` "Haberes" + `um-page-title` "UM Haberes").
+- **refactor(`novedades`):** `Designaciones` se reubicó de `/inicio` a la ruta propia `/designaciones` (menú incluido); `/inicio` pasa a ser el panel de opciones y sigue siendo el destino de la redirección por defecto.
+- **refactor(`liquidacion`):** `InicioComponent` pasó de ~170 líneas de diseño propio (paleta slate/blue ad-hoc) a un envoltorio de ~35 líneas sobre `<ui-opciones-panel>` con clases `um-*`; la búsqueda y el filtrado por grupo viven ahora en el componente compartido.
+- **docs:** `AGENTS.md` (sección "Brand Display Standards"), `README.md` y la skill `frontend-guidelines` reemplazan las reglas de escala del logotipo institucional por el estándar de marca de texto.
+
+### Removed
+- **chore(assets):** Eliminado `apps/liquidacion/public/logo.png`, sin consumidores tras quitar el logo del shell y del login; el favicon se conserva.
+
 ## [0.7.0] - 2026-10-01
 
 ### Added
