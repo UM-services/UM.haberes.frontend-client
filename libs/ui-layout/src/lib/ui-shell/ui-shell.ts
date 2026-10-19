@@ -1,4 +1,4 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, inject, Input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { APP_ENV_INFO, AuthService, getEnvDisplay } from '@haberes/shared-api';
@@ -31,6 +31,7 @@ const ENV_BADGE_BASE_CLASSES =
 @Component({
   selector: 'ui-shell',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, RouterModule, CambioClaveModalComponent],
   template: `
     @if (isLoggedIn$ | async; as user) {

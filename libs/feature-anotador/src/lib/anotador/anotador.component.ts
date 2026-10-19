@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnotadorService } from './anotador.service';
@@ -8,6 +8,7 @@ import { PersonaSearchComponent } from '@haberes/ui-layout';
 @Component({
   selector: 'haberes-anotador',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './anotador.component.html'
 })

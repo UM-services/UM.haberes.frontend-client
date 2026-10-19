@@ -53,6 +53,9 @@ Thumbs.db
 .claude/worktrees
 .claude/settings.local.json
 
+.nx/migrate-runs
+.vitest
+
 # Copilot (duplicados locales de .opencode/)
 .github/agents/
 .github/prompts/
