@@ -1,6 +1,6 @@
 # Um Haberes Frontend Client
 
-Frontend corporativo para la gestión de haberes universitarios. Monorepo Nx con aplicaciones Angular 21 standalone.
+Frontend corporativo para la gestión de haberes universitarios. Monorepo Nx con aplicaciones Angular 22 standalone.
 
 ## Estructura del Proyecto
 
@@ -155,7 +155,8 @@ Los tres entornos comparten un único pipeline reutilizable (`deploy-pipeline.ym
 que ejecuta `verify` (`npm ci` + lint + test, y build de producción sólo en PR),
 `publish-docker` (Buildx + push a Docker Hub compilando dentro de la imagen
 multietapa `docker/app.Dockerfile`, matriz desde el input `apps`) y `deploy`
-(runner self-hosted, solo `develop`/`staging`).
+(matriz de runners self-hosted vía `deployRunners`, sólo `develop`/`staging`;
+`develop` despliega en un runner y `staging` en dos: `staging` y `staging-new`).
 
 | Workflow | Trigger | Descripción |
 |---|---|---|
@@ -168,10 +169,10 @@ multietapa `docker/app.Dockerfile`, matriz desde el input `apps`) y `deploy`
 
 ## Tecnologías
 
-- Angular 21.2 (standalone components)
-- Nx 22.7.1
+- Angular 22.1.8 (standalone components)
+- Nx 23.3.0
 - Tailwind CSS 4
-- TypeScript 5.9
+- TypeScript 6.0.3
 - Vitest
 - Playwright (E2E)
 - Docker + Nginx

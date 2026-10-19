@@ -2,7 +2,7 @@
 
 ## Workspace
 
-- This is an Nx 22.7.1 monorepo using Angular 21, TypeScript 5.9, Vitest 4, and npm 11.6.2; use Node.js 20+.
+- This is an Nx 23.3.0 monorepo using Angular 22, TypeScript 6.0, Vitest 4, and npm 11.6.2; use Node.js 20+.
 - Install from the lockfile with `npm ci`; do not use another package manager.
 - Applications live under `apps/`: `novedades` (port 4208) and `liquidacion` (port 4209). Apps are thin shells: root component with `<ui-shell>`, `app.config.ts`, and `app.routes.ts` only; feature views never live inside `apps/<app>/src/app/`.
 - Shared libraries live under `libs/`: `shared-api`, `ui-auth`, `ui-layout`, `feature-designaciones`, `feature-anotador`, `feature-cargos`, `feature-bonos`, and `feature-contabilidad`. Each feature library owns its screens and services and is consumed by the app whose scope tag it carries.

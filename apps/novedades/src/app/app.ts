@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ShellMenuItem, UiShellComponent } from '@haberes/ui-layout';
 
 @Component({
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [UiShellComponent],
   selector: 'app-root',
   template: `

@@ -5,7 +5,7 @@ description: "UI/UX design system and frontend guidelines for UM Haberes. USE WH
 
 # UM Haberes Frontend & Design System Guidelines
 
-This skill provides the authoritative UI/UX design specifications, component patterns, and styling standards for the **UM Haberes** frontend ecosystem (Angular 21 + Tailwind CSS v4 + Nx).
+This skill provides the authoritative UI/UX design specifications, component patterns, and styling standards for the **UM Haberes** frontend ecosystem (Angular 22 + Tailwind CSS v4 + Nx).
 
 ---
 

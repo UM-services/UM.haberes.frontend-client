@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsignacionCursosService } from './asig-cursos.service';
@@ -9,6 +9,7 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchE
 @Component({
   selector: 'haberes-asig-cursos',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './asig-cursos.component.html'
 })

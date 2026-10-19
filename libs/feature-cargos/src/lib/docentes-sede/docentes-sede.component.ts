@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@haberes/shared-api';
@@ -7,6 +7,7 @@ import { CargosReportService } from '../cargos-legajo/cargos-report.service';
 @Component({
   selector: 'haberes-docentes-sede',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule],
   templateUrl: './docentes-sede.component.html'
 })

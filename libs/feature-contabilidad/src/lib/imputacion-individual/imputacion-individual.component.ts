@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -18,6 +18,7 @@ import { ImputacionIndividualResponse, PersonaImputacion } from './imputacion.mo
 @Component({
   selector: 'haberes-imputacion-individual',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, DecimalPipe],
   templateUrl: './imputacion-individual.component.html'
 })

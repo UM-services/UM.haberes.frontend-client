@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { GrupoPanel, UiOpcionesPanelComponent } from '@haberes/ui-layout';
 import { MENU_GROUPS, RUTAS_MIGRADAS } from './menu-options.data';
 
@@ -11,6 +11,7 @@ import { MENU_GROUPS, RUTAS_MIGRADAS } from './menu-options.data';
 @Component({
   selector: 'app-inicio',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [UiOpcionesPanelComponent],
   template: `
     <ui-opciones-panel
