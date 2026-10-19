@@ -20,7 +20,7 @@ jobs:
       environment: staging
       apps: '["liquidacion", "novedades"]'
       deploy: true
-      deployRunner: staging
+      deployRunners: '["staging", "staging-new"]'
       deployScript: /data/docker/env-staging/deploy-haberes-frontend-staging.sh
     permissions:
       contents: read
