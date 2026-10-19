@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DesignacionesService } from './designaciones.service';
@@ -8,6 +8,7 @@ import { PersonaSearchComponent } from '@haberes/ui-layout';
 @Component({
   selector: 'haberes-designaciones',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './designaciones.component.html'
 })

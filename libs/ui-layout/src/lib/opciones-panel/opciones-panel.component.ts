@@ -1,4 +1,4 @@
-import { Component, computed, Input, signal } from '@angular/core';
+import { Component, computed, Input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -30,6 +30,7 @@ export interface GrupoPanel {
 @Component({
   selector: 'ui-opciones-panel',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterModule, FormsModule],
   template: `
     <div class="w-full">

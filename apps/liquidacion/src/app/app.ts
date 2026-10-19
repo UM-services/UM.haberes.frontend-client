@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MenuGroup, UiShellComponent } from '@haberes/ui-layout';
 import { MENU_GROUPS } from './menu-options.data';
 
 @Component({
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [UiShellComponent],
   selector: 'app-root',
   template: `

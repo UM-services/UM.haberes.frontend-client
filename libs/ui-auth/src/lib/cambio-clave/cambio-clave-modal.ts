@@ -7,6 +7,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -22,6 +23,7 @@ import { AuthService } from '@haberes/shared-api';
 @Component({
   selector: 'lib-cambio-clave-modal',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './cambio-clave-modal.html',
 })

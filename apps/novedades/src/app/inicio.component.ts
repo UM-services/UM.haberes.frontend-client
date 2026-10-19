@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { UiOpcionesPanelComponent } from '@haberes/ui-layout';
 import { NOVEDADES_GRUPOS } from './menu-options.data';
 
@@ -6,6 +6,7 @@ import { NOVEDADES_GRUPOS } from './menu-options.data';
 @Component({
   selector: 'app-inicio',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [UiOpcionesPanelComponent],
   template: `
     <ui-opciones-panel
