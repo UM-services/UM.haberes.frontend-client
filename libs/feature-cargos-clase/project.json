@@ -1,0 +1,20 @@
+{
+  "name": "feature-cargos-clase",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/feature-cargos-clase/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["type:feature", "scope:administrador"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "administrador:build:development",
+        "tsConfig": "libs/feature-cargos-clase/tsconfig.spec.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,101 @@
+<div class="w-full">
+  <header class="um-page-header">
+    <div>
+      <p class="um-eyebrow">Catálogos de liquidación</p>
+      <h1 class="um-page-title">Clases</h1>
+      <p class="um-page-desc">Clases de hora cátedra y valor hora.</p>
+    </div>
+    <button type="button" class="um-btn-primary" (click)="nueva()">Nueva clase</button>
+  </header>
+
+  @if (error()) {
+    <div class="um-alert um-alert-error mt-4" role="alert">{{ error() }}</div>
+  }
+  @if (mensaje()) {
+    <div class="um-alert um-alert-success mt-4">{{ mensaje() }}</div>
+  }
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <section class="um-card overflow-hidden p-0">
+      <table class="um-table">
+        <thead>
+          <tr>
+            <th class="w-20">Clase</th>
+            <th>Nombre</th>
+            <th class="text-right">Valor hora</th>
+            <th class="w-20"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (cargando()) {
+            <tr>
+              <td colspan="4" class="py-8 text-center text-um-muted">Cargando…</td>
+            </tr>
+          } @else if (clases().length === 0) {
+            <tr>
+              <td colspan="4" class="py-8 text-center text-um-muted">Sin clases registradas.</td>
+            </tr>
+          }
+          @for (clase of clases(); track clase.claseId) {
+            <tr
+              class="cursor-pointer"
+              [class.bg-um-selected]="!esNueva() && form.claseId === clase.claseId"
+              (click)="seleccionar(clase)"
+            >
+              <td class="font-mono tabular-nums">{{ clase.claseId }}</td>
+              <td>{{ clase.nombre }}</td>
+              <td class="text-right font-mono tabular-nums">
+                {{ clase.valorHora | number: '1.2-2' }}
+              </td>
+              <td class="text-right">
+                <button
+                  type="button"
+                  class="um-link-btn text-xs"
+                  (click)="$event.stopPropagation(); eliminar(clase)"
+                >
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="um-card h-fit">
+      <h2 class="um-eyebrow">{{ esNueva() ? 'Nueva clase' : 'Editar clase' }}</h2>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <label class="um-label" for="clase-id">Clase</label>
+          <input id="clase-id" class="um-input font-mono" [value]="form.claseId || '—'" readonly />
+        </div>
+
+        <div>
+          <label class="um-label" for="clase-nombre">Nombre</label>
+          <input id="clase-nombre" class="um-input" [(ngModel)]="form.nombre" name="nombre" />
+        </div>
+
+        <div>
+          <label class="um-label" for="clase-valor">Valor hora</label>
+          <input
+            id="clase-valor"
+            type="number"
+            step="0.01"
+            min="0"
+            class="um-input text-right font-mono tabular-nums"
+            [(ngModel)]="form.valorHora"
+            name="valorHora"
+          />
+        </div>
+
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button type="button" class="um-btn-primary" [disabled]="guardando()" (click)="guardar()">
+            {{ guardando() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="um-btn-secondary" (click)="limpiar()">Limpiar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
