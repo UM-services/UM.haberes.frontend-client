@@ -21,8 +21,6 @@ describe('CambioClaveModalComponent', () => {
   let authService: AuthService;
 
   beforeEach(async () => {
-    localStorage.setItem('haberes_user', JSON.stringify(MOCK_PERSONA));
-
     await TestBed.configureTestingModule({
       imports: [CambioClaveModalComponent],
       providers: [provideHttpClient(), provideRouter([])],
@@ -31,6 +29,7 @@ describe('CambioClaveModalComponent', () => {
     fixture = TestBed.createComponent(CambioClaveModalComponent);
     component = fixture.componentInstance;
     authService = TestBed.inject(AuthService);
+    vi.spyOn(authService, 'currentUserValue', 'get').mockReturnValue(MOCK_PERSONA);
   });
 
   it('no renderiza el contenido del modal cuando isOpen es false', () => {

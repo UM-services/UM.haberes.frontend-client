@@ -1,18 +1,17 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from './auth.service';
-import { map, take } from 'rxjs';
+import { map } from 'rxjs';
 
-export const unauthGuard: CanActivateFn = (route, state) => {
+export const unauthGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  return authService.currentUser$.pipe(
-    take(1),
-    map(user => {
+  return authService.ensureSession().pipe(
+    map((user) => {
       if (!user) return true;
       router.navigate(['/inicio']);
       return false;
-    })
+    }),
   );
 };
