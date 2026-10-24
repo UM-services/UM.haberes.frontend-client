@@ -16,7 +16,7 @@ jobs:
     uses: ./.github/workflows/deploy-pipeline.yml
     with:
       environment: production
-      apps: '["liquidacion", "novedades"]'
+      apps: '["administrador", "liquidacion", "novedades"]'
       deploy: false
       publishLatest: true
     permissions:

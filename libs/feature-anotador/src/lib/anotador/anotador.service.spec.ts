@@ -61,4 +61,54 @@ describe('AnotadorService', () => {
     expect(req.request.body).toEqual(anotacion);
     req.flush({ ok: true });
   });
+
+  it('descarga el reporte de anotaciones pendientes como blob', () => {
+    service.downloadPendientesReport(2, 2026, 8).subscribe();
+
+    const req = http.expectOne('/api/haberes/report/anotador/anotadorPendientes/2/2026/8');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(new Blob(['pdf']));
+  });
+
+  it('descarga el reporte de autorizados y rechazados como blob', () => {
+    service.downloadRevisadosReport(2, 2026, 8).subscribe();
+
+    const req = http.expectOne('/api/haberes/report/anotador/anotadorAutorizadosRechazados/2/2026/8');
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(new Blob(['pdf']));
+  });
+
+  // --- Modo global (módulo Liquidación) ---
+
+  it('pide los pendientes de todas las facultades del período', () => {
+    service.getPendientesPeriodo(2026, 8).subscribe();
+
+    http.expectOne('/api/haberes/core/anotador/pendiente/2026/8').flush([]);
+  });
+
+  it('pide los revisados de todas las facultades del período', () => {
+    service.getRevisadosPeriodo(2026, 8).subscribe();
+
+    http.expectOne('/api/haberes/core/anotador/revisado/2026/8').flush([]);
+  });
+
+  it('visa la anotación con el estado y la respuesta en el cuerpo', () => {
+    service.visar(15, true, 'Conforme').subscribe();
+
+    const req = http.expectOne('/api/haberes/core/anotador/visar/15');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ autorizado: true, respuesta: 'Conforme' });
+    req.flush(null);
+  });
+
+  it('descarga los reportes consolidados del período', () => {
+    service.downloadPendientesPeriodoReport(2026, 8).subscribe();
+    http.expectOne('/api/haberes/report/anotador/anotadorPendientes/periodo/2026/8').flush(new Blob(['pdf']));
+
+    service.downloadRevisadosPeriodoReport(2026, 8).subscribe();
+    http.expectOne('/api/haberes/report/anotador/anotadorAutorizadosRechazados/periodo/2026/8')
+      .flush(new Blob(['pdf']));
+  });
 });

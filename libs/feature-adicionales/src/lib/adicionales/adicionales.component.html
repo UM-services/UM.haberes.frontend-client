@@ -1,0 +1,172 @@
+<div class="w-full">
+  <header class="um-page-header">
+    <div>
+      <p class="um-eyebrow">Parámetros de cálculo</p>
+      <h1 class="um-page-title">Adicional Carga Horaria</h1>
+      <p class="um-page-desc">Rangos de horas y porcentaje de adicional por facultad y sede.</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="um-alert um-alert-error mt-4" role="alert">{{ error() }}</div>
+  }
+  @if (mensaje()) {
+    <div class="um-alert um-alert-success mt-4">{{ mensaje() }}</div>
+  }
+
+  <div class="um-alert mt-4">
+    Las tablas de adicional se administran fuera del módulo. Aquí se selecciona una tabla y se
+    agregan o eliminan sus rangos.
+  </div>
+
+  <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+    <section class="um-card overflow-hidden p-0">
+      <table class="um-table">
+        <thead>
+          <tr>
+            <th>Facultad</th>
+            <th class="text-center">Desde</th>
+            <th class="text-center">Hasta</th>
+            <th>Sede</th>
+            <th class="text-right">Rangos</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (cargando()) {
+            <tr>
+              <td colspan="5" class="py-8 text-center text-um-muted">Cargando…</td>
+            </tr>
+          } @else if (tablas().length === 0) {
+            <tr>
+              <td colspan="5" class="py-8 text-center text-um-muted">
+                Sin tablas de adicional registradas.
+              </td>
+            </tr>
+          }
+          @for (tabla of tablas(); track tabla.adicionalCursoTablaId) {
+            <tr
+              class="cursor-pointer"
+              [class.bg-um-selected]="
+                seleccionada()?.adicionalCursoTablaId === tabla.adicionalCursoTablaId
+              "
+              (click)="seleccionar(tabla)"
+            >
+              <td>{{ facultad(tabla) }}</td>
+              <td class="text-center font-mono tabular-nums">
+                {{ textoPeriodo(tabla.periodoDesde) }}
+              </td>
+              <td class="text-center font-mono tabular-nums">
+                {{ textoPeriodo(tabla.periodoHasta) }}
+              </td>
+              <td>{{ sede(tabla) }}</td>
+              <td class="text-right font-mono tabular-nums">
+                {{ tabla.adicionalCursoRangos?.length ?? 0 }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="um-card h-fit">
+      <h2 class="um-eyebrow">Rangos de la tabla</h2>
+
+      @if (seleccionada(); as tabla) {
+        <p class="mt-1 text-sm text-um-muted">
+          {{ facultad(tabla) }} · {{ sede(tabla) }} · {{ textoPeriodo(tabla.periodoDesde) }} a
+          {{ textoPeriodo(tabla.periodoHasta) }}
+        </p>
+
+        <div class="mt-4 grid grid-cols-3 gap-2">
+          <div>
+            <label class="um-label" for="rango-desde">Horas desde</label>
+            <input
+              id="rango-desde"
+              type="number"
+              min="0"
+              class="um-input text-right font-mono tabular-nums"
+              [(ngModel)]="form.horasDesde"
+              name="horasDesde"
+            />
+          </div>
+          <div>
+            <label class="um-label" for="rango-hasta">Horas hasta</label>
+            <input
+              id="rango-hasta"
+              type="number"
+              min="0"
+              class="um-input text-right font-mono tabular-nums"
+              [(ngModel)]="form.horasHasta"
+              name="horasHasta"
+            />
+          </div>
+          <div>
+            <label class="um-label" for="rango-porcentaje">%</label>
+            <input
+              id="rango-porcentaje"
+              type="number"
+              step="0.01"
+              min="0"
+              class="um-input text-right font-mono tabular-nums"
+              [(ngModel)]="form.porcentaje"
+              name="porcentaje"
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="um-btn-primary mt-3 w-full"
+          [disabled]="guardando()"
+          (click)="agregar()"
+        >
+          {{ guardando() ? 'Agregando…' : 'Agregar rango' }}
+        </button>
+
+        <div class="mt-4 overflow-hidden rounded border border-um-border">
+          <table class="um-table">
+            <thead>
+              <tr>
+                <th class="text-right">Desde</th>
+                <th class="text-right">Hasta</th>
+                <th class="text-right">%</th>
+                <th class="w-16"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (cargandoRangos()) {
+                <tr>
+                  <td colspan="4" class="py-6 text-center text-um-muted">Cargando…</td>
+                </tr>
+              } @else if (rangos().length === 0) {
+                <tr>
+                  <td colspan="4" class="py-6 text-center text-um-muted">
+                    Sin rangos registrados.
+                  </td>
+                </tr>
+              }
+              @for (rango of rangos(); track rango.adicionalCursoRangoId) {
+                <tr>
+                  <td class="text-right font-mono tabular-nums">{{ rango.horasDesde }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ rango.horasHasta }}</td>
+                  <td class="text-right font-mono tabular-nums">
+                    {{ rango.porcentaje | number: '1.2-2' }}
+                  </td>
+                  <td class="text-right">
+                    <button type="button" class="um-link-btn text-xs" (click)="eliminar(rango)">
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="mt-3 text-sm text-um-muted">
+          Seleccione una tabla para ver y administrar sus rangos.
+        </p>
+      }
+    </section>
+  </div>
+</div>

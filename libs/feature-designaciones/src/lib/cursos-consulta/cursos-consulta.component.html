@@ -1,0 +1,99 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Header -->
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Designaciones Docentes</span>
+      <h1 class="um-page-title">Consulta de Cursos por Facultad y Sede</h1>
+      <p class="um-page-desc max-w-2xl">
+        Busque los cursos abiertos de una facultad y sede por nombre. La consulta es informativa:
+        la asignación de docentes se hace en "Asignación de Cursos".
+      </p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="um-card">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+      <div class="md:col-span-4">
+        <label for="cur-facultad" class="um-label">Facultad</label>
+        <select id="cur-facultad" [ngModel]="facultadId()" (ngModelChange)="onFacultad($event)" class="um-input bg-white">
+          <option [ngValue]="null" disabled>Seleccione una facultad...</option>
+          @for (f of facultades(); track f.facultadId) {
+            <option [ngValue]="f.facultadId">{{ f.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="md:col-span-4">
+        <label for="cur-sede" class="um-label">Sede</label>
+        <select id="cur-sede" [ngModel]="geograficaId()" (ngModelChange)="onSede($event)" class="um-input bg-white">
+          <option [ngValue]="null" disabled>Seleccione una sede...</option>
+          @for (s of sedes(); track s.geograficaId) {
+            <option [ngValue]="s.geograficaId">{{ s.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="md:col-span-4">
+        <label for="cur-filtro" class="um-label">Filtro</label>
+        <div class="relative">
+          <input id="cur-filtro" type="text" [ngModel]="filtro()" (ngModelChange)="onFiltro($event)"
+                 [disabled]="!hayFiltros()"
+                 class="um-input pl-9"
+                 placeholder="Buscar por nombre de curso...">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-um-muted absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="um-card border-rose-200 bg-rose-50 text-rose-700 text-xs font-medium">{{ error() }}</div>
+  }
+
+  <!-- Resultado -->
+  <div class="um-card p-0 overflow-hidden flex flex-col">
+    <div class="bg-um-surface px-4 py-3 border-b border-um-border flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-um-primary"></span>
+        <h3 class="font-bold text-um-ink text-xs uppercase tracking-wider">Cursos</h3>
+      </div>
+      <div class="flex items-center gap-2">
+        @if (isLoading()) {
+          <span class="text-um-primary flex items-center gap-1.5 text-xs">
+            <span class="animate-spin h-3 w-3 border-2 border-um-primary border-t-transparent rounded-full"></span>
+            Buscando...
+          </span>
+        }
+        <span class="um-badge bg-white border border-um-border text-um-text tabular-nums">{{ cursos().length }}</span>
+      </div>
+    </div>
+    <div class="overflow-x-auto custom-scrollbar">
+      <table class="um-table">
+        <thead>
+          <tr>
+            <th>Curso</th>
+            <th class="w-48">Facultad</th>
+            <th class="w-48">Sede</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (curso of cursos(); track curso.cursoId) {
+            <tr>
+              <td class="font-medium text-um-ink">{{ curso.nombre }}</td>
+              <td class="text-um-muted">{{ nombreFacultad(curso) }}</td>
+              <td class="text-um-muted">{{ nombreSede(curso) }}</td>
+            </tr>
+          }
+          @if (cursos().length === 0 && !isLoading()) {
+            <tr>
+              <td colspan="3" class="px-4 py-8 text-center text-um-muted text-xs italic">{{ resultadoTexto() }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

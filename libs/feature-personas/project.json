@@ -1,0 +1,20 @@
+{
+  "name": "feature-personas",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/feature-personas/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["type:feature", "scope:administrador"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "administrador:build:development",
+        "tsConfig": "libs/feature-personas/tsconfig.spec.json"
+      }
+    }
+  }
+}

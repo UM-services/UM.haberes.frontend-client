@@ -7,6 +7,7 @@ Frontend corporativo para la gestión de haberes universitarios. Monorepo Nx con
 ```
 um.haberes.frontend-client/
 ├── apps/
+│   ├── administrador/        # App de Administración de parámetros de Haberes
 │   ├── liquidacion/          # App de Liquidación de Haberes
 │   ├── novedades/            # App de Gestión de Novedades, Designaciones, Anotaciones y Cargos
 │   └── novedades-e2e/        # Tests E2E (Playwright) de novedades
@@ -18,7 +19,14 @@ um.haberes.frontend-client/
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos legajo y docentes sede
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
-│   └── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable y asientos individuales
+│   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable y asientos individuales
+│   ├── feature-personas/     # @haberes/feature-personas — Datos personales y CBU
+│   ├── feature-categorias/   # @haberes/feature-categorias — Categorías y básicos
+│   ├── feature-codigos/      # @haberes/feature-codigos — Códigos de concepto y grupos
+│   ├── feature-clases/       # @haberes/feature-clases — Clases y valor hora
+│   ├── feature-cargos-clase/ # @haberes/feature-cargos-clase — Cargos con clase
+│   ├── feature-adicionales/  # @haberes/feature-adicionales — Adicional carga horaria
+│   └── feature-sedes/        # @haberes/feature-sedes — Sedes y desarraigo
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -29,6 +37,7 @@ um.haberes.frontend-client/
 |---|---|---|
 | `novedades` | 4208 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
 | `liquidacion` | 4209 | Módulo de liquidación de haberes y catálogo central de operaciones |
+| `administrador` | 4211 | Módulo de administración de parámetros, restringido a usuarios sin facultad asignada |
 
 ## Librerías
 
@@ -42,6 +51,13 @@ um.haberes.frontend-client/
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
+| `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
+| `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, flags y vigencia mensual |
+| `feature-codigos` | `@haberes/feature-codigos` | Códigos de concepto, grupo contable y conceptos AFIP |
+| `feature-clases` | `@haberes/feature-clases` | Clases de hora cátedra y valor hora |
+| `feature-cargos-clase` | `@haberes/feature-cargos-clase` | Cargos con clase y asignaciones por período |
+| `feature-adicionales` | `@haberes/feature-adicionales` | Rangos de adicional por carga horaria |
+| `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
 
 ## Sistema de Diseño Institucional (J2)
 
@@ -60,14 +76,17 @@ Todas las aplicaciones comparten el tema visual **J2** institucional de 4 capas,
 # Servir app en desarrollo
 nx serve liquidacion
 nx serve novedades
+nx serve administrador
 
 # Build producción
 nx build liquidacion --configuration=production
 nx build novedades --configuration=production
+nx build administrador --configuration=production
 
 # Tests
 nx test liquidacion
 nx test novedades
+nx test administrador
 
 # Tests E2E (levanta novedades en 4208; BASE_URL apunta a una app desplegada)
 nx e2e novedades-e2e
@@ -99,6 +118,7 @@ docker build -f docker/app.Dockerfile --build-arg APP=novedades -t um-haberes-no
 # O vía compose, conservando nombre de imagen y red del stack:
 npm run docker:app -- novedades        # build + up -d
 npm run docker:app -- liquidacion --no-up
+npm run docker:app -- administrador    # módulo administrador (4211)
 
 # Ejecutar con backend personalizado + entorno/version
 docker run -e BACKEND_URL=http://backend:8091 -e ENV_NAME=develop -e APP_VERSION=abc123 -p 443:443 um-haberes-novedades-client

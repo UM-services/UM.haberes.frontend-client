@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -24,12 +24,6 @@ export class CargosLegajoComponent {
   personaSeleccionada = signal<Persona | null>(null);
   isDownloading = signal<boolean>(false);
 
-  facultadId = computed(() => {
-    let fid = null;
-    this.auth.currentUser$.subscribe(u => { if (u) fid = u.facultadId; }).unsubscribe();
-    return fid;
-  });
-
   onPersonaSeleccionada(persona: Persona | null) {
     this.personaSeleccionada.set(persona);
   }
@@ -45,7 +39,7 @@ export class CargosLegajoComponent {
 
   descargar() {
     const persona = this.personaSeleccionada();
-    const facId = this.facultadId();
+    const facId = this.auth.facultadId();
 
     if (!persona) {
       alert("Seleccione un docente");
