@@ -1,10 +1,11 @@
-import { Component, inject, signal, computed, effect, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit, ViewChild, ChangeDetectionStrategy, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AsignacionCursosService } from './asig-cursos.service';
-import { AuthService, Persona } from '@haberes/shared-api';
+import { AsignacionCursosService, CargoPayload, CursoPayload, CursoResumen, FacultadResumen, NivelResumen } from './asig-cursos.service';
+import { AuthService, Persona, mensajeDeError } from '@haberes/shared-api';
 import { PersonaSearchComponent } from '@haberes/ui-layout';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError, forkJoin } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchError, forkJoin, finalize } from 'rxjs';
 
 @Component({
   selector: 'haberes-asig-cursos',
@@ -16,6 +17,32 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap, catchE
 export class AsigCursosComponent implements OnInit {
   private readonly service = inject(AsignacionCursosService);
   private readonly auth = inject(AuthService);
+
+  /**
+   * Facultad explícita. Sin valor se usa la de la sesión; si tampoco hay, la
+   * pantalla trabaja en modo global (módulo Liquidación) con selector de facultad
+   * y alta/edición/baja de cursos.
+   */
+  readonly facultadId = input<number | null>(null);
+  readonly facultadEfectiva = computed<number | null>(() => this.facultadId() ?? this.auth.facultadId());
+  readonly esGlobal = computed<boolean>(() => this.facultadEfectiva() === null);
+
+  facultades = signal<FacultadResumen[]>([]);
+  niveles = signal<NivelResumen[]>([]);
+  facultadSeleccionada = signal<number | null>(null);
+
+  /** Facultad con la que se consultan los cursos: la de sesión o la elegida. */
+  readonly facultadActiva = computed<number | null>(() => this.facultadEfectiva() ?? this.facultadSeleccionada());
+
+  // Formulario de curso (sólo módulo global)
+  cursoForm = signal<CursoPayload>(cursoVacio());
+  isSavingCurso = signal<boolean>(false);
+  errorCurso = signal<string | null>(null);
+  exitoCurso = signal<string | null>(null);
+
+  // Asignación directa de cargos (sólo módulo global)
+  isSavingCargo = signal<boolean>(false);
+  errorCargo = signal<string | null>(null);
 
   anho = signal<number>(new Date().getFullYear());
   mes = signal<number>(new Date().getMonth() + 1);
@@ -37,8 +64,34 @@ export class AsigCursosComponent implements OnInit {
   @ViewChild(PersonaSearchComponent) docenteSearch?: PersonaSearchComponent;
 
   // Grillas
-  cargosActuales = signal<any[]>([]); // Combines titulares and contratados
+  // El plantel se compone de titulares y contratados. Se guardan por separado y se
+  // combinan en un computed para que el nombre del cargo contratado se resuelva con
+  // la colección de cargos tipo (que puede llegar después de la carga del curso).
+  private cargosTitulares = signal<any[]>([]);
+  private cargosContratados = signal<any[]>([]);
+
+  cargosActuales = computed(() => {
+    const cargoTipos = new Map<number, any>(this.cargosTipo().map(ct => [ct.cargoTipoId, ct]));
+    const titulares = this.cargosTitulares().map(t => ({
+      ...t,
+      isContratado: false,
+      key: 'T' + t.cursoCargoId
+    }));
+    const contratados = this.cargosContratados().map(c => ({
+      ...c,
+      isContratado: true,
+      key: 'C' + c.cursoCargoContratadoId,
+      persona: { apellidoNombre: `${c.contratadoPersona?.apellido ?? ''}, ${c.contratadoPersona?.nombre ?? ''}` },
+      cargoTipo: cargoTipos.get(c.cargoTipoId) ?? { nombre: `Cargo ${c.cargoTipoId}` }
+    }));
+    return [...titulares, ...contratados];
+  });
+
   cargoSeleccionado = signal<any | null>(null); // Fila seleccionada en la grilla central
+  readonly puedeEliminarCargo = computed<boolean>(() => {
+    const cargo = this.cargoSeleccionado();
+    return this.esGlobal() && !!cargo && !cargo.isContratado;
+  });
   
   cargosAlta = signal<any[]>([]);
   cargosBaja = signal<any[]>([]);
@@ -54,27 +107,21 @@ export class AsigCursosComponent implements OnInit {
   isLoading = signal<boolean>(false);
   isPrinting = signal<boolean>(false);
 
-  facultadId = computed(() => {
-    let fid = null;
-    this.auth.currentUser$.subscribe(u => { if (u) fid = u.facultadId; }).unsubscribe();
-    return fid;
-  });
-
   constructor() {
     effect(() => {
       this.checkAcreditacion();
       if (this.sedeSeleccionada() !== null) {
          this.filtroCursoSubject.next(this.filtroCurso());
       }
-    }, { allowSignalWrites: true });
+    });
 
-    // Server-side debounced course filtering
+    // Filtro de cursos con debounce (las condiciones se resuelven del lado del servidor)
     this.filtroCursoSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       tap(() => this.isLoading.set(true)),
       switchMap(text => {
-        const fid = this.facultadId();
+        const fid = this.facultadActiva();
         const sid = this.sedeSeleccionada();
         if (!fid || !sid) return of([]);
         return this.service.getCursosFiltrados(fid, sid, text).pipe(catchError(() => of([])));
@@ -88,6 +135,12 @@ export class AsigCursosComponent implements OnInit {
   ngOnInit() {
     this.service.getSedes().subscribe(data => this.sedes.set(data));
     this.service.getCargosTipos().subscribe(data => this.cargosTipo.set(data));
+    // El catálogo de facultades también se usa en modo facultad para mostrar el
+    // nombre en la grilla (los cursos sólo traen facultadId).
+    this.service.getFacultades().subscribe(data => this.facultades.set(data));
+    if (this.esGlobal()) {
+      this.service.getNiveles().subscribe(data => this.niveles.set(data));
+    }
   }
 
   checkAcreditacion() {
@@ -113,12 +166,176 @@ export class AsigCursosComponent implements OnInit {
     this.cleanGrids();
   }
 
+  // Cambio de sede: VB6 hace vCursoId = 0 y limpia el curso, de modo que no se
+  // pueda proponer una novedad sobre un curso que pertenece a otra sede.
+  seleccionarSede(sedeId: number | null) {
+    this.sedeSeleccionada.set(sedeId);
+    this.cursoSeleccionado.set(null);
+    this.limpiarFormulario();
+  }
+
+  // Cambio de facultad (módulo global): reinicia curso, formulario y listado.
+  seleccionarFacultad(facultadId: number | null) {
+    this.facultadSeleccionada.set(facultadId);
+    this.cursoSeleccionado.set(null);
+    this.limpiarFormulario();
+    this.cursoForm.set(cursoVacio());
+    this.cursos.set([]);
+    this.loadCursos();
+  }
+
+  // --- CRUD de cursos (sólo módulo global) ---
+
+  actualizarCampoCurso(campo: keyof CursoPayload, valor: string | number | null) {
+    this.cursoForm.set({ ...this.cursoForm(), [campo]: valor });
+    this.errorCurso.set(null);
+    this.exitoCurso.set(null);
+  }
+
+  agregarCurso() {
+    const payload = this.payloadCurso();
+    if (!payload) {
+      return;
+    }
+
+    this.isSavingCurso.set(true);
+    this.errorCurso.set(null);
+    this.exitoCurso.set(null);
+    this.service
+      .addCurso(payload)
+      .pipe(finalize(() => this.isSavingCurso.set(false)))
+      .subscribe({
+        next: () => {
+          this.exitoCurso.set('Curso creado.');
+          this.cursoForm.set({ ...cursoVacio(), facultadId: payload.facultadId, geograficaId: payload.geograficaId });
+          this.loadCursos();
+        },
+        error: (err: HttpErrorResponse) =>
+          this.errorCurso.set(mensajeDeError(err, 'No se pudo crear el curso.'))
+      });
+  }
+
+  actualizarCurso() {
+    const curso = this.cursoSeleccionado();
+    if (!curso) {
+      this.errorCurso.set('Seleccione un curso de la lista.');
+      return;
+    }
+    const payload = this.payloadCurso();
+    if (!payload) {
+      return;
+    }
+
+    this.isSavingCurso.set(true);
+    this.errorCurso.set(null);
+    this.exitoCurso.set(null);
+    this.service
+      .updateCurso(curso.cursoId, payload)
+      .pipe(
+        // El curso cambió: los legajos con cargos en él deben volver a fusionarse.
+        switchMap(() => this.service.invalidarFusionCurso(curso.cursoId, this.anho(), this.mes())),
+        finalize(() => this.isSavingCurso.set(false))
+      )
+      .subscribe({
+        next: () => {
+          this.exitoCurso.set('Curso actualizado. Los legajos asignados quedaron para re-fusionar.');
+          this.loadCursos();
+          this.loadGrids();
+        },
+        error: (err: HttpErrorResponse) =>
+          this.errorCurso.set(mensajeDeError(err, 'No se pudo actualizar el curso.'))
+      });
+  }
+
+  eliminarCurso() {
+    const curso = this.cursoSeleccionado();
+    if (!curso) {
+      this.errorCurso.set('Seleccione un curso de la lista.');
+      return;
+    }
+
+    this.errorCurso.set(null);
+    this.exitoCurso.set(null);
+    // Igual que el legacy: no se borra un curso con docentes asignados.
+    this.service.getCargosCursoAny(curso.cursoId).subscribe({
+      next: (cargos) => {
+        if (cargos.length > 0) {
+          this.errorCurso.set('ERROR: Hay docentes asignados al curso en algún período.');
+          return;
+        }
+        if (!window.confirm(`¿Eliminar el curso "${curso.nombre}"?`)) {
+          return;
+        }
+        this.isSavingCurso.set(true);
+        this.service
+          .deleteCurso(curso.cursoId)
+          .pipe(finalize(() => this.isSavingCurso.set(false)))
+          .subscribe({
+            next: () => {
+              this.exitoCurso.set('Curso eliminado.');
+              this.cursoSeleccionado.set(null);
+              this.cursoForm.set(cursoVacio());
+              this.limpiarFormulario();
+              this.loadCursos();
+            },
+            error: (err: HttpErrorResponse) =>
+              this.errorCurso.set(mensajeDeError(err, 'No se pudo eliminar el curso.'))
+          });
+      },
+      error: (err: HttpErrorResponse) =>
+        this.errorCurso.set(mensajeDeError(err, 'No se pudo verificar los cargos del curso.'))
+    });
+  }
+
   loadCursos() {
     this.filtroCursoSubject.next(this.filtroCurso());
   }
 
   seleccionarCurso(curso: any) {
     this.cursoSeleccionado.set(curso);
+    this.cursoForm.set({
+      nombre: curso.nombre ?? '',
+      facultadId: curso.facultadId,
+      geograficaId: curso.geograficaId,
+      anual: curso.anual ?? 0,
+      semestre1: curso.semestre1 ?? 0,
+      semestre2: curso.semestre2 ?? 0,
+      nivelId: curso.nivelId ?? null,
+      adicionalCargaHoraria: curso.adicionalCargaHoraria ?? 0
+    });
+    this.errorCurso.set(null);
+    this.exitoCurso.set(null);
+    this.limpiarFormulario();
+    this.loadGrids();
+  }
+
+  // Elimina la asignación de un cargo (módulo global). El legacy reseteaba el
+  // flag de fusión del legajo antes de borrar; acá el servidor invalida el curso.
+  eliminarCargoActual() {
+    const cargo = this.cargoSeleccionado();
+    const curso = this.cursoSeleccionado();
+    if (!cargo || !curso || cargo.isContratado) {
+      alert('Seleccione un cargo titular de la grilla.');
+      return;
+    }
+    if (!window.confirm(`¿Eliminar el cargo de ${cargo.persona?.apellidoNombre ?? 'legajo ' + cargo.legajoId}?`)) {
+      return;
+    }
+
+    this.service
+      .eliminarCargo(cargo.cursoCargoId)
+      .pipe(switchMap(() => this.service.invalidarFusionCurso(curso.cursoId, this.anho(), this.mes())))
+      .subscribe({
+        next: () => {
+          this.cargoSeleccionado.set(null);
+          this.loadGrids();
+        },
+        error: (err: HttpErrorResponse) => alert(mensajeDeError(err, 'No se pudo eliminar el cargo.'))
+      });
+  }
+
+  // Resetea el formulario de alta/baja y las grillas sin tocar el curso elegido.
+  private limpiarFormulario() {
     this.cargoSeleccionado.set(null);
     this.personaSeleccionada.set(null);
     this.docenteSearch?.limpiar();
@@ -127,26 +344,20 @@ export class AsigCursosComponent implements OnInit {
     this.desarraigo.set(false);
     this.observacionesAlta.set('');
     this.observacionesBaja.set('');
-    this.loadGrids();
+    this.cleanGrids();
   }
 
   loadGrids() {
     const cursoId = this.cursoSeleccionado()?.cursoId;
     if (!cursoId) return;
 
-    // Load current roster (titulares + contratados)
+    // Carga el plantel actual (titulares + contratados)
     forkJoin({
       titulares: this.service.getCargosTitulares(cursoId, this.anho(), this.mes()).pipe(catchError(() => of([]))),
       contratados: this.service.getCargosContratados(cursoId, this.anho(), this.mes()).pipe(catchError(() => of([])))
     }).subscribe(({ titulares, contratados }) => {
-       const mappedTitulares = titulares.map(t => ({ ...t, isContratado: false }));
-       const mappedContratados = contratados.map(c => ({ 
-           ...c, 
-           isContratado: true,
-           persona: { apellidoNombre: c.contratadoPersona?.apellido + ', ' + c.contratadoPersona?.nombre },
-           cargoTipo: { nombre: 'Contratado (Consulte ID)' } // VB6 does a map to cargoTipos via collection
-       }));
-       this.cargosActuales.set([...mappedTitulares, ...mappedContratados]);
+       this.cargosTitulares.set(titulares);
+       this.cargosContratados.set(contratados);
     });
 
     this.service.getCargosAlta(cursoId, this.anho(), this.mes()).subscribe(data => this.cargosAlta.set(data));
@@ -154,7 +365,8 @@ export class AsigCursosComponent implements OnInit {
   }
 
   cleanGrids() {
-    this.cargosActuales.set([]);
+    this.cargosTitulares.set([]);
+    this.cargosContratados.set([]);
     this.cargosAlta.set([]);
     this.cargosBaja.set([]);
   }
@@ -166,19 +378,27 @@ export class AsigCursosComponent implements OnInit {
 
   // Interacción Grilla Central
   seleccionarCargoActual(cargo: any) {
+    // Los contratados no se pueden seleccionar (igual que VB6: RowData = 0 -> Exit Sub)
+    if (cargo.isContratado) return;
+
     this.cargoSeleccionado.set(cargo);
-    
-    // Auto-fill left panel
-    if (!cargo.isContratado) {
-       this.cargoAltaSeleccionado.set(cargo.cargoTipoId);
-       this.horasSemanales.set(cargo.horasSemanales);
-       this.desarraigo.set(cargo.desarraigo === 1);
-       if (cargo.persona) this.personaSeleccionada.set(cargo.persona as Persona);
-    }
+
+    // Completa el panel de alta con los datos de la fila elegida
+    this.cargoAltaSeleccionado.set(cargo.cargoTipoId);
+    this.horasSemanales.set(cargo.horasSemanales);
+    this.desarraigo.set(cargo.desarraigo === 1);
+    if (cargo.persona) this.personaSeleccionada.set(cargo.persona as Persona);
   }
 
-  // LOGICA DE NEGOCIO (Alta / Cambio / Reemplazo) -> Botón "+" Izquierdo
+  // LÓGICA DE NEGOCIO (Alta / Cambio / Reemplazo) -> Botón "+" Izquierdo
   agregarCargoAlta() {
+    // En el módulo global la asignación es directa sobre curso_cargo; en el de
+    // facultad se propone una novedad que rectorado debe autorizar.
+    if (this.esGlobal()) {
+      this.asignarCargoDirecto();
+      return;
+    }
+
     const cursoId = this.cursoSeleccionado()?.cursoId;
     const p = this.personaSeleccionada();
     const cargoTipoId = this.cargoAltaSeleccionado();
@@ -191,7 +411,7 @@ export class AsigCursosComponent implements OnInit {
       return;
     }
 
-    // Step 1: Verify if novelty already exists
+    // Verifica que no exista ya una novedad pendiente para el docente en el curso
     this.service.getNovedadPendienteByLegajo(p.legajoId, cursoId, this.anho(), this.mes()).subscribe(pendientes => {
       if (pendientes.length > 0) {
         alert("ERROR: Novedad EXISTENTE para este DOCENTE en este curso y período");
@@ -202,11 +422,11 @@ export class AsigCursosComponent implements OnInit {
       let isCambioDesarraigo = false;
       let isCambioHoras = false;
 
-      // Check if person is already in the roster for this course
+      // Verifica si el docente ya está en el plantel del curso
       const cargoActual = this.cargosActuales().find(c => c.legajoId === p.legajoId && !c.isContratado);
 
       if (cargoActual) {
-        // Is it the same cargo role?
+        // ¿Es el mismo cargo?
         if (cargoActual.cargoTipoId === cargoTipoId) {
            if (cargoActual.desarraigo !== desarr || cargoActual.horasSemanales !== horas) {
               if (cargoActual.desarraigo !== desarr) isCambioDesarraigo = true;
@@ -216,44 +436,39 @@ export class AsigCursosComponent implements OnInit {
               return;
            }
         } else {
-           isBaja = true; // Different role means drop the old one, add new one
+           // Distinto cargo: se da de baja el anterior y se agrega el nuevo
+           isBaja = true;
         }
       }
 
-      // Replicando el payload exacto de makeParams de clsMODCursoCargoNovedad.cls
-      const basePayload = {
-        cursoId: cursoId,
-        anho: this.anho(),
-        mes: this.mes(),
-        legajoId: p.legajoId,
-        horasSemanales: horas,
-        horasTotales: 0,
-        desarraigo: desarr,
-        solicitud: obs,
-        autorizado: 0,
-        rechazado: 0,
-        respuesta: null,
-        transferido: 0
-      };
-
       if (isCambioDesarraigo || isCambioHoras) {
-        // CAMBIO
-        this.service.addNovedad({ ...basePayload, cargoTipoId, alta: 0, baja: 0, cambio: 1 }).subscribe({ next: () => this.loadGrids(), error: (e) => console.error(e) });
+        // CAMBIO de horas y/o desarraigo
+        this.service.addNovedad(this.payloadNovedad({
+          cursoId, legajoId: p.legajoId, cargoTipoId, horasSemanales: horas, desarraigo: desarr,
+          solicitud: obs, alta: 0, baja: 0, cambio: 1
+        })).subscribe({ next: () => this.loadGrids(), error: (e) => console.error(e) });
       } else {
         // ALTA
-        this.service.addNovedad({ ...basePayload, cargoTipoId, alta: 1, baja: 0, cambio: 0 }).subscribe({ next: () => this.loadGrids(), error: (e) => console.error(e) });
+        this.service.addNovedad(this.payloadNovedad({
+          cursoId, legajoId: p.legajoId, cargoTipoId, horasSemanales: horas, desarraigo: desarr,
+          solicitud: obs, alta: 1, baja: 0, cambio: 0
+        })).subscribe({ next: () => this.loadGrids(), error: (e) => console.error(e) });
       }
 
       if (isBaja) {
-        // BAJA AUTOMATICA DEL CARGO ANTERIOR
-        this.service.addNovedad({ ...basePayload, cargoTipoId: cargoActual.cargoTipoId, horasSemanales: cargoActual.horasSemanales, desarraigo: cargoActual.desarraigo, alta: 0, cambio: 0, baja: 1 }).subscribe({ next: () => this.loadGrids(), error: (e) => console.error(e) });
+        // BAJA AUTOMÁTICA del cargo anterior
+        this.service.addNovedad(this.payloadNovedad({
+          cursoId, legajoId: p.legajoId, cargoTipoId: cargoActual.cargoTipoId,
+          horasSemanales: cargoActual.horasSemanales, desarraigo: cargoActual.desarraigo,
+          solicitud: obs, alta: 0, baja: 1, cambio: 0
+        })).subscribe({ next: () => this.loadGrids(), error: (e) => console.error(e) });
       }
       
       this.observacionesAlta.set('');
     });
   }
 
-  // LOGICA DE NEGOCIO (Baja manual) -> Botón "+" Derecho
+  // LÓGICA DE NEGOCIO (Baja manual) -> Botón "+" Derecho
   agregarCargoBaja() {
     const cargo = this.cargoSeleccionado();
     const obs = this.observacionesBaja().trim();
@@ -267,47 +482,111 @@ export class AsigCursosComponent implements OnInit {
        return;
     }
 
-    // Verify if novelty already exists
+    // Verifica que no exista ya una novedad pendiente para el docente en el curso
     this.service.getNovedadPendienteByLegajo(cargo.legajoId, cargo.cursoId, this.anho(), this.mes()).subscribe(pendientes => {
       if (pendientes.length > 0) {
         alert("ERROR: Novedad EXISTENTE para este DOCENTE");
         return;
       }
 
-      const payload = {
+      this.service.addNovedad(this.payloadNovedad({
         cursoId: cargo.cursoId,
-        anho: this.anho(),
-        mes: this.mes(),
         legajoId: cargo.legajoId,
         cargoTipoId: cargo.cargoTipoId,
         horasSemanales: cargo.horasSemanales,
-        horasTotales: 0,
         desarraigo: cargo.desarraigo,
-        alta: 0,
-        cambio: 0,
-        baja: 1,
         solicitud: obs,
-        facultadId: this.facultadId(),
-        visado: 0, autorizado: 0, rechazado: 0, rectorado: 0, transferido: 0
-      };
-
-      this.service.addNovedad(payload).subscribe(() => {
+        alta: 0, baja: 1, cambio: 0
+      })).subscribe(() => {
          this.observacionesBaja.set('');
          this.loadGrids();
       });
     });
   }
 
+  /**
+   * Asignación directa (módulo global): crea o modifica el cargo del docente en
+   * el curso y deja el curso marcado para re-fusionar. Replica cmdAsignar del
+   * formulario legacy, que no generaba novedades.
+   */
+  private asignarCargoDirecto() {
+    const cursoId = this.cursoSeleccionado()?.cursoId;
+    const persona = this.personaSeleccionada();
+    const cargoTipoId = this.cargoAltaSeleccionado();
+    const horas = this.horasSemanales();
+
+    if (!cursoId || !persona || !cargoTipoId || horas === null) {
+      alert('Faltan datos: Docente, Cargo y Horas Semanales.');
+      return;
+    }
+
+    this.isSavingCargo.set(true);
+    this.errorCargo.set(null);
+    this.service
+      .getCargoPorLegajo(cursoId, this.anho(), this.mes(), persona.legajoId)
+      .pipe(
+        catchError(() => of(null)),
+        switchMap((existente) => {
+          const payload: CargoPayload = {
+            cursoId,
+            anho: this.anho(),
+            mes: this.mes(),
+            cargoTipoId,
+            legajoId: persona.legajoId,
+            horasSemanales: horas,
+            horasTotales: existente?.horasTotales ?? 0,
+            desarraigo: this.desarraigo() ? 1 : 0
+          };
+          return existente?.cursoCargoId
+            ? this.service.updateCargo(existente.cursoCargoId, payload)
+            : this.service.addCargo(payload);
+        }),
+        switchMap(() => this.service.invalidarFusionCurso(cursoId, this.anho(), this.mes())),
+        finalize(() => this.isSavingCargo.set(false))
+      )
+      .subscribe({
+        next: () => this.loadGrids(),
+        error: (err: HttpErrorResponse) =>
+          this.errorCargo.set(mensajeDeError(err, 'No se pudo asignar el cargo.'))
+      });
+  }
+
+  // Payload alineado con makeParams de clsMODCursoCargoNovedad.cls: sólo los
+  // campos de curso_cargo_novedad (sin facultadId/visado/rectorado, que no existen
+  // en la entidad del backend).
+  private payloadNovedad(datos: {
+    cursoId: number;
+    legajoId: number;
+    cargoTipoId: number;
+    horasSemanales: number;
+    desarraigo: number;
+    solicitud: string;
+    alta: number;
+    baja: number;
+    cambio: number;
+  }) {
+    return {
+      ...datos,
+      anho: this.anho(),
+      mes: this.mes(),
+      horasTotales: 0,
+      autorizado: 0,
+      rechazado: 0,
+      respuesta: null,
+      transferido: 0
+    };
+  }
+
   eliminarNovedad(novedad: any) {
     if (!confirm('¿Seguro que desea eliminar esta solicitud pendiente?')) return;
-    // The VB6 code loops through collectionPendientesByLegajo and deletes them all for that legajo/curso
+    // VB6 recorre collectionPendientesByLegajo y borra todas las del legajo/curso
     this.service.deleteNovedadPendiente(novedad.legajoId, novedad.cursoId, this.anho(), this.mes()).subscribe(() => {
        this.loadGrids();
     });
   }
 
   imprimir() {
-    const fid = this.facultadId();
+    const fid = this.facultadActiva();
     if (!fid) return;
     
     this.isPrinting.set(true);
@@ -329,4 +608,60 @@ export class AsigCursosComponent implements OnInit {
        }
     });
   }
+
+  // --- Utilidades del módulo global ---
+
+  nombreFacultad(curso: any): string {
+    if (curso?.facultad?.reducido) {
+      return curso.facultad.reducido;
+    }
+    return this.facultades().find((f) => f.facultadId === curso?.facultadId)?.reducido ?? '';
+  }
+
+  nombreSede(curso: any): string {
+    if (curso?.geografica?.reducido) {
+      return curso.geografica.reducido;
+    }
+    return this.sedes().find((s) => s.geograficaId === curso?.geograficaId)?.reducido ?? '';
+  }
+
+  /** Valida el formulario y arma el payload que espera el core. */
+  private payloadCurso(): CursoPayload | null {
+    const form = this.cursoForm();
+    const facultadId = form.facultadId || this.facultadActiva();
+    const geograficaId = form.geograficaId || this.sedeSeleccionada();
+
+    if (!form.nombre.trim()) {
+      this.errorCurso.set('Falta NOMBRE del curso.');
+      return null;
+    }
+    if (!facultadId || !geograficaId) {
+      this.errorCurso.set('Falta FACULTAD o SEDE.');
+      return null;
+    }
+    if (!form.nivelId) {
+      this.errorCurso.set('Falta NIVEL.');
+      return null;
+    }
+
+    return {
+      ...form,
+      nombre: form.nombre.trim(),
+      facultadId,
+      geograficaId
+    };
+  }
+}
+
+function cursoVacio(): CursoPayload {
+  return {
+    nombre: '',
+    facultadId: 0,
+    geograficaId: 0,
+    anual: 0,
+    semestre1: 0,
+    semestre2: 0,
+    nivelId: null,
+    adicionalCargaHoraria: 0
+  };
 }

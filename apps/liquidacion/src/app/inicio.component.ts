@@ -17,7 +17,7 @@ import { MENU_GROUPS, RUTAS_MIGRADAS } from './menu-options.data';
     <ui-opciones-panel
       [grupos]="grupos"
       titulo="Directorio de Operaciones"
-      descripcion="Catálogo unificado de procesos de liquidación, reportes y administración de haberes"
+      descripcion="Catálogo unificado de procesos de liquidación, designaciones, reportes y contabilidad de haberes"
     />
   `
 })
