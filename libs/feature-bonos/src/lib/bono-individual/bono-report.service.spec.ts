@@ -66,7 +66,7 @@ describe('BonoReportService', () => {
 
     service.downloadBonoPdf(123, 2026, 8).subscribe((r) => (resultado = r));
 
-    const req = http.expectOne('/api/haberes/report/bono/ui/generatePdf/123/2026/8');
+    const req = http.expectOne('/api/haberes/report/ui/bono/generatePdf/123/2026/8');
     expect(req.request.method).toBe('GET');
     expect(req.request.responseType).toBe('blob');
     req.flush(pdf);
@@ -110,7 +110,7 @@ describe('BonoReportService', () => {
 
     service.sendBono(123, 2026, 8).subscribe((r) => (resultado = r));
 
-    const req = http.expectOne('/api/haberes/report/bono/ui/sendBono/123/2026/8');
+    const req = http.expectOne('/api/haberes/report/ui/bono/sendBono/123/2026/8');
     expect(req.request.method).toBe('GET');
     expect(req.request.responseType).toBe('text');
     req.flush('Bono enviado');

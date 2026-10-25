@@ -6,25 +6,28 @@ Librería de impresión individual de bonos de sueldo para el módulo de Liquida
 ## Servicios
 
 - **`BonoReportService`**: acceso a la API de haberes-core (`/api/haberes/core/bono`,
-  hexagonal `liquidaciones/bono`) y del report service (`/api/haberes/report/bono`):
+  hexagonal `liquidaciones/bono`) y del report service (`/api/haberes/report/ui/bono`, detrás de la API key del gateway; las rutas legacy `/api/haberes/report/bono/*` quedan para el cliente de escritorio):
   - `GET .../integridad` — verificación previa (Liquidación, Item, Actividad, LegajoControl, dependencia).
   - `POST .../prepare` — recalcula actividad (`beforePrintBono`), sin registrar auditoría.
-  - `GET /api/haberes/report/bono/ui/generatePdf/{legajoId}/{anho}/{mes}` — blob PDF del bono.
+  - `POST .../dependencia/{dependenciaId}/{anho}/{mes}/{salida}/print-prepare` — preparación
+    masiva para la pantalla por dependencia: recalcula actividad y audita cada legajo con la IP
+    y el solicitante resueltos server-side; devuelve el resumen con los legajos que fallaron.
+  - `GET /api/haberes/report/ui/bono/generatePdf/{legajoId}/{anho}/{mes}` — blob PDF del bono.
     Endpoint **exclusivo del front**: NO audita ni recibe IP (las rutas legacy
     `generatePdf/.../{ipAddress}` quedan sólo para el cliente VB6).
   - `POST .../auditoria` — registra la auditoría de impresión en el core, que resuelve la
     IP real del request server-side (`ClientIpResolver`).
   - `POST .../send-prepare` — valida mail, guarda contacto (upsert) y registra auditoría con IP server-side.
-  - `GET /api/haberes/report/bono/ui/sendBono/{legajoId}/{anho}/{mes}` — envío por e-mail (respuesta
+  - `GET /api/haberes/report/ui/bono/sendBono/{legajoId}/{anho}/{mes}` — envío por e-mail (respuesta
     texto). Endpoint **exclusivo del front**: NO audita (el legado `sendBono/.../{ipAddress}` queda para VB6).
   - `POST /api/haberes/core/tool/mailvalidate` — validación de mail (equivalente a `modValidate.validateMail`).
   - `GET /api/haberes/core/contacto/{legajoId}` — mail institucional.
   - `GET .../auditoria` — historial de impresiones del período.
 
-Flujo Imprimir: `prepare` (core recalcula) → `ui/generatePdf` (report devuelve el PDF sin auditar)
+Flujo Imprimir: `prepare` (core recalcula) → `/ui/bono/generatePdf` (report devuelve el PDF sin auditar)
 → `auditoria` (core audita con la IP real del request, un solo registro). Flujo Enviar: `send-prepare`
 (core valida mail, hace upsert de contacto y audita con IP real, sin pisar fijo/movil/mailPersonal)
-→ `ui/sendBono` (report envía el correo sin auditar).
+→ `/ui/bono/sendBono` (report envía el correo sin auditar).
 
 La identidad solicitante viaja como `legajoIdSolicitud` en el body (el gateway no inyecta
 hoy el header `X-Legajo-Solicitante`, verificado en despliegue local; el core lo prioriza

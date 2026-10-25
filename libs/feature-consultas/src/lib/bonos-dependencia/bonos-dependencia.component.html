@@ -1,0 +1,168 @@
+<div class="flex flex-col gap-6">
+
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Consultas y Reportes</span>
+      <h1 class="um-page-title">Bonos por Dependencia</h1>
+      <p class="um-page-desc max-w-2xl">
+        Legajos de la dependencia en el período, con su mail institucional y la marca de bono
+        enviado. Imprima el PDF consolidado de los recibos o envíe los bonos por correo.
+      </p>
+    </div>
+  </div>
+
+  <div class="um-card">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="flex flex-wrap items-end gap-4">
+        <div class="w-72">
+          <label class="um-label" for="bonos-dependencia-dependencia">Dependencia</label>
+          <select
+            id="bonos-dependencia-dependencia"
+            class="um-input"
+            [ngModel]="dependenciaId()"
+            (ngModelChange)="cambiarDependencia($event)"
+          >
+            <option [ngValue]="null">Seleccione una dependencia</option>
+            @for (dependencia of dependencias(); track dependencia.dependenciaId) {
+              <option [ngValue]="dependencia.dependenciaId">{{ dependencia.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="w-28">
+          <label class="um-label" for="bonos-dependencia-filtro">Filtro</label>
+          <select
+            id="bonos-dependencia-filtro"
+            class="um-input"
+            [ngModel]="filtro()"
+            (ngModelChange)="cambiarFiltro($event)"
+          >
+            <option value="A">A</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <haberes-consulta-periodo
+          [anho]="anho()"
+          [mes]="mes()"
+          (periodoChange)="cambiarPeriodo($event)"
+        />
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="um-btn-primary" [disabled]="cargando() || !habilitado()" (click)="verDatos()">
+          {{ cargando() ? 'Consultando...' : 'Ver datos' }}
+        </button>
+        <button type="button" class="um-btn-secondary" [disabled]="imprimiendo() || !habilitado()" (click)="imprimir()">
+          {{ imprimiendo() ? 'Generando...' : 'Imprimir' }}
+        </button>
+        <button
+          type="button"
+          class="um-btn-secondary"
+          [disabled]="enviando() || !puedeEnviar()"
+          (click)="enviar()"
+        >
+          {{ enviando() ? 'Enviando...' : 'Enviar seleccionados' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="um-card border-rose-200 bg-rose-50 text-xs font-medium text-rose-700">
+      {{ error() }}
+    </div>
+  }
+
+  @if (fallidos().length > 0) {
+    <div class="um-card border-amber-200 bg-amber-50 text-sm text-amber-700">
+      <p class="font-semibold">
+        {{ fallidos().length }} legajo(s) no se pudieron preparar. El PDF no se generó.
+      </p>
+      <ul class="mt-2 list-disc pl-5 text-xs">
+        @for (fallido of fallidos(); track fallido.legajoId) {
+          <li>Legajo {{ fallido.legajoId }}: {{ fallido.motivo }}</li>
+        }
+      </ul>
+      <button type="button" class="um-btn-secondary mt-3" [disabled]="imprimiendo()" (click)="descargarPdf()">
+        Descargar PDF de todos modos
+      </button>
+    </div>
+  }
+
+  @if (progreso(); as progresoActual) {
+    <div class="um-card text-sm text-um-text">
+      Enviando {{ progresoActual.actual }} de {{ progresoActual.total }}...
+    </div>
+  }
+
+  @if (resultados().length > 0) {
+    <div class="um-card">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-um-ink">Resultado del envío</h3>
+      <ul class="mt-2 flex flex-col gap-1 text-xs">
+        @for (resultado of resultados(); track resultado.legajoId) {
+          <li [class.text-emerald-700]="resultado.ok" [class.text-rose-700]="!resultado.ok">
+            {{ resultado.legajoId }} · {{ resultado.apellidoNombre }} — {{ resultado.mensaje }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (datos() !== null || cargando()) {
+    <div class="um-card p-0 overflow-hidden">
+      <div class="flex items-center justify-between gap-4 border-b border-um-border bg-um-surface px-4 py-3">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-um-primary"></span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-um-ink">Legajos</h3>
+        </div>
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-um-muted">
+          {{ mes() }}/{{ anho() }} · {{ filas().length }} legajos
+        </span>
+      </div>
+
+      @if (cargando()) {
+        <p class="px-4 py-6 text-sm text-um-muted">Consultando legajos de la dependencia...</p>
+      } @else if (filas().length === 0) {
+        <p class="px-4 py-6 text-sm text-um-muted">
+          Sin legajos para la dependencia, el filtro y el período elegidos.
+        </p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="um-table">
+            <thead>
+              <tr>
+                <th>Legajo</th>
+                <th>Apellido y Nombre</th>
+                <th>Mail institucional</th>
+                <th class="text-center">Enviado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of filas(); track fila.legajoId) {
+                <tr>
+                  <td class="font-mono tabular-nums">{{ fila.legajoId }}</td>
+                  <td>{{ fila.apellidoNombre }}</td>
+                  <td>{{ fila.mailInstitucional || '—' }}</td>
+                  <td class="text-center">
+                    <input
+                      type="checkbox"
+                      [checked]="marcados().has(fila.legajoId)"
+                      [attr.aria-label]="'Marcar enviado del legajo ' + fila.legajoId"
+                      (change)="alternarMarcado(fila.legajoId)"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="border-t border-um-border px-4 py-2 text-[11px] text-um-muted">
+          «Enviar seleccionados» envía los legajos <strong>sin marca</strong> que tengan mail
+          institucional, igual que el formulario original.
+        </p>
+      }
+    </div>
+  } @else {
+    <div class="um-card text-sm text-um-muted">
+      Seleccione la dependencia, el filtro y el período, y presione «Ver datos».
+    </div>
+  }
+</div>

@@ -20,6 +20,7 @@
       "@haberes/feature-anotador": ["./libs/feature-anotador/src/index.ts"],
       "@haberes/feature-cargos": ["./libs/feature-cargos/src/index.ts"],
       "@haberes/feature-bonos": ["./libs/feature-bonos/src/index.ts"],
+      "@haberes/feature-consultas": ["./libs/feature-consultas/src/index.ts"],
       "@haberes/feature-contabilidad": ["./libs/feature-contabilidad/src/index.ts"],
       "@haberes/feature-personas": ["./libs/feature-personas/src/index.ts"],
       "@haberes/feature-adicionales": ["./libs/feature-adicionales/src/index.ts"],

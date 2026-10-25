@@ -162,7 +162,7 @@ describe('BonoIndividualComponent', () => {
       dependenciaId: 10
     });
 
-    const pdf = httpMock.expectOne('/api/haberes/report/bono/ui/generatePdf/123/2026/8');
+    const pdf = httpMock.expectOne('/api/haberes/report/ui/bono/generatePdf/123/2026/8');
     expect(pdf.request.responseType).toBe('blob');
     pdf.flush(new Blob(['%PDF-1.4'], { type: 'application/pdf' }));
 
@@ -207,7 +207,7 @@ describe('BonoIndividualComponent', () => {
     });
 
     // El backend ya puede responder con Content-Type application/pdf; igual se fuerza.
-    const pdf = httpMock.expectOne('/api/haberes/report/bono/ui/generatePdf/123/2026/8');
+    const pdf = httpMock.expectOne('/api/haberes/report/ui/bono/generatePdf/123/2026/8');
     pdf.flush(new Blob(['%PDF-1.4'], { type: 'application/octet-stream' }));
 
     const auditoria = httpMock.expectOne('/api/haberes/core/bono/123/2026/8/auditoria');
@@ -241,7 +241,7 @@ describe('BonoIndividualComponent', () => {
 
     expect(component.integridad()).toEqual(rechazo);
     expect(component.mensajesFaltantes()).toEqual(['ERROR: Falta LIQUIDACIÓN']);
-    httpMock.expectNone(`/api/haberes/report/bono/ui/generatePdf/123/${anho}/${mes}`);
+    httpMock.expectNone(`/api/haberes/report/ui/bono/generatePdf/123/${anho}/${mes}`);
   });
 
   it('enviar prepara el envío y muestra la respuesta del report service', () => {
@@ -260,7 +260,7 @@ describe('BonoIndividualComponent', () => {
     });
     sendPrepare.flush(impresion);
 
-    const send = httpMock.expectOne('/api/haberes/report/bono/ui/sendBono/123/2026/8');
+    const send = httpMock.expectOne('/api/haberes/report/ui/bono/sendBono/123/2026/8');
     expect(send.request.responseType).toBe('text');
     send.flush('Bono enviado correctamente');
 
