@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.12.0] - 2026-10-25
+
+### Added
+
+- **feat(`feature-consultas`):** Nueva librería (`type:feature`, `scope:liquidacion`) para el grupo **Consultas y Reportes** del módulo Liquidación. Incluye `ConsultasReportService` (único acceso a `/api/haberes/report/ui/{reporte}/{data|pdf|xlsx}/{params}`, con mensaje de negocio para 401), `ConsultaPeriodoComponent` (mes/año con navegación `<` `>`) y `ReporteTablaComponent` (tabla presentacional: recibe columnas tipadas y secciones con subtotal, sin conocer ningún reporte).
+- **feat(`feature-consultas`):** Pantalla **Totales Generales** (`/consultas/totales-generales`, migración de `frmRpTotGeneral.frm`): consulta los grupos y subtotales del período, los muestra en tabla con importes alineados y descarga el PDF y el XLSX del mismo contenido. `totales-generales.models.ts` define el DTO tipado del backend.
+- **feat(`feature-consultas`):** Pantalla **Totales Generales por Código** (`/consultas/totales-codigo`, migración de `frmRpTotCodigo.frm`) con las dos salidas del formulario como vistas: **Totales** (códigos con novedad) y **Comparación** (todos los códigos con diferencia). La tabla y las descargas PDF/XLSX siguen la vista elegida.
+- **feat(`feature-consultas`):** Pantalla **Comparación entre Meses Consecutivos** (`/consultas/comparacion-meses`, migración de `frmCompEntreMesesConsec.frm`): compara brutos y netos contra el mes anterior (enero usa diciembre del año previo), agrupa por dependencia y descarga PDF/XLSX. Avisa que la comparación de designaciones del sistema anterior no está disponible.
+- **feat(`feature-consultas`):** Cuatro pantallas académicas con tabla agrupada y descargas PDF/XLSX del mismo contenido: **Docentes por Sede** (`/consultas/docentes-sede`, facultad + sede), **Designación de Docentes** (`/consultas/designacion-docentes`), **Cursos por Docente** (`/consultas/cursos-docente`) y **Fusión por Docente** (`/consultas/fusion-docente`).
+- **feat(`feature-consultas`):** Pantalla **Cargos con Clase por Facultad** (`/consultas/cargos-clase-facultad`) con filtro de facultad, agrupación por sede y períodos desde/hasta en formato MM/AAAA.
+- **feat(`feature-consultas`):** `ConsultasCatalogosService` (facultades y sedes) para los filtros de Docentes por Sede y Cargos con Clase.
+- **feat(`feature-consultas`):** `ReporteTablaComponent` agrega scroll horizontal para tablas anchas.
+- **feat(`liquidacion`):** Rutas lazy `consultas/totales-generales`, `consultas/totales-codigo`, `consultas/comparacion-meses`, `consultas/docentes-sede`, `consultas/designacion-docentes`, `consultas/cursos-docente`, `consultas/fusion-docente` y `consultas/cargos-clase-facultad`, y sus altas en `RUTAS_MIGRADAS`, por lo que el menú y el panel de inicio dejan de mostrar el placeholder.
+- **feat(`feature-consultas`):** Ocho **planillas** con tabla y descargas PDF/XLSX del mismo contenido: **Planilla de Liquidables** (`/consultas/planilla-liquidables`, sin filtros: sale del estado vigente y se consulta al abrir), **Cantidad de Cargos** (`/consultas/cantidad-cargos`), **Detalle por Código** (`/consultas/detalle-codigo`, con selector de código), **Cargos por Período** (`/consultas/cargos-periodo`), **Cursos por Período** (`/consultas/cursos-periodo`), **Libro de Sueldos** (`/consultas/libro-sueldos`), **Básicos por Período** (`/consultas/basicos-periodo`) y **Cursos por Contratado** (`/consultas/cursos-contratado`).
+- **feat(`feature-consultas`):** **Libro de Sueldos** agrega el botón **LSD (ZIP)** que descarga el Libro de Sueldos Digital de AFIP de los legajos que se están viendo (`ConsultasReportService.descargarLibroSueldosDigital`, `POST` con la lista en el cuerpo y `responseType: 'blob'`).
+- **feat(`feature-consultas`):** Pantalla **Bonos por Dependencia** (`/consultas/bonos-dependencia`, migración de `frmImprimir.frm`): filtros Dependencia + Filtro A/D + período, grilla propia con legajo, apellido y nombre, mail institucional y marca de **enviado** (el botón envía los legajos sin marca que tengan mail, como el formulario original), **Imprimir** (prepara y audita el lote en el core y descarga el PDF consolidado, avisando los legajos que fallaron) y **Enviar seleccionados** con progreso X/Y y resultado por legajo.
+- **feat(`feature-consultas`):** Pantalla **Histórico de Asignación de Cargos** (`/consultas/historico-cargos`, migración de `frmCargoHist.frm`): selector de categoría, aviso explícito de que el reporte no tiene cuerpo implementado y descarga del PDF del encabezado. No ofrece tabla ni XLSX.
+- **feat(`feature-consultas`):** `ConsultasCatalogosService` suma los catálogos de **dependencias**; `ConsultasReportService` suma `enviarBonoDependencia` (envío de un bono del lote).
+- **feat(`feature-bonos`):** `BonoReportService.printPrepareDependencia` llama al nuevo `POST /api/haberes/core/bono/dependencia/{dependenciaId}/{anho}/{mes}/{salida}/print-prepare`, que prepara la actividad y audita cada legajo con la IP resuelta en el servidor.
+- **feat(`feature-consultas`):** `ConsultasCatalogosService` suma el catálogo de **códigos** para el filtro de Detalle por Código.
+- **feat(`liquidacion`):** Rutas lazy y altas en `RUTAS_MIGRADAS` de las ocho planillas, de modo que el menú y el panel de inicio ya no muestran el placeholder en esas opciones.
+- **feat(`liquidacion`):** Rutas lazy `consultas/bonos-dependencia` y `consultas/historico-cargos` con sus altas en `RUTAS_MIGRADAS`: el grupo Consultas queda completo (19 de 19 sin placeholder).
+
+### Changed
+
+- **refactor(`feature-bonos`):** El bono individual consume el namespace `/api/haberes/report/ui/bono/**` (antes `/api/haberes/report/bono/ui/**`), que queda detrás de la API key del gateway. Las rutas legacy con IP no cambian.
+- **docs:** `README.md` incorpora `feature-consultas` al árbol del monorepo y a la tabla de librerías, `AGENTS.md` la suma al mapa del workspace y `docs/architecture.mermaid` agrega la dependencia `liquidacion → feature-consultas`.
+
+### Fixed
+
+- **fix(`feature-consultas`):** `ConsultasReportService` no agrega la barra final al path cuando un reporte no lleva parámetros (Liquidables), que con el mapeo por defecto de Spring daba 404.
+
+### Tests
+
+- Especificaciones de `ConsultasReportService` (URLs de data/descarga y error 401), de `TotalesGeneralesComponent`, `TotalesCodigoComponent` (vistas Totales/Comparación y descarga de la vista activa) y `ComparacionMesesComponent` (mes anterior, enero → diciembre, descarga y cambio de período), de las cinco pantallas académicas (consulta, agrupación por docente/sede, catálogos, guardas de filtros y descargas) y de `ReporteTablaComponent` (secciones, subtotal, vacío y carga).
+- Especificaciones de las ocho planillas: consulta del período, estado vacío, descarga PDF/XLSX y casos propios (guarda sin código en Detalle por Código, consulta sin parámetros en Liquidables, LSD con los legajos visibles y sin datos en Libro de Sueldos), más el caso de URL sin barra final en `ConsultasReportService`.
+- Especificaciones de **Bonos por Dependencia** (catálogo de dependencias, guarda sin dependencia, marca de enviados, cálculo de los legajos a enviar, prepare del lote con solicitante, fallidos sin descarga, descarga forzada, envío con progreso y error por legajo) y de **Histórico de Asignación de Cargos** (categorías, guarda, aviso y PDF).
+
 ## [0.11.0] - 2026-10-24
 
 ### Added
