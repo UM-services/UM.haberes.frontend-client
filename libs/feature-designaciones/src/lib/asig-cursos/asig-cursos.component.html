@@ -2,9 +2,22 @@
   
   <!-- CABECERA: FILTROS Y CONTROLES -->
   <div class="um-card p-3.5 flex flex-wrap items-end gap-3.5 shrink-0">
+    @if (esGlobal()) {
+      <div class="w-64">
+        <label for="asig-facultad" class="um-label">Facultad</label>
+        <select id="asig-facultad" [ngModel]="facultadSeleccionada()" (ngModelChange)="seleccionarFacultad($event)"
+                class="um-input bg-white">
+          <option [ngValue]="null" disabled>Seleccione una facultad...</option>
+          @for (f of facultades(); track f.facultadId) {
+            <option [ngValue]="f.facultadId">{{ f.nombre }}</option>
+          }
+        </select>
+      </div>
+    }
+
     <div class="w-64">
       <label for="asig-sede" class="um-label">Sede</label>
-      <select id="asig-sede" [ngModel]="sedeSeleccionada()" (ngModelChange)="sedeSeleccionada.set($event)"
+      <select id="asig-sede" [ngModel]="sedeSeleccionada()" (ngModelChange)="seleccionarSede($event)"
               class="um-input bg-white">
         <option [ngValue]="null" disabled>Seleccione una sede...</option>
         @for (s of sedes(); track s.geograficaId) {
@@ -92,14 +105,102 @@
                 [class.font-semibold]="cursoSeleccionado()?.cursoId === c.cursoId"
                 class="cursor-pointer">
               <td class="text-um-ink">{{ c.nombre }}</td>
-              <td class="text-um-muted">{{ c.facultad?.reducido }}</td>
-              <td class="text-um-muted">{{ c.geografica?.reducido }}</td>
+              <td class="text-um-muted">{{ nombreFacultad(c) }}</td>
+              <td class="text-um-muted">{{ nombreSede(c) }}</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
   </div>
+
+  <!-- EDICIÓN DE CURSO (sólo módulo global) -->
+  @if (esGlobal()) {
+    <div class="um-card p-3.5 shrink-0">
+      <div class="flex items-center justify-between mb-2.5">
+        <h3 class="text-xs font-bold text-um-ink uppercase tracking-wider">
+          {{ cursoSeleccionado() ? 'Editar Curso' : 'Nuevo Curso' }}
+        </h3>
+        @if (cursoSeleccionado()) {
+          <span class="um-badge bg-white border border-um-border text-um-text tabular-nums">
+            {{ cursoSeleccionado()?.nombre }}
+          </span>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+        <div class="md:col-span-4">
+          <label for="curso-nombre" class="um-label">Nombre</label>
+          <input id="curso-nombre" type="text" [ngModel]="cursoForm().nombre"
+                 (ngModelChange)="actualizarCampoCurso('nombre', $event)"
+                 class="um-input" placeholder="Nombre del curso">
+        </div>
+        <div class="md:col-span-3">
+          <label for="curso-nivel" class="um-label">Nivel</label>
+          <select id="curso-nivel" [ngModel]="cursoForm().nivelId"
+                  (ngModelChange)="actualizarCampoCurso('nivelId', $event)"
+                  class="um-input bg-white">
+            <option [ngValue]="null" disabled>Seleccione un nivel...</option>
+            @for (n of niveles(); track n.nivelId) {
+              <option [ngValue]="n.nivelId">{{ n.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="md:col-span-5 flex flex-wrap items-center gap-3 pb-1.5">
+          <label class="flex items-center gap-1.5 text-xs font-medium text-um-text">
+            <input type="checkbox" [ngModel]="cursoForm().anual === 1"
+                   (ngModelChange)="actualizarCampoCurso('anual', $event ? 1 : 0)" class="h-4 w-4">
+            <span>Anual</span>
+          </label>
+          <label class="flex items-center gap-1.5 text-xs font-medium text-um-text">
+            <input type="checkbox" [ngModel]="cursoForm().semestre1 === 1"
+                   (ngModelChange)="actualizarCampoCurso('semestre1', $event ? 1 : 0)" class="h-4 w-4">
+            <span>Semestre 1</span>
+          </label>
+          <label class="flex items-center gap-1.5 text-xs font-medium text-um-text">
+            <input type="checkbox" [ngModel]="cursoForm().semestre2 === 1"
+                   (ngModelChange)="actualizarCampoCurso('semestre2', $event ? 1 : 0)" class="h-4 w-4">
+            <span>Semestre 2</span>
+          </label>
+          <label class="flex items-center gap-1.5 text-xs font-medium text-um-text">
+            <input type="checkbox" [ngModel]="cursoForm().adicionalCargaHoraria === 1"
+                   (ngModelChange)="actualizarCampoCurso('adicionalCargaHoraria', $event ? 1 : 0)" class="h-4 w-4">
+            <span>Adicional carga horaria</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 mt-3">
+        <button (click)="agregarCurso()" [disabled]="isSavingCurso()" class="um-btn-primary flex items-center gap-1.5">
+          <span>Agregar</span>
+        </button>
+        <button (click)="actualizarCurso()" [disabled]="isSavingCurso() || !cursoSeleccionado()"
+                class="um-btn-secondary flex items-center gap-1.5">
+          <span>Actualizar</span>
+        </button>
+        <button (click)="eliminarCurso()" [disabled]="isSavingCurso() || !cursoSeleccionado()"
+                class="um-btn-secondary flex items-center gap-1.5">
+          <span>Eliminar</span>
+        </button>
+        @if (cursoSeleccionado()) {
+          <span class="text-[11px] text-um-muted ml-1">
+            Actualizar el curso marca los legajos asignados para volver a fusionar.
+          </span>
+        }
+      </div>
+
+      @if (errorCurso()) {
+        <div class="mt-3 rounded border border-rose-200 bg-rose-50 text-rose-700 text-xs font-medium px-3 py-2">
+          {{ errorCurso() }}
+        </div>
+      }
+      @if (exitoCurso()) {
+        <div class="mt-3 rounded border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium px-3 py-2">
+          {{ exitoCurso() }}
+        </div>
+      }
+    </div>
+  }
 
   <!-- SECCIÓN CENTRAL Y NOVEDADES (Se muestra solo si hay un curso seleccionado) -->
   @if (cursoSeleccionado()) {
@@ -109,21 +210,21 @@
       <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
         <!-- Formulario ALTA -->
         <div class="bg-um-surface rounded-lg border border-um-border p-3.5 shrink-0 relative shadow-sm">
-          @if (!canModify()) {
+          @if (!canModify() && !esGlobal()) {
             <div class="absolute inset-0 bg-slate-900/30 z-10 rounded-lg flex items-center justify-center backdrop-blur-[1px]">
               <span class="bg-white text-red-700 px-3 py-1 font-bold text-xs rounded shadow border border-red-200">PERÍODO ACREDITADO</span>
             </div>
           }
           <div class="flex justify-between items-center mb-2.5">
             <h3 class="text-xs font-bold text-um-primary uppercase tracking-wider">
-              Proponer Alta / Cambio
+              {{ esGlobal() ? 'Asignar / Modificar Cargo' : 'Proponer Alta / Cambio' }}
             </h3>
-            <button (click)="agregarCargoAlta()"
+            <button (click)="agregarCargoAlta()" [disabled]="esGlobal() ? isSavingCargo() : !canModify()"
                     class="um-btn-primary px-2.5 py-1 text-xs flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-              <span>Agregar</span>
+              <span>{{ esGlobal() ? 'Asignar' : 'Agregar' }}</span>
             </button>
           </div>
           
@@ -157,16 +258,25 @@
                 <span>Desarraigo</span>
               </label>
             </div>
-            <div class="col-span-2">
-              <label for="asig-obs-alta" class="um-label">Observaciones</label>
-              <input id="asig-obs-alta" type="text" [(ngModel)]="observacionesAlta"
-                     placeholder="Notas u observaciones de alta..."
-                     class="um-input bg-white">
-            </div>
+            @if (!esGlobal()) {
+              <div class="col-span-2">
+                <label for="asig-obs-alta" class="um-label">Observaciones</label>
+                <input id="asig-obs-alta" type="text" [(ngModel)]="observacionesAlta"
+                       placeholder="Notas u observaciones de alta..."
+                       class="um-input bg-white">
+              </div>
+            }
           </div>
+
+          @if (errorCargo()) {
+            <div class="mt-2.5 rounded border border-rose-200 bg-rose-50 text-rose-700 text-xs font-medium px-3 py-2">
+              {{ errorCargo() }}
+            </div>
+          }
         </div>
         
-        <!-- Grilla Pendientes ALTA -->
+        <!-- Grilla Pendientes ALTA (sólo módulo de facultad) -->
+        @if (!esGlobal()) {
         <div class="um-card p-0 flex-1 flex flex-col min-h-0 overflow-hidden">
           <div class="bg-um-surface px-3 py-2 border-b border-um-border text-[11px] font-bold text-um-text uppercase tracking-wider flex justify-between items-center">
             <span>Cargos Alta (Pendientes)</span>
@@ -175,7 +285,7 @@
           <div class="flex-1 overflow-y-auto custom-scrollbar">
             <table class="um-table">
               <tbody>
-                @for (item of cargosAlta(); track (item.id || $index)) {
+                @for (item of cargosAlta(); track item.cursoCargoNovedadId) {
                   <tr>
                     <td class="px-2 py-1.5 w-8 text-center">
                       <button (click)="eliminarNovedad(item)" [disabled]="!canModify()"
@@ -200,6 +310,7 @@
             </table>
           </div>
         </div>
+        }
       </div>
 
       <!-- COLUMNA CENTRAL: GRILLA CARGOS ACTUALES -->
@@ -209,7 +320,16 @@
             <span class="h-2 w-2 rounded-full bg-um-primary"></span>
             <h3 class="text-xs font-bold text-um-ink uppercase tracking-wider">Plantel Docente Actual</h3>
           </div>
-          <span class="um-badge bg-white border border-um-border text-um-text tabular-nums">{{ cargosActuales().length }} cargos</span>
+          <div class="flex items-center gap-2">
+            @if (puedeEliminarCargo()) {
+              <button (click)="eliminarCargoActual()"
+                      class="um-btn-secondary flex items-center gap-1 px-2.5 py-1 text-xs"
+                      title="Eliminar la asignación del cargo seleccionado">
+                <span>Eliminar cargo</span>
+              </button>
+            }
+            <span class="um-badge bg-white border border-um-border text-um-text tabular-nums">{{ cargosActuales().length }} cargos</span>
+          </div>
         </div>
         <div class="flex-1 overflow-y-auto custom-scrollbar">
           <table class="um-table">
@@ -222,11 +342,11 @@
               </tr>
             </thead>
             <tbody>
-              @for (c of cargosActuales(); track c.cursoCargoId) {
+              @for (c of cargosActuales(); track c.key) {
                 <tr (click)="seleccionarCargoActual(c)"
-                    [class.bg-um-selected]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
-                    [class.border-l-2]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
-                    [class.border-um-primary]="cargoSeleccionado()?.cursoCargoId === c.cursoCargoId && !c.isContratado"
+                    [class.bg-um-selected]="cargoSeleccionado()?.key === c.key"
+                    [class.border-l-2]="cargoSeleccionado()?.key === c.key"
+                    [class.border-um-primary]="cargoSeleccionado()?.key === c.key"
                     [class.text-um-muted]="c.isContratado"
                     [class.bg-um-surface]="c.isContratado"
                     class="cursor-pointer">
@@ -245,19 +365,22 @@
         </div>
       </div>
 
-      <!-- COLUMNA DERECHA: BAJA -->
+      <!-- COLUMNA DERECHA: BAJA (sólo módulo de facultad: propone novedades) -->
+      @if (!esGlobal()) {
       <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
         <!-- Formulario BAJA -->
         <div class="bg-red-50/50 rounded-lg border border-red-200 p-3.5 shrink-0 relative shadow-sm">
           @if (!canModify()) {
-            <div class="absolute inset-0 bg-slate-900/30 z-10 rounded-lg flex items-center justify-center backdrop-blur-[1px]"></div>
+            <div class="absolute inset-0 bg-slate-900/30 z-10 rounded-lg flex items-center justify-center backdrop-blur-[1px]">
+              <span class="bg-white text-red-700 px-3 py-1 font-bold text-xs rounded shadow border border-red-200">PERÍODO ACREDITADO</span>
+            </div>
           }
           <div class="flex justify-between items-center mb-2.5">
             <h3 class="text-xs font-bold text-red-900 uppercase tracking-wider">
               Proponer Baja
             </h3>
-            <button (click)="agregarCargoBaja()"
-                    class="bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold hover:bg-red-800 transition-colors flex items-center gap-1 cursor-pointer">
+            <button (click)="agregarCargoBaja()" [disabled]="!canModify()"
+                    class="bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold hover:bg-red-800 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
@@ -296,7 +419,7 @@
           <div class="flex-1 overflow-y-auto custom-scrollbar">
             <table class="um-table">
               <tbody>
-                @for (item of cargosBaja(); track (item.id || $index)) {
+                @for (item of cargosBaja(); track item.cursoCargoNovedadId) {
                   <tr>
                     <td class="px-2 py-1.5 w-8 text-center">
                       <button (click)="eliminarNovedad(item)" [disabled]="!canModify()"
@@ -322,6 +445,7 @@
           </div>
         </div>
       </div>
+      }
 
     </div>
   }

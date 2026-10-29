@@ -181,12 +181,12 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         iconSvg: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
       },
       {
-        label: 'Asignación de Materias',
-        path: '/designaciones/asig-materias',
+        label: 'Consulta de Cursos por Facultad y Sede',
+        path: '/designaciones/cursos',
         grupo: 'Designaciones',
         origenVb6: 'frmAsigMateria.frm',
-        descripcion: 'Vinculación de asignaturas y planes de estudio a docentes designados',
-        iconSvg: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
+        descripcion: 'Consulta de los cursos abiertos de una facultad y sede por nombre',
+        iconSvg: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
       },
       {
         label: 'Fusionar Todos',
@@ -469,78 +469,6 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         iconSvg: 'M4 6h16M4 10h16M4 14h16M4 18h16'
       }
     ]
-  },
-  {
-    id: 'parametros',
-    title: 'Parámetros y Tablas',
-    descripcion: 'Gestión de personas, sedes, categorías, clases y conceptos salariales',
-    iconSvg: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
-    items: [
-      {
-        label: 'Datos Personales',
-        path: '/parametros/personas',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmPersona.frm',
-        descripcion: 'Padrón de personas físicas, legajos, CUIL y datos filiatorios',
-        iconSvg: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-      },
-      {
-        label: 'Contactos',
-        path: '/parametros/contactos',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmContactos.frm',
-        descripcion: 'Gestión de correos electrónicos, teléfonos y domicilios por persona',
-        iconSvg: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'
-      },
-      {
-        label: 'Adicional Carga Horaria',
-        path: '/parametros/adicional-carga-horaria',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmAdicional.frm',
-        descripcion: 'Tablas de coeficientes y escalas por dedicación o carga horaria',
-        iconSvg: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-      },
-      {
-        label: 'Categorías',
-        path: '/parametros/categorias',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmCategoria.frm',
-        descripcion: 'Catálogo de categorías escalafonarias docentes y no docentes',
-        iconSvg: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'
-      },
-      {
-        label: 'Cargos con Clase',
-        path: '/parametros/cargos-clase',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmCargoClase.frm',
-        descripcion: 'Definición de cargos académicos vinculados con horas cátedra/clase',
-        iconSvg: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'
-      },
-      {
-        label: 'Clases',
-        path: '/parametros/clases',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmClase.frm',
-        descripcion: 'Maestro de tipos de clases docentes (teoría, práctica, seminario)',
-        iconSvg: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
-      },
-      {
-        label: 'Códigos de Haberes',
-        path: '/parametros/codigos',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmCodigo.frm',
-        descripcion: 'Conceptos salariales remunerativos, no remunerativos y descuentos',
-        iconSvg: 'M4 6h16M4 10h16M4 14h16M4 18h16'
-      },
-      {
-        label: 'Sedes',
-        path: '/parametros/sedes',
-        grupo: 'Parámetros y Tablas',
-        origenVb6: 'frmGeografica.frm',
-        descripcion: 'Configuración geográfica de sedes y dependencias de la universidad',
-        iconSvg: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z'
-      }
-    ]
   }
 ];
 
@@ -552,5 +480,32 @@ export const TODAS_LAS_OPCIONES: OpcionSistema[] = MENU_GROUPS.flatMap(g => g.it
  */
 export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/consultas/bono-individual',
-  '/contabilidad/imputacion-individual'
+  '/consultas/totales-generales',
+  '/consultas/totales-codigo',
+  '/consultas/comparacion-meses',
+  '/consultas/docentes-sede',
+  '/consultas/designacion-docentes',
+  '/consultas/cursos-docente',
+  '/consultas/fusion-docente',
+  '/consultas/cargos-clase-facultad',
+  '/consultas/planilla-liquidables',
+  '/consultas/cantidad-cargos',
+  '/consultas/detalle-codigo',
+  '/consultas/cargos-periodo',
+  '/consultas/cursos-periodo',
+  '/consultas/libro-sueldos',
+  '/consultas/basicos-periodo',
+  '/consultas/cursos-contratado',
+  '/consultas/historico-cargos',
+  '/consultas/bonos-dependencia',
+  '/contabilidad/imputacion-individual',
+  '/designaciones/general',
+  '/designaciones/actualizar-cargos-clase',
+  '/designaciones/anotador',
+  '/designaciones/autorizar-novedades',
+  '/designaciones/asig-cursos',
+  '/designaciones/cargos-clase',
+  '/designaciones/duplicar-cargos-clase',
+  '/designaciones/fusionar-todos',
+  '/designaciones/cursos'
 ]);

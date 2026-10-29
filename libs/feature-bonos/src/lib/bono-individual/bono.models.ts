@@ -43,6 +43,17 @@ export interface SendBonoRequest {
   legajoIdSolicitud?: number;
 }
 
+/** Resumen de `POST /api/haberes/core/bono/dependencia/{dep}/{a}/{m}/{salida}/print-prepare`. */
+export interface BonoDependenciaPrepareResponse {
+  dependenciaId: number;
+  anho: number;
+  mes: number;
+  salida: string;
+  total: number;
+  preparados: number;
+  fallidos: { legajoId: number; motivo: string }[];
+}
+
 export interface Contacto {
   legajoId: number;
   fijo?: string;

@@ -76,4 +76,74 @@ describe('AsignacionCursosService', () => {
 
     http.expectOne('/api/haberes/core/acreditacion/periodo/2026/8').flush({ acreditado: true });
   });
+
+  // --- Módulo global: catálogos y CRUD de cursos ---
+
+  it('pide facultades y niveles para los selectores del módulo global', () => {
+    service.getFacultades().subscribe();
+    http.expectOne('/api/haberes/core/facultad/').flush([]);
+
+    service.getNiveles().subscribe();
+    http.expectOne('/api/haberes/core/nivel/').flush([]);
+  });
+
+  it('crea el curso con el cuerpo del POST', () => {
+    const curso = {
+      nombre: 'Análisis Matemático I',
+      facultadId: 2,
+      geograficaId: 5,
+      anual: 0,
+      semestre1: 1,
+      semestre2: 0,
+      nivelId: 1,
+      adicionalCargaHoraria: 0
+    };
+    service.addCurso(curso).subscribe();
+
+    const req = http.expectOne('/api/haberes/core/curso/');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(curso);
+    req.flush({ cursoId: 10 });
+  });
+
+  it('actualiza el curso y elimina por id', () => {
+    const curso = {
+      nombre: 'Análisis Matemático I',
+      facultadId: 2,
+      geograficaId: 5,
+      anual: 1,
+      semestre1: 0,
+      semestre2: 0,
+      nivelId: 1,
+      adicionalCargaHoraria: 1
+    };
+    service.updateCurso(10, curso).subscribe();
+    const put = http.expectOne('/api/haberes/core/curso/10');
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual(curso);
+    put.flush({});
+
+    service.deleteCurso(10).subscribe();
+    const del = http.expectOne('/api/haberes/core/curso/10');
+    expect(del.request.method).toBe('DELETE');
+    del.flush(null);
+  });
+
+  it('delega en el servidor la invalidación de la fusión del curso', () => {
+    service.invalidarFusionCurso(10, 2026, 8).subscribe();
+
+    const req = http.expectOne('/api/haberes/core/designaciontool/invalidafusion/curso/10/2026/8');
+    expect(req.request.method).toBe('POST');
+    req.flush(null);
+  });
+
+  it('consulta los cargos del curso en cualquier período y elimina un cargo', () => {
+    service.getCargosCursoAny(10).subscribe();
+    http.expectOne('/api/haberes/core/cursoCargo/cursoany/10').flush([]);
+
+    service.eliminarCargo(99).subscribe();
+    const req = http.expectOne('/api/haberes/core/cursoCargo/99');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
 });

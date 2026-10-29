@@ -2,15 +2,20 @@ graph TD
   Client((Navegador))
   Client-->Liquidacion["liquidacion :4209"]
   Client-->Novedades["novedades :4208"]
+  Client-->Administrador["administrador :4211 (solo facultadId null)"]
 
   Liquidacion-->Gateway["haberes-gateway-service :8091 /api/"]
   Novedades-->Gateway
+  Administrador-->Gateway
 
   Liquidacion---Layout1["ui-layout - UiShell J2 / ui-persona-search"]
   Liquidacion---Auth1["ui-auth - Login"]
   Liquidacion---API1["shared-api - Auth/Persona/Env/Errores"]
   Liquidacion---Bonos["feature-bonos - BonoIndividual"]
+  Liquidacion---Consultas["feature-consultas - Consultas y Reportes"]
   Liquidacion---Conta["feature-contabilidad - ImputacionIndividual"]
+  Liquidacion---DesigLiq["feature-designaciones - Designaciones / CargosClase / FusionTodos"]
+  Liquidacion---AnotLiq["feature-anotador - Anotaciones / Visado"]
 
   Novedades---Layout2["ui-layout - UiShell J2 / ui-persona-search"]
   Novedades---Auth2["ui-auth - Login"]
@@ -18,3 +23,14 @@ graph TD
   Novedades---Desig["feature-designaciones - Designaciones / AsigCursos"]
   Novedades---Anot["feature-anotador - Anotaciones"]
   Novedades---Carg["feature-cargos - CargosLegajo / DocentesSede"]
+
+  Administrador---Layout3["ui-layout - UiShell J2 / ui-persona-search"]
+  Administrador---Auth3["ui-auth - Login"]
+  Administrador---API3["shared-api - Auth/Persona/Env/Errores/administradorGuard"]
+  Administrador---Personas["feature-personas - DatosPersonales"]
+  Administrador---Categorias["feature-categorias - Categorias"]
+  Administrador---Codigos["feature-codigos - Codigos"]
+  Administrador---Clases["feature-clases - Clases"]
+  Administrador---CargosClase["feature-cargos-clase - CargosClase"]
+  Administrador---Adicionales["feature-adicionales - Adicionales"]
+  Administrador---Sedes["feature-sedes - Sedes"]

@@ -4,18 +4,18 @@
 
 - This is an Nx 23.3.0 monorepo using Angular 22, TypeScript 6.0, Vitest 4, and npm 11.6.2; use Node.js 20+.
 - Install from the lockfile with `npm ci`; do not use another package manager.
-- Applications live under `apps/`: `novedades` (port 4208) and `liquidacion` (port 4209). Apps are thin shells: root component with `<ui-shell>`, `app.config.ts`, and `app.routes.ts` only; feature views never live inside `apps/<app>/src/app/`.
-- Shared libraries live under `libs/`: `shared-api`, `ui-auth`, `ui-layout`, `feature-designaciones`, `feature-anotador`, `feature-cargos`, `feature-bonos`, and `feature-contabilidad`. Each feature library owns its screens and services and is consumed by the app whose scope tag it carries.
+- Applications live under `apps/`: `novedades` (port 4208), `liquidacion` (port 4209) and `administrador` (port 4211, restricted to users without an assigned faculty). Apps are thin shells: root component with `<ui-shell>`, `app.config.ts`, and `app.routes.ts` only; feature views never live inside `apps/<app>/src/app/`.
+- Shared libraries live under `libs/`: `shared-api`, `ui-auth`, `ui-layout`, `feature-designaciones`, `feature-anotador`, `feature-cargos`, `feature-bonos`, `feature-consultas`, `feature-contabilidad`, and the `administrador` feature set (`feature-personas`, `feature-categorias`, `feature-codigos`, `feature-clases`, `feature-cargos-clase`, `feature-adicionales`, `feature-sedes`). Each feature library owns its screens and services and is consumed by the app whose scope tag it carries.
 - `apps/novedades-e2e` is a Playwright project (chromium); its generated `e2e` target starts the novedades dev server on 4208. Set `BASE_URL` to test an already deployed app.
 - Use the configured `@haberes/*` path aliases for shared libraries and import public symbols through each library's `src/index.ts`. Nx ESLint enforces module boundaries using project tags (`type:*` and `scope:*`) and dependency direction rules.
 
 ## Commands
 
-- Run one app with `npx nx serve <app>`; configured ports are novedades 4208 and liquidacion 4209 (matching docker-compose.yml).
+- Run one app with `npx nx serve <app>`; configured ports are novedades 4208, liquidacion 4209 and administrador 4211 (matching docker-compose.yml).
 - Run all local app servers with `npm run serve:all`.
 - Build one project with `npx nx build <project>` or all projects with `npx nx run-many -t build`.
 - Lint one project with `npx nx run <project>:lint` or all lint targets with `npx nx run-many -t lint`.
-- Test one project with `npx nx test <project>` or all test targets with `npx nx run-many -t test --watch=false`. Library unit tests use the `@angular/build:unit-test` executor wired to `novedades:build:development` (see each lib's `test` target and `tsconfig.spec.json`).
+- Test one project with `npx nx test <project>` or all test targets with `npx nx run-many -t test --watch=false`. Library unit tests use the `@angular/build:unit-test` executor wired to the build of their app (`novedades:build:development` for Novedades/Liquidación scope, `administrador:build:development` for the Administrador feature libs; see each lib's `test` target and `tsconfig.spec.json`).
 - Run E2E with `npx nx e2e novedades-e2e`; set `BASE_URL` to point at a deployed app instead of booting the dev server.
 - Rebuild one app's image with `npm run docker:app -- <app>` (multistage `docker/app.Dockerfile`, compiles inside the image); `--no-up` only builds. Requires the compose stack or `docker build -f docker/app.Dockerfile --build-arg APP=<app> .` as fallback.
 - Routes use standalone `loadComponent` lazy loading for shared login and feature components; preserve this instead of reintroducing eager imports.
@@ -28,6 +28,7 @@
 - All applications build from the shared multistage `docker/app.Dockerfile` with `--build-arg APP=<app>`: the Node stage runs `npm ci` and `npx nx build <app> --configuration=production`, and the Nginx stage copies that build. Images depend only on source, never on a local `dist/apps/`, so do not reintroduce runtime-only Dockerfiles that `COPY dist/`. Per-app config (`nginx.conf`, `entrypoint.sh`) stays in `apps/<app>/`. Keep `node_modules`, `dist`, `.angular`, `.nx` and `.git` out of the build context in `.dockerignore`. Rebuilding through Compose requires `--build` (or `npm run docker:app -- <app>`) because `up -d` reuses an existing image without looking at the source.
 - CI criteria (shared with um.tesoreria.frontend-client): PRs to `main` run affected lint/test/build via `ci.yml`; `develop`/`staging` PRs run full verify and pushes additionally publish images, while `main` pushes publish with `latest`. All environments flow through the reusable `.github/workflows/deploy-pipeline.yml`, which takes `apps` (JSON list) and never builds `dist/` in CI to copy into images (the multistage Dockerfile is the compile check on push). Image tags: full commit sha, plus `latest` only on main.
 - Each app registers the shared `errorInterceptor` and `API_URL` provider. Haberes auth has no bearer token (legacy `isuservalid` session model against haberes-core): do not introduce an `auth.interceptor` unless the backend starts issuing tokens.
+- Session persistence stores **only `legajoId`** in `localStorage` (`haberes_user`, version 2). Never persist `facultadId` or any other derived field: `AuthService.ensureSession()` revalidates the user and its faculty against `haberes-core` on every app boot, so a stale or tampered value cannot grant module access. Route guards (`authGuard`, `unauthGuard`, `administradorGuard`) must call `ensureSession()` instead of reading `currentUser$` synchronously. The `administrador` module additionally rejects users with an assigned faculty both at login (`data: { requireFacultadId: false }`) and in `administradorGuard`.
 
 ## UI & Enterprise Design System (Estándares Visuales Institucionales)
 
@@ -58,6 +59,7 @@
   - Inputs: `label`, `placeholder`, `buscandoLabel`, `panelClases` (panels inside `overflow-hidden` cards pass `panelClases="z-50 max-h-40"`), `[persona]` for parent-side preselections, and the `limpiar()` method to reset the field without emitting.
 - Exact-key lookups (legajo/DNI) belong in their own editable form fields firing on ENTER and blur via `getPersonaByLegajo` / `getPersonaByDocumento` (see `bono-individual`), not in the search box. Never re-add a numeric branch inside a feature's own search call.
 - The shared type is `Persona` (`@haberes/shared-api`, defined in `auth.service.ts`, with `documento`, `estado` and `dependenciaId`); do not define per-feature duplicate persona interfaces.
+- Partial persona updates from the `administrador` module **must** use `PATCH /api/haberes/core/persona/{legajoId}` with only the changed fields (`PersonasService.patchPersona`). Never use the full-replacement `PUT /persona/{legajoId}` for partial edits: it nulls every field omitted from the body.
 - Exception: `feature-contabilidad` belongs to another backend and keeps its own service; do not migrate it to the standard search or "unify" its endpoints.
 
 ## Brand Display Standards (Marca Institucional)

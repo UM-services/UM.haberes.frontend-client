@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { API_URL, APP_ENV_INFO, AppEnvInfo } from '@haberes/shared-api';
+import { of } from 'rxjs';
+import { API_URL, APP_ENV_INFO, AppEnvInfo, AuthService } from '@haberes/shared-api';
 import { UiShellComponent } from './ui-shell';
 
 @Component({ standalone: true, selector: 'lib-login-stub', template: '' })
@@ -18,22 +19,26 @@ const STORED_USER = {
   facultadNombre: 'Facultad de Ingeniería',
 };
 
+const AUTH_STUB = {
+  currentUser$: of(STORED_USER),
+  currentUserValue: STORED_USER,
+  logout: () => undefined,
+  changePassword: () => of(undefined),
+};
+
 async function createShell(
   envInfo?: AppEnvInfo,
   overrides: Partial<
-    Pick<
-      UiShellComponent,
-      'moduleName' | 'menuSectionLabel' | 'menuItems' | 'menuGroups'
-    >
+    Pick<UiShellComponent, 'moduleName' | 'menuSectionLabel' | 'menuItems' | 'menuGroups'>
   > = {},
 ): Promise<ComponentFixture<UiShellComponent>> {
-  localStorage.setItem('haberes_user', JSON.stringify(STORED_USER));
   await TestBed.configureTestingModule({
     imports: [UiShellComponent],
     providers: [
       provideRouter([{ path: 'login', component: LoginStubComponent }]),
       provideHttpClient(),
       { provide: API_URL, useValue: '' },
+      { provide: AuthService, useValue: AUTH_STUB },
       ...(envInfo ? [{ provide: APP_ENV_INFO, useValue: envInfo }] : []),
     ],
   }).compileComponents();
@@ -54,10 +59,6 @@ async function createShell(
 }
 
 describe('UiShellComponent', () => {
-  afterEach(() => {
-    localStorage.removeItem('haberes_user');
-  });
-
   it('renders the brand block with the module name', async () => {
     const { nativeElement } = await createShell();
 

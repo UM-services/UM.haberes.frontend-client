@@ -5,12 +5,12 @@ Librería de gestión de anotaciones docentes para el módulo de Novedades.
 ## Componentes
 
 - **`AnotadorComponent`**: Componente standalone que permite:
-  - Búsqueda de personas con el buscador estándar `ui-persona-search`.
+  - Búsqueda de personas con el buscador estándar `ui-persona-search` (multi-término, selección por teclado).
   - Visualización de anotaciones pendientes y revisadas por facultad y período.
   - Alta de nuevas anotaciones con validación de acreditación (límite de novedades).
   - Historial completo de anotaciones por persona.
   - Navegación entre meses/períodos.
-  - Integración con el buscador estándar de personas (`ui-persona-search`).
+  - Descarga de los reportes PDF de anotaciones pendientes y de autorizadas/rechazadas del período.
 
 ## Dependencias
 

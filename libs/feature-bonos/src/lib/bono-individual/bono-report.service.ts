@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import {
   ActividadResponse,
   AuditoriaBonoRequest,
+  BonoDependenciaPrepareResponse,
   BonoImpresionResponse,
   Contacto,
   IntegridadBonoResponse,
@@ -13,8 +14,8 @@ import {
 
 // El browser no puede conocer la IP del puesto, por eso la auditoria NUNCA envia una IP:
 // el core la resuelve server-side (ClientIpResolver: X-Forwarded-For -> X-Real-IP ->
-// remoteAddr). Los endpoints de reporte exclusivos del front son /ui/generatePdf y
-// /ui/sendBono y NO auditan (ver BonoController.java de um.haberes.report-service);
+// remoteAddr). Los endpoints de reporte exclusivos del front viven en /ui/bono/ y NO auditan
+// (ver BonoUiController.java de um.haberes.report-service);
 // las rutas legacy generatePdf/sendBono con {ipAddress} quedan solo para el cliente VB6.
 
 @Injectable({ providedIn: 'root' })
@@ -22,8 +23,9 @@ export class BonoReportService {
   private readonly http = inject(HttpClient);
 
   private readonly bonoUrl = '/api/haberes/core/bono';
-  // Encontrado en clsCtlPrint.cls: url_haberes & "api/haberes/report/bono/generatePdf" & ...
-  private readonly reportBonoUrl = '/api/haberes/report/bono';
+  // Rutas legacy del cliente de escritorio (con IP): /api/haberes/report/bono/...
+  // El front usa el namespace /ui/bono/** , que queda detrás de la API key del gateway.
+  private readonly reportBonoUrl = '/api/haberes/report/ui/bono';
   private readonly contactoUrl = '/api/haberes/core/contacto';
   // Encontrado en modValidate.bas: validateMail llama a "api/haberes/core/tool/mailvalidate"
   private readonly toolUrl = '/api/haberes/core/tool';
@@ -40,8 +42,26 @@ export class BonoReportService {
     return this.http.post<ActividadResponse>(`${this.bonoUrl}/${legajoId}/${anho}/${mes}/prepare`, {});
   }
 
+  /**
+   * Impresión masiva por dependencia: el core recalcula la actividad y audita cada legajo
+   * resolviendo la IP y el solicitante en el servidor. Un legajo que falla no corta el lote.
+   */
+  printPrepareDependencia(
+    dependenciaId: number,
+    anho: number,
+    mes: number,
+    salida: string,
+    legajoIdSolicitud: number
+  ): Observable<BonoDependenciaPrepareResponse> {
+    return this.http.post<BonoDependenciaPrepareResponse>(
+      `${this.bonoUrl}/dependencia/${dependenciaId}/${anho}/${mes}/${salida}/print-prepare`,
+      {},
+      { headers: { 'X-Legajo-Solicitante': String(legajoIdSolicitud) } }
+    );
+  }
+
   downloadBonoPdf(legajoId: number, anho: number, mes: number): Observable<Blob> {
-    const url = `${this.reportBonoUrl}/ui/generatePdf/${legajoId}/${anho}/${mes}`;
+    const url = `${this.reportBonoUrl}/generatePdf/${legajoId}/${anho}/${mes}`;
     return this.http.get(url, { responseType: 'blob' });
   }
 
@@ -65,7 +85,7 @@ export class BonoReportService {
   }
 
   sendBono(legajoId: number, anho: number, mes: number): Observable<string> {
-    const url = `${this.reportBonoUrl}/ui/sendBono/${legajoId}/${anho}/${mes}`;
+    const url = `${this.reportBonoUrl}/sendBono/${legajoId}/${anho}/${mes}`;
     return this.http.get(url, { responseType: 'text' });
   }
 

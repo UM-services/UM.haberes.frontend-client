@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/deploy-pipeline.yml
     with:
       environment: staging
-      apps: '["liquidacion", "novedades"]'
+      apps: '["administrador", "liquidacion", "novedades"]'
       deploy: true
       deployRunners: '["staging", "staging-new"]'
       deployScript: /data/docker/env-staging/deploy-haberes-frontend-staging.sh
