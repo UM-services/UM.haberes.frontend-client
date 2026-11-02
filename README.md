@@ -1,5 +1,15 @@
 # Um Haberes Frontend Client
 
+![Angular](https://img.shields.io/badge/Angular-22.1.8-DD0031?logo=angular&logoColor=white)
+![Nx](https://img.shields.io/badge/Nx-23.3.0-143055?logo=nx&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-4.1.11-6E9F18?logo=vitest&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-1.64.0-2EAD33?logo=playwright&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-20%2B-5FA04E?logo=nodedotjs&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-multietapa-2496ED?logo=docker&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-SSL-009639?logo=nginx&logoColor=white)
+
 Frontend corporativo para la gestión de haberes universitarios. Monorepo Nx con aplicaciones Angular 22 standalone.
 
 ## Estructura del Proyecto
