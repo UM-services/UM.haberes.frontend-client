@@ -3,6 +3,7 @@ export * from './lib/auth/auth.models';
 export * from './lib/auth/auth.guard';
 export * from './lib/auth/unauth.guard';
 export * from './lib/auth/administrador.guard';
+export * from './lib/auth/modulo.guard';
 export * from './lib/persona/persona-search.service';
 export * from './lib/tokens';
 export * from './lib/error.interceptor';
