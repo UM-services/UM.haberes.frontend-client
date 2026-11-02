@@ -4,7 +4,7 @@
   "projectType": "application",
   "prefix": "app",
   "sourceRoot": "apps/liquidacion/src",
-  "tags": [],
+  "tags": ["type:app", "scope:liquidacion"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
@@ -42,6 +42,12 @@
           "outputHashing": "all"
         },
         "development": {
+          "fileReplacements": [
+            {
+              "replace": "apps/liquidacion/src/environments/environment.ts",
+              "with": "apps/liquidacion/src/environments/environment.development.ts"
+            }
+          ],
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
@@ -52,6 +58,9 @@
     "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 4209
+      },
       "configurations": {
         "production": {
           "buildTarget": "liquidacion:build:production"

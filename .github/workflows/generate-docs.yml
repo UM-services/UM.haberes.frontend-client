@@ -13,12 +13,12 @@ jobs:
   generate-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - run: npm install
+      - run: npm ci
 
       - name: Generate Nx Graph
         run: |
@@ -139,7 +139,7 @@ jobs:
               '    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">' +
               '      <div>' +
               '        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">Haberes Frontend</h1>' +
-              '        <p class="mt-1 text-sm text-gray-500">Monorepo Nx &middot; Angular 21 &middot; Tailwind CSS 4</p>' +
+              '        <p class="mt-1 text-sm text-gray-500">Monorepo Nx &middot; Angular 22 &middot; Tailwind CSS 4</p>' +
               '      </div>' +
               '      <div class="flex items-center gap-3">' +
               '        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800 shadow-sm">v' + version + '</span>' +
@@ -190,7 +190,7 @@ jobs:
 
               '  <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200 mb-10">' +
               '    <h2 class="text-2xl font-bold text-gray-900 mb-6">Arquitectura del Sistema</h2>' +
-              '    <div class="mermaid flex justify-center">graph TD; Client((Navegador))-->Liquidacion[liquidacion :4200]; Client-->Novedades[novedades :4201]; Liquidacion-->Gateway[haberes-gateway-service :8091 /api/]; Novedades-->Gateway; Liquidacion---Layout1[ui-layout - Navbar/Sidebar]; Liquidacion---Auth1[ui-auth - Login]; Liquidacion---API1[shared-api - Auth]; Novedades---Layout2[ui-layout - Navbar/Sidebar]; Novedades---Auth2[ui-auth - Login]; Novedades---API2[shared-api - Auth]; Novedades---Desig[feature-designaciones - Designaciones / AsigCursos]; Novedades---Anot[feature-anotador - Anotaciones]; Novedades---Carg[feature-cargos - CargosLegajo / DocentesSede];</div>' +
+              '    <div class="mermaid flex justify-center">' + esc(fs.readFileSync('docs/architecture.mermaid', 'utf-8').trim()) + '</div>' +
               '  </div>' +
 
               '  <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-10 overflow-hidden">' +

@@ -1,0 +1,28 @@
+name: Deploy staging
+
+on:
+  pull_request:
+    branches: ["staging"]
+  push:
+    branches: ["staging"]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/deploy-pipeline.yml
+    with:
+      environment: staging
+      apps: '["administrador", "liquidacion", "novedades"]'
+      deploy: true
+      deployRunners: '["staging", "staging-new"]'
+      deployScript: /data/docker/env-staging/deploy-haberes-frontend-staging.sh
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit

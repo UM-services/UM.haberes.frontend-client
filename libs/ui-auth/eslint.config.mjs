@@ -14,7 +14,7 @@ export default [
                 "error",
                 {
                     type: "attribute",
-                    prefix: "lib",
+                    prefix: ["ui", "ui-auth", "lib"],
                     style: "camelCase"
                 }
             ],
@@ -22,7 +22,7 @@ export default [
                 "error",
                 {
                     type: "element",
-                    prefix: "lib",
+                    prefix: ["ui", "ui-auth", "lib"],
                     style: "kebab-case"
                 }
             ]
@@ -34,5 +34,15 @@ export default [
         ],
         // Override or add rules here
         rules: {}
+    },
+    {
+        files: [
+            "**/*.ts"
+        ],
+        rules: {
+            // Angular 22 cambió el default a OnPush; la migración conservó el comportamiento
+            // previo con ChangeDetectionStrategy.Eager. Migrar a OnPush es una tarea aparte.
+            "@angular-eslint/prefer-on-push-component-change-detection": "warn"
+        }
     }
 ];

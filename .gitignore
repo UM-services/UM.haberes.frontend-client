@@ -48,3 +48,15 @@ Thumbs.db
 .nx/cache
 .nx/workspace-data
 .angular
+
+.nx/polygraph
+.claude/worktrees
+.claude/settings.local.json
+
+.nx/migrate-runs
+.vitest
+
+# Copilot (duplicados locales de .opencode/)
+.github/agents/
+.github/prompts/
+.github/skills/

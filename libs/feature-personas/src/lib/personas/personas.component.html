@@ -1,0 +1,645 @@
+<div class="w-full">
+  <header class="um-page-header">
+    <div>
+      <p class="um-eyebrow">Personas</p>
+      <h1 class="um-page-title">Datos Personales</h1>
+      <p class="um-page-desc">
+        Datos filiatorios, situación, contacto y CBU por período del personal.
+      </p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="um-alert um-alert-error mt-4" role="alert">{{ error() }}</div>
+  }
+  @if (mensaje()) {
+    <div class="um-alert um-alert-success mt-4">{{ mensaje() }}</div>
+  }
+
+  <!-- Búsqueda -->
+  <section class="um-card mt-6">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_160px_180px]">
+      <ui-persona-search
+        label="Buscar persona"
+        placeholder="Apellido, nombre o legajo…"
+        buscandoLabel="Buscando en el servidor…"
+        panelClases="z-50 max-h-48"
+        [persona]="personaSeleccionada()"
+        (seleccionada)="seleccionarPersona($event)"
+      />
+
+      <div>
+        <label class="um-label" for="busqueda-legajo">Legajo exacto</label>
+        <input
+          id="busqueda-legajo"
+          type="number"
+          inputmode="numeric"
+          class="um-input font-mono tabular-nums"
+          placeholder="Ej. 1234"
+          [ngModel]="legajoBusqueda()"
+          (ngModelChange)="legajoBusqueda.set($event)"
+          (keyup.enter)="buscarPorLegajo()"
+          (blur)="buscarPorLegajo()"
+          name="legajoBusqueda"
+        />
+      </div>
+
+      <div>
+        <label class="um-label" for="busqueda-documento">Documento</label>
+        <input
+          id="busqueda-documento"
+          type="number"
+          inputmode="numeric"
+          class="um-input font-mono tabular-nums"
+          placeholder="Ej. 30111222"
+          [ngModel]="documentoBusqueda()"
+          (ngModelChange)="documentoBusqueda.set($event)"
+          (keyup.enter)="buscarPorDocumento()"
+          (blur)="buscarPorDocumento()"
+          name="documentoBusqueda"
+        />
+      </div>
+    </div>
+  </section>
+
+  @if (cargando()) {
+    <div
+      class="mt-6 rounded-lg border border-um-border bg-white py-10 text-center text-sm text-um-muted"
+    >
+      Cargando la ficha…
+    </div>
+  }
+
+  @if (persona(); as p) {
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-baseline gap-3">
+        <h2 class="text-xl font-bold text-um-ink">{{ p.apellido }}, {{ p.nombre }}</h2>
+        <span class="um-badge bg-um-surface text-um-muted">
+          Legajo <span class="ml-1 font-mono tabular-nums">{{ p.legajoId }}</span>
+        </span>
+        @if (p.dependencia?.nombre || p.dependenciaId) {
+          <span class="text-sm text-um-muted">
+            {{ p.dependencia?.nombre ?? 'Dependencia ' + p.dependenciaId }}
+          </span>
+        }
+      </div>
+
+      @if (hayCambios()) {
+        <span class="um-badge bg-amber-50 text-amber-800 ring-1 ring-amber-200">
+          Cambios sin guardar
+        </span>
+      }
+    </div>
+
+    <div class="mt-4 grid gap-6 xl:grid-cols-2">
+      <!-- Columna izquierda -->
+      <div class="space-y-6">
+        <section class="um-card">
+          <h2 class="um-eyebrow">Identificación</h2>
+
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="um-label" for="persona-legajo">Legajo</label>
+              <input
+                id="persona-legajo"
+                class="um-input font-mono tabular-nums"
+                [value]="form.legajoId"
+                readonly
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-documento">Documento</label>
+              <input
+                id="persona-documento"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.documento"
+                name="documento"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-apellido">Apellido</label>
+              <input
+                id="persona-apellido"
+                class="um-input"
+                [(ngModel)]="form.apellido"
+                name="apellido"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-nombre">Nombre</label>
+              <input id="persona-nombre" class="um-input" [(ngModel)]="form.nombre" name="nombre" />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-nacimiento">Nacimiento</label>
+              <input
+                id="persona-nacimiento"
+                type="date"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.nacimiento"
+                name="nacimiento"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-estado-civil">Estado civil</label>
+              <input
+                id="persona-estado-civil"
+                maxlength="10"
+                class="um-input uppercase"
+                [(ngModel)]="form.estadoCivil"
+                name="estadoCivil"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-cuil">CUIL</label>
+              <input
+                id="persona-cuil"
+                maxlength="13"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.cuil"
+                name="cuil"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-posgrado">Posgrado</label>
+              <select
+                id="persona-posgrado"
+                class="um-input"
+                [(ngModel)]="form.posgrado"
+                name="posgrado"
+              >
+                @for (posgrado of posgrados; track $index) {
+                  <option [ngValue]="$index">{{ posgrado }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-estado">Estado</label>
+              <input
+                id="persona-estado"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.estado"
+                name="estado"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-liquida">Liquida</label>
+              <input
+                id="persona-liquida"
+                maxlength="1"
+                class="um-input font-mono uppercase"
+                [(ngModel)]="form.liquida"
+                name="liquida"
+              />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="um-label" for="persona-salida">Salida</label>
+              <input id="persona-salida" class="um-input" [(ngModel)]="form.salida" name="salida" />
+            </div>
+          </div>
+        </section>
+
+        <section class="um-card">
+          <h2 class="um-eyebrow">Situación</h2>
+
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label class="um-label" for="persona-dependencia">Dependencia</label>
+              <select
+                id="persona-dependencia"
+                class="um-input"
+                [(ngModel)]="form.dependenciaId"
+                name="dependenciaId"
+              >
+                <option [ngValue]="null">Seleccione una dependencia…</option>
+                @for (dependencia of dependencias(); track dependencia.dependenciaId) {
+                  <option [ngValue]="dependencia.dependenciaId">
+                    {{ dependencia.nombre
+                    }}{{ dependencia.acronimo ? ' (' + dependencia.acronimo + ')' : '' }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-alta-docente">Alta docente</label>
+              <input
+                id="persona-alta-docente"
+                type="date"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.altaDocente"
+                name="altaDocente"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-ajuste-docente">Ajuste docente (meses)</label>
+              <input
+                id="persona-ajuste-docente"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.ajusteDocente"
+                name="ajusteDocente"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-alta-administrativa">Alta administrativa</label>
+              <input
+                id="persona-alta-administrativa"
+                type="date"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.altaAdministrativa"
+                name="altaAdministrativa"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-ajuste-administrativo">
+                Ajuste administrativo (meses)
+              </label>
+              <input
+                id="persona-ajuste-administrativo"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.ajusteAdministrativo"
+                name="ajusteAdministrativo"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-obra-social">Obra social</label>
+              <input
+                id="persona-obra-social"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.obraSocial"
+                name="obraSocial"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-situacion-afip">Situación AFIP</label>
+              <input
+                id="persona-situacion-afip"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.situacionAfip"
+                name="situacionAfip"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-localidad-afip">Localidad AFIP</label>
+              <input
+                id="persona-localidad-afip"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.localidadAfip"
+                name="localidadAfip"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-actividad-afip">Actividad AFIP</label>
+              <input
+                id="persona-actividad-afip"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.actividadAfip"
+                name="actividadAfip"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-modelo-afip">Modelo contratación AFIP</label>
+              <input
+                id="persona-modelo-afip"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.modeloContratacionAfip"
+                name="modeloContratacionAfip"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-estado-afip">Estado AFIP</label>
+              <input
+                id="persona-estado-afip"
+                type="number"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="form.estadoAfip"
+                name="estadoAfip"
+              />
+            </div>
+
+            <fieldset class="sm:col-span-2 grid gap-2 sm:grid-cols-2">
+              <legend class="um-label">Condiciones</legend>
+              <label class="flex items-center gap-2 text-sm text-um-text">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="form.reemplazoDesarraigo"
+                  name="reemplazoDesarraigo"
+                />
+                Reemplazo desarraigo
+              </label>
+              <label class="flex items-center gap-2 text-sm text-um-text">
+                <input type="checkbox" [(ngModel)]="form.mitadDesarraigo" name="mitadDesarraigo" />
+                Mitad desarraigo
+              </label>
+              <label class="flex items-center gap-2 text-sm text-um-text">
+                <input type="checkbox" [(ngModel)]="form.directivoEtec" name="directivoEtec" />
+                Directivo ETEC
+              </label>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="um-card">
+          <h2 class="um-eyebrow">Contacto</h2>
+
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="um-label" for="persona-fijo">Teléfono fijo</label>
+              <input
+                id="persona-fijo"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="contactoForm.fijo"
+                name="fijo"
+              />
+            </div>
+
+            <div>
+              <label class="um-label" for="persona-movil">Teléfono móvil</label>
+              <input
+                id="persona-movil"
+                class="um-input font-mono tabular-nums"
+                [(ngModel)]="contactoForm.movil"
+                name="movil"
+              />
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="um-label" for="persona-mail-personal">e-mail personal</label>
+              <input
+                id="persona-mail-personal"
+                type="email"
+                class="um-input"
+                [class.um-input-invalid]="mailInvalido().personal"
+                [(ngModel)]="contactoForm.mailPersonal"
+                (blur)="validarMail('personal')"
+                name="mailPersonal"
+              />
+              @if (mailInvalido().personal) {
+                <p class="mt-1 text-xs font-semibold text-rose-700">
+                  El mail personal no es válido.
+                </p>
+              }
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="um-label" for="persona-mail-institucional">e-mail institucional</label>
+              <input
+                id="persona-mail-institucional"
+                type="email"
+                class="um-input"
+                [class.um-input-invalid]="mailInvalido().institucional"
+                [(ngModel)]="contactoForm.mailInstitucional"
+                (blur)="validarMail('institucional')"
+                name="mailInstitucional"
+              />
+              @if (mailInvalido().institucional) {
+                <p class="mt-1 text-xs font-semibold text-rose-700">
+                  El mail institucional no es válido.
+                </p>
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Columna derecha -->
+      <div class="space-y-6">
+        <section class="um-card">
+          <div class="flex items-start justify-between gap-3">
+            <h2 class="um-eyebrow">Antigüedad</h2>
+            <span class="font-mono text-xs tabular-nums text-um-muted">
+              {{ mesActual }}/{{ anhoActual }}
+            </span>
+          </div>
+
+          @if (antiguedad(); as a) {
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <div class="rounded border border-um-border bg-um-surface p-3">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-um-muted">Docente</p>
+                <p class="mt-1 font-mono text-lg tabular-nums text-um-ink">
+                  {{ aniosMeses(a.mesesDocentes) }}
+                </p>
+                <p class="text-xs text-um-muted">{{ a.mesesDocentes ?? 0 }} meses</p>
+              </div>
+              <div class="rounded border border-um-border bg-um-surface p-3">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-um-muted">
+                  Administrativa
+                </p>
+                <p class="mt-1 font-mono text-lg tabular-nums text-um-ink">
+                  {{ aniosMeses(a.mesesAdministrativos) }}
+                </p>
+                <p class="text-xs text-um-muted">{{ a.mesesAdministrativos ?? 0 }} meses</p>
+              </div>
+            </div>
+          } @else {
+            <p class="mt-3 text-sm text-um-muted">
+              Sin datos de antigüedad para el período actual.
+            </p>
+          }
+
+          <p class="mt-3 text-xs text-um-muted">
+            Se recalcula automáticamente al modificar fechas o ajustes de alta.
+          </p>
+        </section>
+
+        <section class="um-card">
+          <h2 class="um-eyebrow">Guardar</h2>
+          <p class="mt-2 text-sm text-um-muted">
+            Se envían sólo los campos modificados: el resto de la ficha no se toca.
+          </p>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="um-btn-primary"
+              [disabled]="guardando() || !hayCambios()"
+              (click)="guardar()"
+            >
+              {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+            <button
+              type="button"
+              class="um-btn-secondary"
+              [disabled]="guardando() || !hayCambios()"
+              (click)="descartar()"
+            >
+              Descartar
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- CBU por período -->
+    <section class="um-card mt-6">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 class="um-eyebrow">CBU por período</h2>
+          <p class="mt-1 text-sm text-um-muted">
+            Cuenta bancaria vigente y distribución entre importe fijo y porcentaje.
+          </p>
+        </div>
+        <button type="button" class="um-btn-secondary" (click)="nuevoCbu()">Nuevo CBU</button>
+      </div>
+
+      <div class="mt-4 overflow-x-auto">
+        <table class="um-table">
+          <thead>
+            <tr>
+              <th class="w-24">Período</th>
+              <th>CBU</th>
+              <th class="text-right">Fijo</th>
+              <th class="text-right">%</th>
+              <th class="text-center">Resto</th>
+              <th class="w-16"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (legajosBanco().length === 0) {
+              <tr>
+                <td colspan="6" class="py-6 text-center text-um-muted">
+                  Sin CBU registrados para el legajo.
+                </td>
+              </tr>
+            }
+            @for (fila of legajosBanco(); track fila.legajoBancoId) {
+              <tr
+                class="cursor-pointer"
+                [class.bg-um-selected]="cbuForm.legajoBancoId === fila.legajoBancoId"
+                (click)="seleccionarCbu(fila)"
+              >
+                <td class="font-mono tabular-nums">{{ fila.mes }}/{{ fila.anho }}</td>
+                <td class="font-mono text-xs">{{ fila.cbu }}</td>
+                <td class="text-right font-mono tabular-nums">
+                  {{ fila.fijo | number: '1.2-2' }}
+                </td>
+                <td class="text-right font-mono tabular-nums">
+                  {{ fila.porcentaje | number: '1.2-2' }}
+                </td>
+                <td class="text-center">{{ fila.resto === 1 ? 'Sí' : '—' }}</td>
+                <td class="text-right">
+                  <button
+                    type="button"
+                    class="um-link-btn text-xs"
+                    (click)="$event.stopPropagation(); seleccionarCbu(fila)"
+                  >
+                    Editar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+        <div>
+          <label class="um-label" for="cbu-anho">Año</label>
+          <input
+            id="cbu-anho"
+            type="number"
+            class="um-input text-center font-mono tabular-nums"
+            [(ngModel)]="cbuForm.anho"
+            name="cbuAnho"
+          />
+        </div>
+        <div>
+          <label class="um-label" for="cbu-mes">Mes</label>
+          <input
+            id="cbu-mes"
+            type="number"
+            min="1"
+            max="12"
+            class="um-input text-center font-mono tabular-nums"
+            [(ngModel)]="cbuForm.mes"
+            name="cbuMes"
+          />
+        </div>
+        <div class="md:col-span-2">
+          <label class="um-label" for="cbu-valor">CBU (22 dígitos)</label>
+          <input
+            id="cbu-valor"
+            maxlength="22"
+            class="um-input font-mono tabular-nums"
+            [(ngModel)]="cbuForm.cbu"
+            name="cbu"
+          />
+        </div>
+        <div>
+          <label class="um-label" for="cbu-fijo">Fijo</label>
+          <input
+            id="cbu-fijo"
+            type="number"
+            step="0.01"
+            min="0"
+            class="um-input text-right font-mono tabular-nums"
+            [(ngModel)]="cbuForm.fijo"
+            name="cbuFijo"
+          />
+        </div>
+        <div>
+          <label class="um-label" for="cbu-porcentaje">%</label>
+          <input
+            id="cbu-porcentaje"
+            type="number"
+            step="0.01"
+            min="0"
+            class="um-input text-right font-mono tabular-nums"
+            [(ngModel)]="cbuForm.porcentaje"
+            name="cbuPorcentaje"
+          />
+        </div>
+        <label class="flex items-center gap-2 text-sm text-um-text xl:col-span-2">
+          <input type="checkbox" [(ngModel)]="cbuForm.resto" name="cbuResto" />
+          Recibe el resto
+        </label>
+
+        <div class="flex flex-wrap gap-2 xl:col-span-4 xl:justify-end">
+          <button
+            type="button"
+            class="um-btn-primary"
+            [disabled]="guardandoCbu()"
+            (click)="guardarCbu()"
+          >
+            {{ guardandoCbu() ? 'Guardando…' : cbuEsNuevo() ? 'Agregar CBU' : 'Guardar CBU' }}
+          </button>
+          <button type="button" class="um-btn-secondary" (click)="nuevoCbu()">Limpiar</button>
+        </div>
+      </div>
+    </section>
+  } @else if (!cargando()) {
+    <div class="mt-6 rounded-lg border border-dashed border-um-border bg-white p-10 text-center">
+      <p class="text-sm font-semibold text-um-ink">Busque una persona para comenzar</p>
+      <p class="mt-1 text-sm text-um-muted">
+        Puede usar el buscador, el legajo exacto o el documento.
+      </p>
+    </div>
+  }
+</div>

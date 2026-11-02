@@ -1,0 +1,64 @@
+<div class="flex flex-col gap-6">
+
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Cargos con Clase</span>
+      <h1 class="um-page-title">Actualizar Cargos con Clase</h1>
+      <p class="um-page-desc max-w-2xl">
+        Recalcula los valores hora de todos los cargos con clase del período seleccionado.
+        El proceso se ejecuta en el servidor y no se puede deshacer.
+      </p>
+    </div>
+  </div>
+
+  <div class="um-card">
+    <div class="um-eyebrow mb-3">Período a actualizar</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+      <div class="md:col-span-2">
+        <label for="act-mes" class="um-label">Mes</label>
+        <input id="act-mes" type="number" min="1" max="12" [ngModel]="mes()"
+               (ngModelChange)="mes.set($event); error.set(null); exito.set(null)"
+               class="um-input text-center font-semibold">
+      </div>
+      <div class="md:col-span-2">
+        <label for="act-anho" class="um-label">Año</label>
+        <input id="act-anho" type="number" [ngModel]="anho()"
+               (ngModelChange)="anho.set($event); error.set(null); exito.set(null)"
+               class="um-input text-center font-semibold">
+      </div>
+      <div class="md:col-span-2 flex gap-1">
+        <button (click)="cambiarMes(-1)" class="um-btn-secondary p-2" aria-label="Mes anterior">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button (click)="cambiarMes(1)" class="um-btn-secondary p-2" aria-label="Mes siguiente">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+      <div class="md:col-span-6 flex justify-end">
+        <button (click)="actualizar()" [disabled]="isUpdating()" class="um-btn-primary flex items-center gap-1.5">
+          @if (isUpdating()) {
+            <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
+            <span>Actualizando...</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Actualizar Período</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="um-card border-rose-200 bg-rose-50 text-rose-700 text-xs font-medium">{{ error() }}</div>
+  }
+  @if (exito()) {
+    <div class="um-card border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium">{{ exito() }}</div>
+  }
+
+</div>

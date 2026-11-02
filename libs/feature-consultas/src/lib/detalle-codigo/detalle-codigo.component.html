@@ -1,0 +1,70 @@
+<div class="flex flex-col gap-6">
+
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Consultas y Reportes</span>
+      <h1 class="um-page-title">Detalle por Código</h1>
+      <p class="um-page-desc max-w-2xl">
+        Por cada legajo liquidado en el período: importe liquidado del código elegido y el
+        acumulado de novedades (importe y cantidad). Descargue el mismo contenido en PDF o XLSX.
+      </p>
+    </div>
+  </div>
+
+  <div class="um-card">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="flex flex-wrap items-end gap-4">
+        <div class="w-64">
+          <label class="um-label" for="detalle-codigo-codigo">Código</label>
+          <select
+            id="detalle-codigo-codigo"
+            class="um-input"
+            [ngModel]="codigoId()"
+            (ngModelChange)="cambiarCodigo($event)"
+          >
+            <option [ngValue]="null">Seleccione un código</option>
+            @for (codigo of codigos(); track codigo.codigoId) {
+              <option [ngValue]="codigo.codigoId">{{ codigo.codigoId }} · {{ codigo.nombre }}</option>
+            }
+          </select>
+        </div>
+        <haberes-consulta-periodo
+          [anho]="anho()"
+          [mes]="mes()"
+          (periodoChange)="cambiarPeriodo($event)"
+        />
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="um-btn-primary" [disabled]="cargando() || !habilitado()" (click)="verDatos()">
+          {{ cargando() ? 'Consultando...' : 'Ver datos' }}
+        </button>
+        <button type="button" class="um-btn-secondary" [disabled]="descargando() !== null || !habilitado()" (click)="descargar('pdf')">
+          {{ descargando() === 'pdf' ? 'Generando...' : 'PDF' }}
+        </button>
+        <button type="button" class="um-btn-secondary" [disabled]="descargando() !== null || !habilitado()" (click)="descargar('xlsx')">
+          {{ descargando() === 'xlsx' ? 'Generando...' : 'XLSX' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="um-card border-rose-200 bg-rose-50 text-xs font-medium text-rose-700">
+      {{ error() }}
+    </div>
+  }
+
+  @if (datos() !== null || cargando()) {
+    <haberes-reporte-tabla
+      [titulo]="titulo"
+      [subtitulo]="subtitulo()"
+      [columnas]="columnas"
+      [secciones]="secciones()"
+      [cargando]="cargando()"
+    />
+  } @else {
+    <div class="um-card text-sm text-um-muted">
+      Seleccione el código y el período, y presione «Ver datos» para consultar el detalle.
+    </div>
+  }
+</div>

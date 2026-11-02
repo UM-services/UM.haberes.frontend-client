@@ -1,0 +1,59 @@
+<div class="flex flex-col gap-6">
+
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Consultas y Reportes</span>
+      <h1 class="um-page-title">Histórico de Asignación de Cargos</h1>
+      <p class="um-page-desc max-w-2xl">
+        Histórico de asignación de cargos por categoría. El reporte actual sólo incluye el
+        encabezado, por lo que no se muestra una tabla de datos.
+      </p>
+    </div>
+  </div>
+
+  <div class="um-card">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="w-72">
+        <label class="um-label" for="historico-cargos-categoria">Categoría</label>
+        <select
+          id="historico-cargos-categoria"
+          class="um-input"
+          [ngModel]="categoriaId()"
+          (ngModelChange)="cambiarCategoria($event)"
+        >
+          <option [ngValue]="null">Seleccione una categoría</option>
+          @for (categoria of categorias(); track categoria.categoriaId) {
+            <option [ngValue]="categoria.categoriaId">{{ categoria.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="um-btn-primary"
+          [disabled]="descargando() || !habilitado()"
+          (click)="descargarPdf()"
+        >
+          {{ descargando() ? 'Generando...' : 'PDF' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="um-card border-rose-200 bg-rose-50 text-xs font-medium text-rose-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="um-card border-amber-200 bg-amber-50 text-sm text-amber-700">
+    <p class="font-semibold">{{ titulo }}</p>
+    <p class="mt-1">{{ consultando() ? 'Consultando el reporte...' : aviso() }}</p>
+  </div>
+
+  @if (!habilitado()) {
+    <div class="um-card text-sm text-um-muted">
+      Seleccione una categoría para descargar el reporte.
+    </div>
+  }
+</div>

@@ -1,0 +1,234 @@
+<div class="w-full">
+  <header class="um-page-header">
+    <div>
+      <p class="um-eyebrow">Catálogos de liquidación</p>
+      <h1 class="um-page-title">Códigos</h1>
+      <p class="um-page-desc">
+        Códigos de concepto, clasificación contable y conceptos AFIP por semestre.
+      </p>
+    </div>
+    <button type="button" class="um-btn-primary" (click)="nuevo()">Nuevo código</button>
+  </header>
+
+  @if (error()) {
+    <div class="um-alert um-alert-error mt-4" role="alert">{{ error() }}</div>
+  }
+  @if (mensaje()) {
+    <div class="um-alert um-alert-success mt-4">{{ mensaje() }}</div>
+  }
+
+  <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_440px]">
+    <section class="um-card overflow-x-auto p-0">
+      <table class="um-table">
+        <thead>
+          <tr>
+            <th class="w-16">Cod</th>
+            <th>Nombre</th>
+            <th class="text-center">Doc</th>
+            <th class="text-center">No doc</th>
+            <th class="text-center">Transf</th>
+            <th class="text-center">ETEC</th>
+            <th class="text-center">Rem</th>
+            <th class="text-center">No rem</th>
+            <th class="text-center">Ded</th>
+            <th>AFIP 1º</th>
+            <th>AFIP 2º</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (cargando()) {
+            <tr>
+              <td colspan="11" class="py-8 text-center text-um-muted">Cargando…</td>
+            </tr>
+          } @else if (codigos().length === 0) {
+            <tr>
+              <td colspan="11" class="py-8 text-center text-um-muted">Sin códigos registrados.</td>
+            </tr>
+          }
+          @for (codigo of codigos(); track codigo.codigoId) {
+            <tr
+              class="cursor-pointer"
+              [class.bg-um-selected]="!esNuevo() && form.codigoId === codigo.codigoId"
+              (click)="seleccionar(codigo)"
+            >
+              <td class="font-mono tabular-nums">{{ codigo.codigoId }}</td>
+              <td>{{ codigo.nombre }}</td>
+              <td class="text-center">{{ marca(codigo.docente) ? '✓' : '—' }}</td>
+              <td class="text-center">{{ marca(codigo.noDocente) ? '✓' : '—' }}</td>
+              <td class="text-center">{{ marca(codigo.transferible) ? '✓' : '—' }}</td>
+              <td class="text-center">{{ marca(codigo.incluidoEtec) ? '✓' : '—' }}</td>
+              <td class="text-center">
+                {{ marca(grupoDe(codigo.codigoId)?.remunerativo) ? '✓' : '—' }}
+              </td>
+              <td class="text-center">
+                {{ marca(grupoDe(codigo.codigoId)?.noRemunerativo) ? '✓' : '—' }}
+              </td>
+              <td class="text-center">
+                {{ marca(grupoDe(codigo.codigoId)?.deduccion) ? '✓' : '—' }}
+              </td>
+              <td class="font-mono text-xs">
+                {{ codigo.afipConceptoSueldoIdPrimerSemestre ?? '—' }}
+              </td>
+              <td class="font-mono text-xs">
+                {{ codigo.afipConceptoSueldoIdSegundoSemestre ?? '—' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="um-card h-fit">
+      <h2 class="um-eyebrow">{{ esNuevo() ? 'Nuevo código' : 'Editar código' }}</h2>
+
+      <div class="mt-4 space-y-4">
+        <div class="grid grid-cols-[100px_minmax(0,1fr)] gap-3">
+          <div>
+            <label class="um-label" for="codigo-id">Código</label>
+            <input
+              id="codigo-id"
+              class="um-input font-mono"
+              [value]="form.codigoId || '—'"
+              readonly
+            />
+          </div>
+          <div>
+            <label class="um-label" for="codigo-nombre">Nombre</label>
+            <input id="codigo-nombre" class="um-input" [(ngModel)]="form.nombre" name="nombre" />
+          </div>
+        </div>
+
+        <fieldset>
+          <legend class="um-label">Aplica a</legend>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="checkbox" [(ngModel)]="form.docente" name="docente" />
+              Docente
+            </label>
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="checkbox" [(ngModel)]="form.noDocente" name="noDocente" />
+              No docente
+            </label>
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="checkbox" [(ngModel)]="form.transferible" name="transferible" />
+              Transferible
+            </label>
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="checkbox" [(ngModel)]="form.incluidoEtec" name="incluidoEtec" />
+              Incluido ETEC
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="um-label">Clasificación contable</legend>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="radio" name="grupo" value="remunerativo" [(ngModel)]="form.grupo" />
+              Remunerativo
+            </label>
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="radio" name="grupo" value="noRemunerativo" [(ngModel)]="form.grupo" />
+              No remunerativo
+            </label>
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="radio" name="grupo" value="deduccion" [(ngModel)]="form.grupo" />
+              Deducción
+            </label>
+            <label class="flex items-center gap-2 text-sm text-um-text">
+              <input type="radio" name="grupo" value="" [(ngModel)]="form.grupo" />
+              Sin clasificar
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-3">
+          <legend class="um-label">Conceptos AFIP</legend>
+
+          @for (semestre of [1, 2]; track semestre) {
+            <div
+              class="flex items-center justify-between gap-2 rounded border border-um-border bg-um-surface px-3 py-2"
+            >
+              <div class="min-w-0">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-um-muted">
+                  {{ semestre }}º semestre
+                </p>
+                <p class="truncate text-sm text-um-ink">
+                  {{ descripcionAfip(semestre === 1 ? form.afipPrimero : form.afipSegundo) }}
+                </p>
+              </div>
+              @if (semestre === 1 ? form.afipPrimero : form.afipSegundo) {
+                <button
+                  type="button"
+                  class="um-link-btn text-xs"
+                  (click)="desasignarAfip(semestre === 1 ? 1 : 2)"
+                >
+                  Desasignar
+                </button>
+              }
+            </div>
+          }
+
+          <div class="flex gap-2">
+            <input
+              class="um-input"
+              placeholder="Buscar concepto AFIP…"
+              [ngModel]="busqueda()"
+              (ngModelChange)="busqueda.set($event)"
+              (keyup.enter)="buscarAfip()"
+              name="busquedaAfip"
+            />
+            <button
+              type="button"
+              class="um-btn-secondary shrink-0"
+              [disabled]="buscando()"
+              (click)="buscarAfip()"
+            >
+              {{ buscando() ? 'Buscando…' : 'Buscar' }}
+            </button>
+          </div>
+
+          @if (resultados().length > 0) {
+            <ul
+              class="max-h-56 divide-y divide-um-border overflow-y-auto rounded border border-um-border"
+            >
+              @for (concepto of resultados(); track concepto.afipConceptoSueldoId) {
+                <li class="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <span class="min-w-0">
+                    <span class="block truncate text-um-ink">{{ concepto.descripcion }}</span>
+                    <span class="font-mono text-xs text-um-muted">
+                      #{{ concepto.afipConceptoSueldoId }}
+                    </span>
+                  </span>
+                  <span class="flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      class="um-link-btn text-xs"
+                      (click)="asignarAfip(concepto, 1)"
+                    >
+                      1º
+                    </button>
+                    <button
+                      type="button"
+                      class="um-link-btn text-xs"
+                      (click)="asignarAfip(concepto, 2)"
+                    >
+                      2º
+                    </button>
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </fieldset>
+
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button type="button" class="um-btn-primary" [disabled]="guardando()" (click)="guardar()">
+            {{ guardando() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="um-btn-secondary" (click)="limpiar()">Limpiar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

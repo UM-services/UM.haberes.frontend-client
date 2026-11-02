@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@haberes/shared-api';
@@ -7,6 +7,7 @@ import { CargosReportService } from '../cargos-legajo/cargos-report.service';
 @Component({
   selector: 'haberes-docentes-sede',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule],
   templateUrl: './docentes-sede.component.html'
 })
@@ -22,12 +23,6 @@ export class DocentesSedeComponent implements OnInit {
   
   isDownloading = signal<boolean>(false);
   isLoadingSedes = signal<boolean>(true);
-
-  facultadId = computed(() => {
-    let fid = null;
-    this.auth.currentUser$.subscribe(u => { if (u) fid = u.facultadId; }).unsubscribe();
-    return fid;
-  });
 
   ngOnInit() {
     this.reportService.getGeograficas().subscribe({
@@ -52,7 +47,7 @@ export class DocentesSedeComponent implements OnInit {
 
   descargar() {
     const sedeId = this.sedeSeleccionada();
-    const facId = this.facultadId();
+    const facId = this.auth.facultadId();
     
     if (!sedeId) {
       alert("Seleccione una Sede");

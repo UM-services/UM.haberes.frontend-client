@@ -1,0 +1,80 @@
+<div class="flex flex-col gap-6">
+
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Consultas y Reportes</span>
+      <h1 class="um-page-title">Totales Generales por Código</h1>
+      <p class="um-page-desc max-w-2xl">
+        Acumulado del período desagregado por concepto. <strong>Totales</strong> lista los
+        códigos con novedad; <strong>Comparación</strong> incluye todos los códigos con su
+        diferencia entre novedades y liquidado. Cada vista se descarga en PDF o XLSX.
+      </p>
+    </div>
+  </div>
+
+  <div class="um-card">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="flex flex-wrap items-end gap-4">
+        <haberes-consulta-periodo
+          [anho]="anho()"
+          [mes]="mes()"
+          (periodoChange)="cambiarPeriodo($event)"
+        />
+        <div>
+          <span class="um-label">Vista</span>
+          <div class="flex items-center gap-1 rounded border border-um-border p-1">
+            <button
+              type="button"
+              class="rounded px-3 py-1.5 text-xs font-bold"
+              [class.bg-um-primary]="vista() === 'totales'"
+              [class.text-white]="vista() === 'totales'"
+              (click)="cambiarVista('totales')"
+            >
+              Totales
+            </button>
+            <button
+              type="button"
+              class="rounded px-3 py-1.5 text-xs font-bold"
+              [class.bg-um-primary]="vista() === 'comparacion'"
+              [class.text-white]="vista() === 'comparacion'"
+              (click)="cambiarVista('comparacion')"
+            >
+              Comparación
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="um-btn-primary" [disabled]="cargando()" (click)="verDatos()">
+          {{ cargando() ? 'Consultando...' : 'Ver datos' }}
+        </button>
+        <button type="button" class="um-btn-secondary" [disabled]="descargando() !== null" (click)="descargar('pdf')">
+          {{ descargando() === 'pdf' ? 'Generando...' : 'PDF' }}
+        </button>
+        <button type="button" class="um-btn-secondary" [disabled]="descargando() !== null" (click)="descargar('xlsx')">
+          {{ descargando() === 'xlsx' ? 'Generando...' : 'XLSX' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="um-card border-rose-200 bg-rose-50 text-xs font-medium text-rose-700">
+      {{ error() }}
+    </div>
+  }
+
+  @if (datos() !== null || cargando()) {
+    <haberes-reporte-tabla
+      [titulo]="titulo"
+      [subtitulo]="subtitulo()"
+      [columnas]="columnas"
+      [secciones]="secciones()"
+      [cargando]="cargando()"
+    />
+  } @else {
+    <div class="um-card text-sm text-um-muted">
+      Seleccione el período y la vista, y presione «Ver datos» para consultar los totales.
+    </div>
+  }
+</div>

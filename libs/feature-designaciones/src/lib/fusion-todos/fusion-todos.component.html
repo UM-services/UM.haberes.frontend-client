@@ -1,0 +1,118 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Header -->
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Designaciones Docentes</span>
+      <h1 class="um-page-title">Fusionar Todos</h1>
+      <p class="um-page-desc max-w-2xl">
+        Proceso masivo del período: duplica los cargos del mes anterior (opcional), vuelve a calcular
+        las designaciones, fusiona a todos los docentes y recalcula el desarraigo.
+      </p>
+    </div>
+  </div>
+
+  <!-- Parámetros -->
+  <div class="um-card">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+      <div class="md:col-span-2">
+        <label for="fus-mes" class="um-label">Mes</label>
+        <input id="fus-mes" type="number" min="1" max="12" [ngModel]="periodo().mes"
+               (ngModelChange)="periodo.set({ anho: periodo().anho, mes: +$event }); cargarEstadoDuplicar()"
+               [disabled]="running()"
+               class="um-input text-center font-semibold">
+      </div>
+      <div class="md:col-span-2">
+        <label for="fus-anho" class="um-label">Año</label>
+        <input id="fus-anho" type="number" [ngModel]="periodo().anho"
+               (ngModelChange)="periodo.set({ anho: +$event, mes: periodo().mes }); cargarEstadoDuplicar()"
+               [disabled]="running()"
+               class="um-input text-center font-semibold">
+      </div>
+      <div class="md:col-span-2 flex items-end gap-1">
+        <button (click)="cambiarMes(-1)" [disabled]="running()" class="um-btn-secondary p-2" aria-label="Mes anterior">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button (click)="cambiarMes(1)" [disabled]="running()" class="um-btn-secondary p-2" aria-label="Mes siguiente">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+      <div class="md:col-span-6 flex flex-wrap items-center justify-end gap-4">
+        <label class="flex items-center gap-2 text-xs font-medium text-um-text"
+               [title]="hayCargos() ? 'El período ya tiene cargos cargados: no se puede duplicar' : 'Copia los cargos del mes anterior'">
+          <input type="checkbox" [ngModel]="duplicar()" [disabled]="running() || hayCargos()"
+                 (ngModelChange)="duplicar.set($event)" class="h-4 w-4">
+          <span>Duplicar mes anterior</span>
+        </label>
+        @if (hayCargos()) {
+          <span class="um-badge bg-amber-50 border border-amber-200 text-amber-800">
+            Período con cargos cargados
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="um-card border-rose-200 bg-rose-50 text-rose-700 text-xs font-medium">{{ error() }}</div>
+  }
+  @if (exito()) {
+    <div class="um-card border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium">{{ exito() }}</div>
+  }
+
+  <!-- Ejecución -->
+  <div class="um-card">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <button (click)="fusionarTodos()" [disabled]="running()" class="um-btn-primary flex items-center gap-1.5">
+          @if (running()) {
+            <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
+          }
+          <span>Fusionar Todos</span>
+        </button>
+        <button (click)="recalcularDesarraigo()" [disabled]="running()" class="um-btn-secondary">
+          Recalcular Desarraigo
+        </button>
+        @if (running()) {
+          <button (click)="cancelar()" class="um-btn-secondary">Cancelar</button>
+        }
+      </div>
+      <div class="text-xs text-um-muted">
+        Período <span class="font-mono text-um-ink">{{ periodoTexto() }}</span>
+        @if (total() > 0) {
+          · <span class="font-mono tabular-nums">{{ procesados() }} / {{ total() }}</span>
+        }
+      </div>
+    </div>
+
+    @if (running() || total() > 0) {
+      <div class="mt-4">
+        <div class="h-2 w-full rounded bg-um-surface border border-um-border overflow-hidden">
+          <div class="h-full bg-um-primary transition-all" [style.width.%]="progreso()"></div>
+        </div>
+        <div class="flex items-center justify-between mt-2 text-[11px]">
+          <span class="text-um-text">{{ estado() }}</span>
+          <span class="text-um-muted font-mono tabular-nums">{{ progreso() }}%</span>
+        </div>
+      </div>
+    }
+
+    @if (fallidos().length > 0) {
+      <div class="mt-4 rounded border border-amber-200 bg-amber-50 px-3 py-2">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-800 mb-1">
+          {{ fallidos().length }} legajo(s) con error
+        </div>
+        <ul class="text-[11px] text-amber-900 space-y-0.5 max-h-32 overflow-y-auto custom-scrollbar">
+          @for (fallo of fallidos(); track fallo.legajoId) {
+            <li class="font-mono">{{ fallo.legajoId }} — {{ fallo.error }}</li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+
+</div>

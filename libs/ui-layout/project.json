@@ -4,10 +4,17 @@
   "sourceRoot": "libs/ui-layout/src",
   "prefix": "lib",
   "projectType": "library",
-  "tags": [],
+  "tags": ["type:ui", "scope:shared"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "novedades:build:development",
+        "tsConfig": "libs/ui-layout/tsconfig.spec.json"
+      }
     }
   }
 }

@@ -23,5 +23,5 @@ Librería de reportes de cargos docentes para el módulo de Novedades.
 ## Dependencias
 
 - `@haberes/shared-api` (AuthService)
-- `@haberes/feature-designaciones` (DesignacionesService - búsqueda de personas)
+- `@haberes/ui-layout` (buscador estándar `ui-persona-search`)
 - `HttpClient` para comunicación con API REST

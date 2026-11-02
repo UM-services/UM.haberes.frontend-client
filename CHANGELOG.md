@@ -1,5 +1,197 @@
 # Changelog
 
+## [0.12.0] - 2026-10-25
+
+### Added
+
+- **feat(`feature-consultas`):** Nueva librería (`type:feature`, `scope:liquidacion`) para el grupo **Consultas y Reportes** del módulo Liquidación. Incluye `ConsultasReportService` (único acceso a `/api/haberes/report/ui/{reporte}/{data|pdf|xlsx}/{params}`, con mensaje de negocio para 401), `ConsultaPeriodoComponent` (mes/año con navegación `<` `>`) y `ReporteTablaComponent` (tabla presentacional: recibe columnas tipadas y secciones con subtotal, sin conocer ningún reporte).
+- **feat(`feature-consultas`):** Pantalla **Totales Generales** (`/consultas/totales-generales`, migración de `frmRpTotGeneral.frm`): consulta los grupos y subtotales del período, los muestra en tabla con importes alineados y descarga el PDF y el XLSX del mismo contenido. `totales-generales.models.ts` define el DTO tipado del backend.
+- **feat(`feature-consultas`):** Pantalla **Totales Generales por Código** (`/consultas/totales-codigo`, migración de `frmRpTotCodigo.frm`) con las dos salidas del formulario como vistas: **Totales** (códigos con novedad) y **Comparación** (todos los códigos con diferencia). La tabla y las descargas PDF/XLSX siguen la vista elegida.
+- **feat(`feature-consultas`):** Pantalla **Comparación entre Meses Consecutivos** (`/consultas/comparacion-meses`, migración de `frmCompEntreMesesConsec.frm`): compara brutos y netos contra el mes anterior (enero usa diciembre del año previo), agrupa por dependencia y descarga PDF/XLSX. Avisa que la comparación de designaciones del sistema anterior no está disponible.
+- **feat(`feature-consultas`):** Cuatro pantallas académicas con tabla agrupada y descargas PDF/XLSX del mismo contenido: **Docentes por Sede** (`/consultas/docentes-sede`, facultad + sede), **Designación de Docentes** (`/consultas/designacion-docentes`), **Cursos por Docente** (`/consultas/cursos-docente`) y **Fusión por Docente** (`/consultas/fusion-docente`).
+- **feat(`feature-consultas`):** Pantalla **Cargos con Clase por Facultad** (`/consultas/cargos-clase-facultad`) con filtro de facultad, agrupación por sede y períodos desde/hasta en formato MM/AAAA.
+- **feat(`feature-consultas`):** `ConsultasCatalogosService` (facultades y sedes) para los filtros de Docentes por Sede y Cargos con Clase.
+- **feat(`feature-consultas`):** `ReporteTablaComponent` agrega scroll horizontal para tablas anchas.
+- **feat(`liquidacion`):** Rutas lazy `consultas/totales-generales`, `consultas/totales-codigo`, `consultas/comparacion-meses`, `consultas/docentes-sede`, `consultas/designacion-docentes`, `consultas/cursos-docente`, `consultas/fusion-docente` y `consultas/cargos-clase-facultad`, y sus altas en `RUTAS_MIGRADAS`, por lo que el menú y el panel de inicio dejan de mostrar el placeholder.
+- **feat(`feature-consultas`):** Ocho **planillas** con tabla y descargas PDF/XLSX del mismo contenido: **Planilla de Liquidables** (`/consultas/planilla-liquidables`, sin filtros: sale del estado vigente y se consulta al abrir), **Cantidad de Cargos** (`/consultas/cantidad-cargos`), **Detalle por Código** (`/consultas/detalle-codigo`, con selector de código), **Cargos por Período** (`/consultas/cargos-periodo`), **Cursos por Período** (`/consultas/cursos-periodo`), **Libro de Sueldos** (`/consultas/libro-sueldos`), **Básicos por Período** (`/consultas/basicos-periodo`) y **Cursos por Contratado** (`/consultas/cursos-contratado`).
+- **feat(`feature-consultas`):** **Libro de Sueldos** agrega el botón **LSD (ZIP)** que descarga el Libro de Sueldos Digital de AFIP de los legajos que se están viendo (`ConsultasReportService.descargarLibroSueldosDigital`, `POST` con la lista en el cuerpo y `responseType: 'blob'`).
+- **feat(`feature-consultas`):** Pantalla **Bonos por Dependencia** (`/consultas/bonos-dependencia`, migración de `frmImprimir.frm`): filtros Dependencia + Filtro A/D + período, grilla propia con legajo, apellido y nombre, mail institucional y marca de **enviado** (el botón envía los legajos sin marca que tengan mail, como el formulario original), **Imprimir** (prepara y audita el lote en el core y descarga el PDF consolidado, avisando los legajos que fallaron) y **Enviar seleccionados** con progreso X/Y y resultado por legajo.
+- **feat(`feature-consultas`):** Pantalla **Histórico de Asignación de Cargos** (`/consultas/historico-cargos`, migración de `frmCargoHist.frm`): selector de categoría, aviso explícito de que el reporte no tiene cuerpo implementado y descarga del PDF del encabezado. No ofrece tabla ni XLSX.
+- **feat(`feature-consultas`):** `ConsultasCatalogosService` suma los catálogos de **dependencias**; `ConsultasReportService` suma `enviarBonoDependencia` (envío de un bono del lote).
+- **feat(`feature-bonos`):** `BonoReportService.printPrepareDependencia` llama al nuevo `POST /api/haberes/core/bono/dependencia/{dependenciaId}/{anho}/{mes}/{salida}/print-prepare`, que prepara la actividad y audita cada legajo con la IP resuelta en el servidor.
+- **feat(`feature-consultas`):** `ConsultasCatalogosService` suma el catálogo de **códigos** para el filtro de Detalle por Código.
+- **feat(`liquidacion`):** Rutas lazy y altas en `RUTAS_MIGRADAS` de las ocho planillas, de modo que el menú y el panel de inicio ya no muestran el placeholder en esas opciones.
+- **feat(`liquidacion`):** Rutas lazy `consultas/bonos-dependencia` y `consultas/historico-cargos` con sus altas en `RUTAS_MIGRADAS`: el grupo Consultas queda completo (19 de 19 sin placeholder).
+
+### Changed
+
+- **refactor(`feature-bonos`):** El bono individual consume el namespace `/api/haberes/report/ui/bono/**` (antes `/api/haberes/report/bono/ui/**`), que queda detrás de la API key del gateway. Las rutas legacy con IP no cambian.
+- **docs:** `README.md` incorpora `feature-consultas` al árbol del monorepo y a la tabla de librerías, `AGENTS.md` la suma al mapa del workspace y `docs/architecture.mermaid` agrega la dependencia `liquidacion → feature-consultas`.
+
+### Fixed
+
+- **fix(`feature-consultas`):** `ConsultasReportService` no agrega la barra final al path cuando un reporte no lleva parámetros (Liquidables), que con el mapeo por defecto de Spring daba 404.
+
+### Tests
+
+- Especificaciones de `ConsultasReportService` (URLs de data/descarga y error 401), de `TotalesGeneralesComponent`, `TotalesCodigoComponent` (vistas Totales/Comparación y descarga de la vista activa) y `ComparacionMesesComponent` (mes anterior, enero → diciembre, descarga y cambio de período), de las cinco pantallas académicas (consulta, agrupación por docente/sede, catálogos, guardas de filtros y descargas) y de `ReporteTablaComponent` (secciones, subtotal, vacío y carga).
+- Especificaciones de las ocho planillas: consulta del período, estado vacío, descarga PDF/XLSX y casos propios (guarda sin código en Detalle por Código, consulta sin parámetros en Liquidables, LSD con los legajos visibles y sin datos en Libro de Sueldos), más el caso de URL sin barra final en `ConsultasReportService`.
+- Especificaciones de **Bonos por Dependencia** (catálogo de dependencias, guarda sin dependencia, marca de enviados, cálculo de los legajos a enviar, prepare del lote con solicitante, fallidos sin descarga, descarga forzada, envío con progreso y error por legajo) y de **Histórico de Asignación de Cargos** (categorías, guarda, aviso y PDF).
+
+## [0.11.0] - 2026-10-24
+
+### Added
+
+- **feat(`administrador`):** Nueva aplicación `apps/administrador` (puerto 4211) como cuarto proyecto del monorepo, con `project.json` propio (`@angular/build:application`, configuraciones production/development con los mismos budgets de 500 kB/1 MB y 4 kB/8 kB, `serve`, `serve-static`, `lint` y `test` con `@angular/build:unit-test`), entornos con `BACKEND_URL_PLACEHOLDER`/`ENV_NAME_PLACEHOLDER`/`APP_VERSION_PLACEHOLDER`, `nginx.conf` y `entrypoint.sh`. Shell delgado sobre `<ui-shell>` con tres bloques de menú (Personas, Catálogos de liquidación, Parámetros de cálculo), panel de inicio con `<ui-opciones-panel>` y rutas lazy a las siete pantallas del módulo, todas con `canActivate: [authGuard, administradorGuard]`. `npm run serve:all` levanta también la app en 4211.
+- **feat(`shared-api`):** `administradorGuard`: revalida la sesión con `AuthService.ensureSession()` y sólo habilita el módulo cuando el usuario validado no tiene facultad asignada, limpiando la sesión y redirigiendo a `/login` en caso contrario. El login de la app `administrador` declara `data: { requireFacultadId: false }`, de modo que un usuario con facultad es rechazado desde el formulario.
+- **feat(`shared-api`):** `AuthService` cambia el modelo de sesión: `localStorage` guarda sólo `{ version: 2, legajoId }` bajo `haberes_user` (antes se persistía la `Persona` completa, incluida `facultadId`) y `ensureSession()` revalida persona, usuario y facultad contra haberes-core una vez por arranque, cacheando el resultado y compartiendo la validación en curso entre guards concurrentes. El formato anterior se migra descartando todo lo que no sea el legajo. Se agrega la señal `computed` `facultadId` (null para usuarios sin facultad) y el campo opcional `dependencia` más los campos filiatorios/AFIP (`nacimiento`, `cuil`, `altaDocente`, `ajusteDocente`, `altaAdministrativa`, `ajusteAdministrativo`, `estadoCivil`, `situacionId`, `reemplazoDesarraigo`, `mitadDesarraigo`, `posgrado`, `liquida`, `estadoAfip`, `salida`, `obraSocial`, `actividadAfip`, `localidadAfip`, `situacionAfip`, `modeloContratacionAfip`, `directivoEtec`) en la interfaz compartida `Persona`.
+- **feat(`shared-api`):** Helpers exportados desde el barrel: `mensajeDeError(error, porDefecto)` (`lib/util/api-error.ts`) extrae el mensaje de negocio de un `HttpErrorResponse` (status 0 → sin conexión, cuerpo plano o ProblemDetail con `detail`/`message`) y `periodoTexto(periodo)` (`lib/util/periodo.ts`) convierte un período `yyyymm` a `MM/AAAA` (guion para null/0). Ambas con especificación unitaria.
+- **feat(`administrador`):** Siete librerías nuevas bajo el tag `scope:administrador`, cada una con componente standalone, servicio, especificación de componente y de servicio, README y target `test` atado a `administrador:build:development`:
+  - `feature-personas` — Datos Personales: ficha filiatoria por legajo con búsqueda estándar `<ui-persona-search>`, edición parcial por `PATCH /persona/{legajoId}` (`PersonasService.patchPersona`, sólo los campos modificados), contacto (`/contacto`), validación de mail (`/tool/mailvalidate`), dependencias, CBU por período (`/legajobanco`) y antigüedad (`/antiguedad/last` y `/antiguedad/calculate`), con helpers `fechaInput`/`fechaPayload` que preservan el horario y offset del backend.
+  - `feature-categorias` — Categorías: básicos versionados por año/mes (`POST`/`PUT /categoria/{anho}/{mes}`), borrado, y planilla xlsx del sistema (descarga desde `/sheet/generateCategorias` y carga desde archivo).
+  - `feature-codigos` — Códigos: ABM de códigos de concepto, grupo contable (`codigo_grupo`: remunerativo, no remunerativo, deducción, total) y vínculo con conceptos AFIP por semestre (`POST /afipConceptoSueldo/search`).
+  - `feature-clases` — Clases: ABM de clases de hora cátedra con valor hora y `last` para proponer la PK.
+  - `feature-cargos-clase` — Cargos con Clase: ABM del catálogo y consulta de legajos asignados en el período (`/cargoclasedetalle/cargoclase/{id}/{anho}/{mes}`).
+  - `feature-adicionales` — Adicional Carga Horaria: tablas (maestro de sólo lectura) con sus rangos de horas y porcentaje, alta y baja de rangos por tabla.
+  - `feature-sedes` — Sedes: edición de `geografica` (`PUT /geografica/{id}`) con desarraigo y sede de reemplazo.
+- **feat(`feature-designaciones`):** La pantalla `Designaciones` pasa a operar en dos modos sobre el mismo componente: **global** (sesión sin facultad, módulo Liquidación) con liquidadas del período anterior, cursos, fusionadas, totales y acciones Redesignar / Fusionar / Imprimir; y **facultad** (módulo Novedades) limitada a la facultad del usuario en modo consulta. `DesignacionesService` suma `getCargoLiquidacionDocente`, `getDiferenciaDesignaciones` (novedad 27 sin dependencia), `redesignar`, `fusionar(forzar)`, `descargarDetalle` (PDF) y la carga de catálogos (facultades, geográficas, dependencias, categorías, tipos de cargo y de designación); los cursos y fusionadas eligen endpoint por legajo o por facultad según el modo. Nuevo `designaciones.models.ts` exportado desde el barrel.
+- **feat(`feature-designaciones`):** Cuatro procesos nuevos consumidos por Liquidación: `CargosClaseAsignacionComponent` (alta, baja y cambio de período hasta de cargos con clase de un docente, con historial de períodos y control de períodos acreditados por el servidor), `CargosClaseDuplicarComponent` (duplicación de los cargos del período origen al rango destino por filas marcadas), `CargosClaseActualizarComponent` (recálculo masivo de valores hora del período vía `cargoclasetool/update/periodo`) y `FusionTodosComponent` (proceso masivo en lotes de 50 legajos con duplicación opcional del mes anterior, fusión y recálculo de desarraigo, progreso, resumen de fallos y cancelación entre lotes).
+- **feat(`feature-designaciones`):** `AutorizarNovedadesComponent` sobre `cursocargonovedad`: padrones de pendientes, autorizadas y rechazadas de alta y baja en una sola carga, autorización, rechazo y anulación con respuesta obligatoria, y reportes PDF del período y de pendientes. `CursosConsultaComponent` lista los cursos por facultad y sede con filtro por nombre con debounce, sin asignar nada (alcance real del formulario legado de asignación de materias).
+- **feat(`feature-anotador`):** `AnotadorComponent` acepta un `input facultadId` opcional y resuelve la facultad efectiva contra la sesión: sin facultad opera en **modo global** (pendientes y revisados de todo el período vía endpoints `periodo`), permite visar la anotación seleccionada (autorizar/rechazar con respuesta obligatoria) y descarga los reportes PDF de pendientes y de autorizadas/rechazadas del período (por facultad o del período completo). En modo facultad el historial se sigue filtrando por la facultad de la sesión.
+- **feat(`feature-designaciones`):** `AsigCursosComponent` gana el modo global (módulo Liquidación): selector de facultad, ABM de cursos (nombre, nivel, anual, semestres y adicional carga horaria), aviso de que actualizar un curso obliga a re-fusionar los legajos asignados, y resolución de nombres de facultad y sede con fallback para respuestas sin relación embebida.
+- **feat(tests):** Especificaciones nuevas para las siete librerías del módulo Administrador (componente y servicio), para `AutorizarNovedadesService`, `FusionTodosService`, `CargosClaseActualizarService`, `CargosClaseService` y `DesignacionesService`, para `mensajeDeError`/`periodoTexto`, y ampliación de `auth.service.spec.ts` con los casos de sesión v2 (persistencia sólo del legajo, migración del formato viejo, facultad manipulada ignorada, sin legajo, usuario inexistente, cache de la validación, usuario sin facultad y logout).
+
+### Changed
+
+- **refactor(`shared-api`):** `authGuard` y `unauthGuard` dejan de leer `currentUser$` para pasar por `AuthService.ensureSession()`, de modo que una sesión vieja o manipulada en `localStorage` no alcanza para entrar. `CargosLegajoComponent`, `DocentesSedeComponent` y `AnotadorComponent` toman la facultad de la señal `AuthService.facultadId` en lugar de suscribirse a mano a `currentUser$`.
+- **refactor(`liquidacion`):** El menú pierde el grupo "Parámetros y Tablas" (personas, contactos, adicional carga horaria, categorías, cargos con clase, clases, códigos y sedes), que pasa a la app `administrador`; "Asignación de Materias" se reemplaza por "Consulta de Cursos por Facultad y Sede" (`/designaciones/cursos`). `RUTAS_MIGRADAS` incorpora las nueve rutas de designaciones (`general`, `actualizar-cargos-clase`, `anotador`, `autorizar-novedades`, `asig-cursos`, `cargos-clase`, `duplicar-cargos-clase`, `fusionar-todos`, `cursos`) y el panel de inicio describe el alcance ampliado (designaciones y contabilidad).
+- **chore(nx):** `feature-designaciones` y `feature-anotador` pasan de `scope:novedades` a `scope:shared` para poder ser consumidas por `liquidacion`, y `tsconfig.base.json` declara los alias `@haberes/feature-personas`, `-adicionales`, `-categorias`, `-cargos-clase`, `-clases`, `-codigos` y `-sedes` (paths reformateados a una línea por alias).
+- **ci(deploy):** `docker-publish.yml`, `deploy-develop.yml` y `deploy-staging.yml` agregan `administrador` a la lista `apps` del pipeline reutilizable, por lo que la imagen de la nueva app se publica y despliega junto con `liquidacion` y `novedades`.
+- **docs:** `README.md` documenta la app `administrador` (estructura, puerto 4211, comandos de serve/build/test y `docker:app`) y las siete librerías nuevas; `AGENTS.md` agrega la app y las libs al mapa del workspace, el criterio de `test` por app de origen, la sección de sesión v2 con `ensureSession` y la regla de `PATCH /persona/{legajoId}` para ediciones parciales; nuevos READMEs por librería y `libs/shared-api/README.md` describe la señal `facultadId`. `docs/architecture.mermaid` incorpora la app `administrador` con sus siete librerías y `administradorGuard`, y refleja que `liquidacion` también consume `feature-designaciones` y `feature-anotador`.
+
+## [0.10.0] - 2026-10-11
+
+### Changed
+
+- **chore(deps):** **Actualización mayor del frontend a Angular 22.1.8 + Nx 23.3 + TypeScript 6.0.** Paquetes: `@angular/*` 21 → 22.1.8, `@angular/build`, `@angular/cli`, `@angular-devkit/*` y `@schematics/angular` 21 → 22.1.9; `nx` y `@nx/*` 22.7 → 23.3.0; `typescript` 5.9 → 6.0.3; `angular-eslint` 21 → 22.5.0; `typescript-eslint` y `@typescript-eslint/utils` 8.40 → 8.71. La migración: (a) agregó `ChangeDetectionStrategy.Eager` a los componentes (Angular 22 cambió el default a **OnPush**; `Eager` preserva el comportamiento previo, equivalente al `Default` anterior), (b) agregó `withXhr()` a `provideHttpClient` (Angular 22) y (c) dejó la regla nueva `@angular-eslint/prefer-on-push-component-change-detection` en **`warn`** (migrar los componentes a OnPush es una tarea aparte). No aplica el reemplazo de `vitest.workspace.ts` por `vitest.config.ts` de tesorería-frontend: haberes usa el executor `@angular/build:unit-test`. Verificado con `nx run-many -t lint test build` (2 apps + 8 libs) en verde.
+- **ci(deploy):** `deploy-pipeline.yml` reemplaza el input `deployRunner` por `deployRunners` (lista JSON de labels): el job `deploy` usa una matriz con `fail-fast: false` y un leg por label, y el `environment` de GitHub toma el nombre del runner. `deploy-develop.yml` declara `["develop"]` y `deploy-staging.yml` declara `["staging", "staging-new"]`, habilitando el despliegue dual de staging.
+- **docs:** `README.md`, `AGENTS.md` y las copias de la skill `frontend-guidelines` (`.agents/` y `.opencode/`) actualizan el stack (Angular 22.1.8, Nx 23.3.0, TypeScript 6.0.3), el pipeline de documentación (`generate-docs.yml`) cita Angular 22 y el README describe la matriz de runners del deploy.
+- **chore(workspace):** `.gitignore` ignora `.nx/migrate-runs` y `.vitest`, artefactos de la migración a Nx 23 y de las corridas de Vitest.
+
+## [0.9.0] - 2026-10-03
+
+### Added
+- **feat(`shared-api`):** Cambio de clave sobre haberes-core: `AuthService.changePassword(data)` (`PUT /api/haberes/core/usuario/cambiarclave`; la verificación de la clave anterior es server-side, responde 204 y la sesión local no se modifica) con el payload tipado `ChangePasswordRequest` en el nuevo `auth.models.ts` (exportados ambos desde el barrel), más el getter sincrónico `currentUserValue` (espejo del AuthService de tesoreria-frontend). Nueva `auth.service.spec.ts` con 3 casos (`HttpTestingController`: payload exacto del PUT, propagación del `detail` del ProblemDetail 400 e hidratación/inalterabilidad de la sesión).
+- **feat(`ui-auth`):** `CambioClaveModalComponent` (`<lib-cambio-clave-modal>`, standalone y exportado desde el barrel), espejo del modal de tesoreria-frontend adaptado a Haberes: legajo y nombre precargados de la sesión en sólo lectura, validación de campos completos y de coincidencia de la nueva clave, éxito con "Cambio REALIZADO" y autocierre, y mapeo del error de negocio desde ProblemDetail `detail`, cuerpo en texto plano o `message`. Al abrirse (`isOpen`) resetea el formulario. Nueva especificación con 8 casos y target `test` de librería (`@angular/build:unit-test` atado a `novedades:build:development` + `tsconfig.spec.json`).
+- **feat(`ui-layout`):** `UiOpcionesPanelComponent` (`<ui-opciones-panel>`, exportado desde el barrel): panel principal de opciones con la presentación del hub estático de tesorería — cabecera `um-page-header` con contador "disponibles de totales", búsqueda en vivo por nombre/descripción/grupo, secciones por grupo y grilla auto-fill de `um-card` con punto de estado (esmeralda "Disponible" / ámbar "En desarrollo") y badge monoespaciado con el código de la ruta. Tipos `OpcionPanel` y `GrupoPanel`; el estado es estático (lo definen los datos de cada app) porque las rutas internas no se pueden verificar con un ping.
+- **feat(`novedades`):** Panel principal `/inicio` con el nuevo `InicioComponent` sobre `<ui-opciones-panel>` y su catálogo `menu-options.data.ts` (`NOVEDADES_GRUPOS`: Designaciones y Consultas, con las cinco opciones migradas marcadas `disponible`); nuevo ítem "Panel Principal" en el sidebar.
+- **feat(`liquidacion`):** `RUTAS_MIGRADAS` como fuente única en `menu-options.data.ts`: alimenta a la vez la generación de placeholders de `app.routes.ts` y el estado "Disponible" del panel de `/inicio`.
+
+### Changed
+- **feat(`ui-layout`):** El `<ui-shell>` integra el modal de cambio de clave: botón "Cambiar clave" en el bloque de usuario del sidebar y en el header móvil, que abre `<lib-cambio-clave-modal>` (`@haberes/ui-auth`) vía la señal `isCambioClaveOpen` (la dependencia `ui-layout` → `ui-auth` está permitida por las etiquetas `type:ui`). La especificación del shell cubre apertura/cierre del modal.
+- **refactor(`ui-layout`):** La marca del `<ui-shell>` pasa a ser siempre texto, espejo del shell de tesoreria-frontend: el sidebar muestra `UM · Haberes` (`text-lg font-bold`) sobre el nombre del módulo (eliminados el bloque horizontal logo + divisor + leyenda "Haberes UM" y el enlace "Ir al inicio") y el header móvil muestra la marca junto al badge de entorno, sin logo ni módulo. Se elimina el input `logoUrl`, cuyo default `/logo.png` renderizaba una imagen rota en `novedades` (el asset sólo existía en `liquidacion`). Actualizada la especificación del shell.
+- **refactor(`ui-auth`):** El login prescinde de la imagen `logo.png` (rota en `novedades`) y conserva sólo la cabecera de texto (`um-eyebrow` "Haberes" + `um-page-title` "UM Haberes").
+- **refactor(`novedades`):** `Designaciones` se reubicó de `/inicio` a la ruta propia `/designaciones` (menú incluido); `/inicio` pasa a ser el panel de opciones y sigue siendo el destino de la redirección por defecto.
+- **refactor(`liquidacion`):** `InicioComponent` pasó de ~170 líneas de diseño propio (paleta slate/blue ad-hoc) a un envoltorio de ~35 líneas sobre `<ui-opciones-panel>` con clases `um-*`; la búsqueda y el filtrado por grupo viven ahora en el componente compartido.
+- **docs:** `AGENTS.md` (sección "Brand Display Standards"), `README.md` y la skill `frontend-guidelines` reemplazan las reglas de escala del logotipo institucional por el estándar de marca de texto.
+
+### Removed
+- **chore(assets):** Eliminado `apps/liquidacion/public/logo.png`, sin consumidores tras quitar el logo del shell y del login; el favicon se conserva.
+
+## [0.8.0] - 2026-10-03
+
+### Added
+- **feat(e2e):** Nuevo proyecto `apps/novedades-e2e` con Playwright (chromium) basado en `nxE2EPreset`: smoke de acceso (sin sesión el guard redirige a `/login` y el formulario renderiza usuario y contraseña sin backend), `webServer` que levanta `novedades:serve` en 4208 con `reuseExistingServer` y variable `BASE_URL` para probar una aplicación ya desplegada. Ejecución vía `npx nx e2e novedades-e2e`. Nuevas devDependencies `@nx/playwright`, `@playwright/test` y `eslint-plugin-playwright` con configuración ESLint flat propia del proyecto.
+- **feat(docker):** Dockerfile multinodo compartido `docker/app.Dockerfile` para todas las apps (`--build-arg APP=<app>`): la etapa Node (`npm ci` con cache mount + `npx nx build <app> --configuration=production --skip-nx-cache`) compila dentro de la imagen y la etapa Nginx copia el bundle junto con la config propia de cada app (`nginx.conf`, `entrypoint.sh`), generando el certificado SSL auto-firmado al vuelo; la imagen pasa a ser función exclusiva del código fuente y nunca de un `dist/` local. Nuevo `.dockerignore` que excluye `node_modules`, `dist`, `.angular`, `.nx` y `.git` del contexto de build.
+- **feat(`package.json`):** Script `docker:app` (`scripts/docker-image.mjs`) que reconstruye la imagen de una sola app: si encuentra el compose del stack (resuelto vía `LOCAL_RESOURCE`/`HABERES_COMPOSE`) usa `docker compose build` y luego `up -d --no-deps` —o sólo build con `--no-up`—, conservando nombre de imagen (`um-haberes-<app>-client`) y red; si no lo encuentra, cae a `docker build` suelto con `docker/app.Dockerfile`. Valida que el nombre pasado exista en `apps/` (ignora proyectos `-e2e`).
+- **feat(tests):** Especificaciones unitarias de servicios de feature con `HttpTestingController`: `AnotadorService` (pendientes y revisados por facultad/año/mes, historial de anotaciones por legajo, acreditación del período y alta de la anotación como cuerpo del POST), `CargosReportService` (detalle de cargos y docentes por sede como blob de reporte, geográficas del core) y `AsignacionCursosService` (sedes, filtro de cursos partido en palabras AND sin condiciones si está vacío, plantel titular/contratado, novedades pendientes de alta/baja, envío de novedad y acreditación del período). `feature-anotador`, `feature-cargos` y `feature-designaciones` reciben el target `test` con executor `@angular/build:unit-test` atado a `novedades:build:development` y su `tsconfig.spec.json`.
+- **chore(nx):** Registrados los plugins `@nx/playwright/plugin` (target `e2e`) y `@nx/eslint/plugin` (target `lint`); cache de tareas habilitado para `e2e`; generadores por defecto `e2eTestRunner: playwright` en aplicaciones y `unitTestRunner: vitest-angular` en aplicaciones y librerías; `analytics: false`.
+
+### Changed
+- **ci(deploy):** El workflow reutilizable `deploy-pipeline.yml` recibe la matriz de apps como input `apps` (JSON list) y construye/publica las imágenes desde `docker/app.Dockerfile` en el push: eliminados el job `build-images` y el upload/download del artefacto `dist/apps` (la imagen depende sólo del commit chequeado); `nx run-many -t build --configuration=production` corre únicamente en PRs, porque en el push la compilación multietapa dentro de la imagen es el chequeo de compilación. `docker-publish.yml`, `deploy-develop.yml` y `deploy-staging.yml` pasan `apps: ["liquidacion", "novedades"]`; matriz con `fail-fast: false`.
+- **ci(docs):** `generate-docs.yml` instala dependencias con `npm ci` en lugar de `npm install`, garantizando reproducibilidad desde el lockfile.
+- **docs:** README: sección Docker reescrita con el build multinodo y el script `docker:app`, estructura y comandos documentan `apps/novedades-e2e`, y el párrafo de CI/CD describe el pipeline actualizado; `AGENTS.md` documenta el proyecto e2e, los tests de librerías vía `@angular/build:unit-test`, el comando `docker:app` y los criterios de CI multi-entorno (imagen multietapa como chequeo de compilación en push, tags `sha` y `latest` sólo en `main`).
+
+### Removed
+- **chore(docker):** Eliminados los Dockerfiles de runtime `apps/novedades/Dockerfile` y `apps/liquidacion/Dockerfile`, que sólo hacían `COPY dist/apps/<app>/browser` de un build previo y servían bundles obsoletos si no se reejecutaba `nx build`; los reemplaza `docker/app.Dockerfile`. El script `docker:app` y los workflows ya no dependen de `dist/` local.
+
+## [0.7.0] - 2026-10-01
+
+### Added
+- **feat(`shared-api`):** `PersonaSearchService`, exportado desde el barrel como acceso único a `/api/haberes/core/persona` de haberes-core: `searchPersonas(termino)` (el término se parte por espacios y cada palabra viaja como condición AND a `POST /search`, equivalentes a `clsREPPersona.formSearch`), `buscar(termino)` (busca desde el primer carácter y sólo cae al legajo exacto si el término es numérico sin coincidencias), `getPersonaByLegajo(legajoId)` (`GET /{legajoId}`) y `getPersonaByDocumento(documento)` (`GET /documento/{documento}`), más el helper `textoPersona`. Especificación con 7 casos unitarios.
+- **feat(`ui-layout`):** Buscador estándar `<ui-persona-search>` (`PersonaSearchComponent`, standalone) para todos los formularios del portal (equivale al modal `frmSearchREST` del legacy): coincidencias como `Apellido, Nombre (legajo)`, selección por teclado (flechas resaltan, ENTER confirma, ESC descarta), recarga de la persona completa por legajo antes de emitir `(seleccionada)`, binding `[persona]` para preselecciones del padre, método `limpiar()` y entradas `label`, `placeholder`, `buscandoLabel` y `panelClases`. Incluye especificación del componente.
+- **feat(`shared-api`):** Campos opcionales `documento`, `estado` y `dependenciaId` en la interfaz compartida `Persona` (DTO `PersonaResponse`/`PersonaSearchResponse` de haberes-core), tipo único para todos los flujos de búsqueda de personas.
+- **feat(`feature-bonos`):** Acceso exacto por legajo y documento en `bono-individual` mediante campos editables propios que consultan `getPersonaByLegajo` / `getPersonaByDocumento` al presionar ENTER o salir del campo.
+
+### Changed
+- **refactor(features):** Todas las pantallas que buscan personas migraron al buscador estándar (`<ui-persona-search>` + `PersonaSearchService`): `AnotadorComponent`, `BonoIndividualComponent`, `CargosLegajoComponent`, `DesignacionesComponent` y `AsigCursosComponent`, eliminando las pipelines duplicadas de Subject/debounce/dropdown dentro de cada feature y los imports cruzados a `@haberes/feature-designaciones` para buscar personas.
+- **docs:** `AGENTS.md` documenta la nueva sección "Standard Person Search (Buscador de Personas Estándar)" (uso obligatorio del buscador, semántica de `PersonaSearchService`, comportamiento de teclado, accesos exactos por legajo/DNI, tipo compartido `Persona` y excepción de `feature-contabilidad`); actualizados los READMEs de `shared-api`, `ui-layout`, `feature-anotador`, `feature-bonos`, `feature-cargos` y `feature-designaciones`; `docs/architecture.mermaid` refleja ahora el servicio de personas en `shared-api` y `ui-persona-search` en `ui-layout`.
+
+### Removed
+- **refactor(`feature-designaciones`):** Eliminados `searchPersonas` y `getPersonaByLegajo` de `DesignacionesService`, que queda sólo con las consultas de cursos cargo y cursos fusión (la búsqueda de personas pertenece al buscador estándar).
+- **refactor(`feature-bonos`):** Eliminada la interfaz duplicada `BonoPersona` y el helper local `textoPersona` del componente: se usa el tipo compartido `Persona` y el helper de `@haberes/shared-api`.
+
+## [0.6.0] - 2026-09-28
+
+### Added
+- **feat(`ui-layout`):** Shell institucional unificado `UiShellComponent` (`<ui-shell>`) en `@haberes/ui-layout`, composición J2 que reemplaza el ensamblado `ui-navbar` + `ui-sidebar`: sidebar oscuro (`bg-um-sidebar`) con marca UM y nombre de módulo, menú polimórfico (lineal vía `menuItems` para `novedades`; acordeón colapsable vía `menuGroups` para `liquidación`), badge de entorno (`APP_ENV_INFO` con label, color y tooltip con versión), perfil de usuario con sede y facultad, cierre de sesión, header móvil accesible con menú desplegable y vista limpia del `router-outlet` para login/desautenticación.
+- **feat(`ui-layout`):** Tema compartido J2 en `libs/ui-layout/src/styles/tokens.css`, importado por el `styles.css` de ambas apps: tokens `@theme static` (paleta `um-*`: `bg-um-sidebar`, `text-um-ink`, `border-um-border`, `bg-um-surface`, `text-um-primary`, tipografía Inter, escala tipográfica y radios) y capa `@layer components` con clases semánticas `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`) y `.um-table`.
+- **feat(`ui-layout`):** Tipos `ShellMenuItem` y `ShellMenuGroup` exportados desde el barrel, con alias de compatibilidad `MenuItem`/`MenuGroup` para los datos de menú existentes (`menu-options.data.ts`).
+- **feat(tests):** `ui-shell.spec.ts` que valida el renderizado del shell (menú lineal y agrupado, badge de entorno, usuario/logout y vista desautenticada), reemplazando la antigua especificación de navbar.
+
+### Changed
+- **refactor(apps):** `AppComponent` de `novedades` y `liquidación` reducida al uso declarativo de `<ui-shell>` (`moduleName`, `menuSectionLabel`, `menuItems`/`menuGroups`); el control de sesión (`isLoggedIn$`) ahora vive en el shell, eliminando los templates raíz `app.html`/`app.css` y los imports directos de `AuthService` en las apps.
+- **refactor(ui):** Migración de todas las vistas al tema J2 con clases `um-*` (en lugar de cadenas de utilidades ad-hoc): `AnotadorComponent`, `BonoIndividualComponent`, `CargosLegajoComponent`, `DocentesSedeComponent`, `ImputacionIndividualComponent`, `AsigCursosComponent`, `DesignacionesComponent` y el login de `ui-auth` (encabezado `um-eyebrow`/`um-page-title`, alertas `um-alert` y logo `h-16 w-auto`).
+- **docs:** `README.md` y `AGENTS.md` documentan el sistema de diseño J2 de cuatro capas (tokens, base/densidad, shell estructural y utilidades de componente); actualizados `libs/ui-layout/README.md`, `docs/architecture.mermaid` y el diagrama del pipeline `generate-docs.yml` para reflejar `ui-shell` en lugar de Navbar/Sidebar.
+
+### Removed
+- **refactor(`ui-layout`):** Eliminados `NavbarComponent` y `SidebarComponent` (componentes, templates y spec) del barrel público: su responsabilidad se unifica en `UiShellComponent`.
+
+## [0.5.0] - 2026-09-24
+
+### Added
+- **feat(`feature-contabilidad`):** Nueva librería `@haberes/feature-contabilidad` para gestión de asientos contables individuales e imputación (`ImputacionIndividualComponent`, `ContabilidadService`, modelos y tests unitarios).
+- **feat(skills):** Skill `frontend-guidelines` para lineamientos de diseño corporativo, patrones de tablas contables, uso del logo y prevención de terminología legacy.
+
+### Changed
+- **refactor(ui):** Refactorización estética corporativa moderna (Enterprise Institutional Design System):
+  - Integración de tipografía Inter, cifras tabulares (`tabular-nums`) para montos y códigos contables, y paleta institucional Slate + Azul UM (`blue-700`).
+  - Rediseño de tablas de datos de alta densidad operativa con cabeceras fijas (`backdrop-blur-xs`), bordes tenues y alineación financiera rigurosa.
+  - Redimensionamiento y jerarquía del logotipo institucional (`logo.png`, 204×102 px): eliminación de contenedores cuadrados restrictivos y adopción de escala `h-11` (desktop sidebar), `h-20`/`h-24` (login) y `h-8` (móvil).
+  - Erradicación integral de referencias a Visual Basic 6 (`.frm`, `.vbp`, "migración de VB6") en títulos, tarjetas, badges y buscadores de toda la interfaz de usuario.
+- **docs:** Actualización de `AGENTS.md` y `README.md` con los lineamientos de diseño, reglas de logotipo y estándares de nomenclatura limpia.
+- **docs(architecture):** Actualización de `docs/architecture.mermaid` con `feature-contabilidad` (ImputacionIndividual) en la app `liquidacion`.
+
+## [0.4.0] - 2026-09-22
+
+
+### Added
+- **feat(`feature-bonos`):** Nueva librería `@haberes/feature-bonos` para el bono individual del docente (migración de `prjBonos` VB6).
+  - `BonoIndividualComponent`: validación de integridad del bono, preparación, descarga de PDF, registro de auditoría con legajo solicitante y envío por email con validación de casilla.
+  - `BonoReportService` sobre `/api/haberes/core/bono` y `/api/haberes/report/bono` (endpoints de front `/ui/generatePdf` y `/ui/sendBono`; la IP de auditoría la resuelve el backend, nunca el browser).
+  - Modelos tipados (`IntegridadBonoResponse`, `ActividadResponse`, `BonoImpresionResponse`, etc.) exportados desde el barrel.
+- **feat(`liquidacion`):** Nueva ruta lazy `/consultas/bono-individual` que monta `BonoIndividualComponent`.
+- **feat(`liquidacion`):** Catálogo de opciones del sistema migrado de VB6 (`menu-options.data.ts`) con panel `/inicio` de búsqueda y filtrado por grupos funcionales, y rutas placeholder autogeneradas para las opciones aún no migradas.
+- **feat(`ui-layout`):** Sidebar con menús colapsables por grupos (`MenuGroup`, input `menuGroups`); navbar con badge de entorno (label, color y tooltip con versión) junto al usuario.
+- **feat(`shared-api`):** Indicador de entorno en runtime: token `APP_ENV_INFO` + `provideAppEnvInfo` (prefija el `document.title`) y `getEnvDisplay()` que normaliza `ENV_NAME` a LOCAL/DESARROLLO/STAGING/PRODUCCIÓN, mostrando "SIN DEFINIR" en rojo si falta.
+- **feat(`shared-api`):** Token `API_URL` consumido por `AuthService` y `errorInterceptor` que cierra sesión y redirige a `/login` ante 401/403; ambos registrados en `app.config.ts` de las dos apps.
+- **feat(apps):** `environment.development.ts` con `fileReplacements` en el target `build:development` de cada app: en `ng serve` el badge muestra LOCAL sin Docker.
+- **feat(apps):** `entrypoint.sh` sustituye además `ENV_NAME_PLACEHOLDER` y `APP_VERSION_PLACEHOLDER` en los `.js` servidos, con defaults evidenciables (`desconocido`/`sin-version`).
+- **feat(`package.json`):** Script `serve:all` que levanta novedades (4208) y liquidacion (4209) con concurrently.
+- **feat(ci):** Nuevos workflows `ci.yml` (validación de PR a `main`: chequeo de sincronización package/lock, `npm ci`, `nx affected` de lint/test/build), `deploy-develop.yml` y `deploy-staging.yml` (verify + build + deploy multi-entorno).
+- **chore(workspace):** Etiquetas `type:*`/`scope:*` en todos los proyectos y reglas `depConstraints` de dirección de dependencias en ESLint; path mapping `@haberes/feature-bonos`; targets de test (Vitest vía `@angular/build:unit-test`) para `shared-api`, `ui-layout` y `feature-bonos`.
+
+### Changed
+- **perf(`novedades`):** Todas las rutas pasan a lazy loading con `loadComponent`, eliminando los imports eager de las feature libraries.
+- **ci(docker):** Los `Dockerfile` consumen el artefacto `dist/` pre-construido por el pipeline en lugar de compilar multi-stage en la imagen.
+- **ci(nginx):** `proxy_pass` del gateway con variable y `resolver 127.0.0.11` para resolución DNS dinámica en Docker.
+- **refactor(`shared-api`):** `AuthService.logout()` navega con `Router` en lugar de `window.location.href`; URLs derivadas de `API_URL`.
+- **ui:** Puertos de desarrollo porteados a 4208 (novedades) y 4209 (liquidacion) alineados con `docker-compose.yml`; escala tipográfica global 87.5%; marca "Haberes" en navbar/sidebar.
+- **chore(nx):** Inputs de lint/test limpiados de `karma.conf.js` obsoleto; fix de `npm ci` y lint en `package-lock.json` (PRs #11 y #12).
+
+### Fixed
+- **fix(`ui-layout`):** Especificación de `NavbarComponent` para el badge de entorno (label/color/tooltip y ausencia de badge sin `APP_ENV_INFO`).
+
 ## [0.3.1] - 2026-07-10
 
 ### Added
