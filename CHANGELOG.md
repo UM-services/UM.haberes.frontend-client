@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.0] - 2026-11-02
+
+### Added
+
+- **feat(`shared-api`):** `moduloGuard` restringe una ruta según la asignación de facultad de la sesión validada con `ensureSession()`. Lee `data.requireFacultadId`: `true` exige `facultadId != null`, `false` lo exige nulo y ausente sólo exige sesión. Reutiliza la validación cacheada, por lo que no agrega llamadas HTTP ni toca los servicios de las pantallas.
+
+### Fixed
+
+- **fix(`novedades` / `liquidacion`):** la regla de facultad sólo se evaluaba en el login y podía saltearse con una sesión revalidada (por ejemplo, una facultad asignada o quitada después del login), permitiendo entrar a Novedades sin facultad o a Liquidación con facultad. Todas las rutas de ambas apps aplican `moduloGuard` con `data: DATOS_MODULO` (`requireFacultadId: true` en Novedades, `false` en Liquidación), incluidos los placeholders. Tests nuevos: `modulo.guard.spec.ts`, `app.routes.spec.ts` por app y `acceso-facultad.spec.ts` en `novedades-e2e` (con respuestas de haberes-core simuladas).
+
+### Changed
+
+- **docs:** `libs/shared-api/README.md`, `AGENTS.md` y `docs/architecture.mermaid` documentan `moduloGuard` y la regla `data.requireFacultadId` aplicada al login y a cada ruta protegida de Novedades y Liquidación.
+
 ## [0.12.0] - 2026-10-25
 
 ### Added
