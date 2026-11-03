@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.1] - 2026-11-03
+
+### Fixed
+
+- **fix(`docker`):** El cache mount de `npm` en la etapa de compilación de `docker/app.Dockerfile` pasa a `id=haberes-frontend-npm,sharing=locked`. El compose compila varias apps en paralelo y todas escribían el mismo cache sin serializar; con escritores simultáneos `npm ci` podía dejar incompleta una dependencia opcional (`npm/cli#4828`) y el build moría al final con "Chunk optimization failed - Cannot find native binding".
+- **fix(`docker`):** Después de `npm ci`, la etapa de compilación verifica los binarios nativos con `node -e "require('rolldown'); require('oxc-parser')"`. Esos binarios se cargan recién en la fase "Chunk optimization", así que un `npm ci` incompleto ahora falla en segundos y con un mensaje claro en lugar de abortar al final de la compilación de Nx.
+
+### Removed
+
+- **chore(`liquidacion`):** El menú de Liquidación deja de ofrecer **Mailing de Recibos** (`/movimientos/mailing`). La opción nunca tuvo componente migrado (no figuraba en `RUTAS_MIGRADAS`) y abría el placeholder genérico, de modo que su ruta autogenerada en `app.routes.ts` también desaparece; no queda código de mailing en el repositorio.
+
 ## [0.13.0] - 2026-11-02
 
 ### Added
