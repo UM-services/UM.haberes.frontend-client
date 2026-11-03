@@ -243,14 +243,6 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         origenVb6: 'frmExcluidos.frm',
         descripcion: 'Gestión de agentes con pago retenido o excluidos del envío bancario',
         iconSvg: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'
-      },
-      {
-        label: 'Mailing de Recibos',
-        path: '/movimientos/mailing',
-        grupo: 'Movimientos y Bancos',
-        origenVb6: 'frmMailing.frm',
-        descripcion: 'Envío electrónico masivo de recibos de sueldo por correo electrónico',
-        iconSvg: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
       }
     ]
   },

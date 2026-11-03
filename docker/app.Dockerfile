@@ -24,8 +24,20 @@ ENV NX_DAEMON=false
 
 # Los manifiestos van primero para que `npm ci` sólo se re-ejecute cuando cambia
 # el lockfile. El cache mount conserva los tarballs de npm entre builds.
+#
+# `sharing=locked`: el compose compila varias apps en paralelo y todas escriben
+# en el mismo cache; con escritores simultáneos npm puede dejar incompleta alguna
+# dependencia opcional (`npm/cli#4828`) y el build muere al final con
+# "Chunk optimization failed - Cannot find native binding". Serializar el acceso
+# al cache y usar un id propio del repo evita esa carrera.
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+RUN --mount=type=cache,target=/root/.npm,id=haberes-frontend-npm,sharing=locked \
+    npm ci --no-audit --no-fund
+
+# Los binarios nativos (rolldown/oxc, vía dependencias opcionales) se cargan
+# recién en "Chunk optimization". Verificarlos acá hace que el build falle en
+# segundos y con un mensaje claro si `npm ci` no los instaló.
+RUN node -e "require('rolldown'); require('oxc-parser')"
 
 # El resto del workspace. Cualquier cambio en `apps/` o `libs/` invalida esta
 # capa y, con ella, la compilación: esa es la garantía de frescura.
