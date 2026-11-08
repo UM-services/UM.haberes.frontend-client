@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
 import { AuthService } from '@haberes/shared-api';
@@ -9,6 +9,7 @@ import { BonosDependenciaComponent } from './bonos-dependencia.component';
 import { BonosDependenciaData } from './bonos-dependencia.models';
 
 describe('BonosDependenciaComponent', () => {
+  let fixture: ComponentFixture<BonosDependenciaComponent>;
   let component: BonosDependenciaComponent;
   let http: HttpTestingController;
 
@@ -47,7 +48,8 @@ describe('BonosDependenciaComponent', () => {
         { provide: AuthService, useValue: { currentUser$: of({ legajoId: 999 }) } }
       ]
     });
-    component = TestBed.createComponent(BonosDependenciaComponent).componentInstance;
+    fixture = TestBed.createComponent(BonosDependenciaComponent);
+    component = fixture.componentInstance;
     component.anho.set(2026);
     component.mes.set(9);
     component.dependenciaId.set(4);
@@ -58,7 +60,12 @@ describe('BonosDependenciaComponent', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    fixture.destroy();
+    // La detección de cambios anticipada dispara ngOnInit: se descarta el catálogo pendiente.
+    http.match('/api/haberes/core/dependencia/').forEach((req) => req.flush([]));
+    http.verify();
+  });
 
   const cargarDatos = () => {
     component.verDatos();
@@ -66,6 +73,32 @@ describe('BonosDependenciaComponent', () => {
       .expectOne('/api/haberes/report/ui/bonoDependencia/data/2026/9/4/A')
       .flush(datos);
   };
+
+  /** Deja correr el timer del polling (0 ms) antes de buscar la request de estado. */
+  const esperarPoll = () => new Promise((resolve) => setTimeout(resolve, 10));
+
+  const prepararLote = () => {
+    component.imprimir();
+    const prepare = http.expectOne(
+      '/api/haberes/core/bono/dependencia/4/2026/9/A/print-prepare'
+    );
+    expect(prepare.request.method).toBe('POST');
+    expect(prepare.request.headers.get('X-Legajo-Solicitante')).toBe('999');
+    prepare.flush({ dependenciaId: 4, anho: 2026, mes: 9, salida: 'A', total: 3, preparados: 3, fallidos: [] });
+    http
+      .expectOne({ method: 'POST', url: '/api/haberes/report/ui/bonoDependencia/pdf/2026/9/4/A' })
+      .flush({ jobId: 'job-1', estado: 'EN_PROCESO', procesados: 0, total: 3, mensaje: null, fallidos: [] });
+  };
+
+  const estadoJob = (estado: 'LISTO' | 'ERROR', extra: Record<string, unknown> = {}) => ({
+    jobId: 'job-1',
+    estado,
+    procesados: 3,
+    total: 3,
+    mensaje: null,
+    fallidos: [],
+    ...extra
+  });
 
   it('carga las dependencias al iniciar', () => {
     component.ngOnInit();
@@ -100,27 +133,68 @@ describe('BonosDependenciaComponent', () => {
     expect(component.puedeEnviar()).toBe(true);
   });
 
-  it('imprime preparando el lote en el core y descargando el PDF', () => {
+  it('imprime preparando el lote en el core y generando el PDF en segundo plano', async () => {
     cargarDatos();
 
-    component.imprimir();
-
-    const prepare = http.expectOne(
-      '/api/haberes/core/bono/dependencia/4/2026/9/A/print-prepare'
-    );
-    expect(prepare.request.method).toBe('POST');
-    expect(prepare.request.headers.get('X-Legajo-Solicitante')).toBe('999');
-    prepare.flush({ dependenciaId: 4, anho: 2026, mes: 9, salida: 'A', total: 3, preparados: 3, fallidos: [] });
-
+    prepararLote();
+    await esperarPoll();
     http
-      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/2026/9/4/A')
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1')
+      .flush(estadoJob('LISTO'));
+    http
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1/file')
       .flush(new Blob(['pdf']));
 
     expect(component.imprimiendo()).toBe(false);
     expect(component.fallidos()).toEqual([]);
+    expect(component.fallidosGeneracion()).toEqual([]);
   });
 
-  it('si el lote tiene fallidos avisa y no descarga el PDF', () => {
+  it('informa el avance del job mientras genera el PDF', async () => {
+    cargarDatos();
+
+    prepararLote();
+    await esperarPoll();
+    http
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1')
+      .flush({ jobId: 'job-1', estado: 'EN_PROCESO', procesados: 2, total: 3, mensaje: null, fallidos: [] });
+
+    expect(component.progreso()).toEqual({ actual: 2, total: 3 });
+    expect(component.imprimiendo()).toBe(true);
+  });
+
+  it('avisa los legajos que quedaron fuera del PDF generado', async () => {
+    cargarDatos();
+
+    prepararLote();
+    await esperarPoll();
+    http
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1')
+      .flush(estadoJob('LISTO', { fallidos: [{ legajoId: '121', motivo: 'sin antigüedad' }] }));
+    http
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1/file')
+      .flush(new Blob(['pdf']));
+
+    expect(component.fallidosGeneracion()).toEqual([
+      { legajoId: 121, motivo: 'sin antigüedad' }
+    ]);
+  });
+
+  it('muestra el error del job cuando la generación falla', async () => {
+    cargarDatos();
+
+    prepararLote();
+    await esperarPoll();
+    http
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1')
+      .flush(estadoJob('ERROR', { mensaje: 'No hay liquidaciones para la dependencia 4 en 9/2026' }));
+
+    expect(component.error()).toContain('No hay liquidaciones');
+    expect(component.imprimiendo()).toBe(false);
+    expect(component.progreso()).toBeNull();
+  });
+
+  it('si el lote tiene fallidos avisa y permite generar el PDF de todos modos', async () => {
     cargarDatos();
 
     component.imprimir();
@@ -139,7 +213,14 @@ describe('BonosDependenciaComponent', () => {
 
     component.descargarPdf();
     http
-      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/2026/9/4/A')
+      .expectOne({ method: 'POST', url: '/api/haberes/report/ui/bonoDependencia/pdf/2026/9/4/A' })
+      .flush({ jobId: 'job-1', estado: 'EN_PROCESO', procesados: 0, total: 3, mensaje: null, fallidos: [] });
+    await esperarPoll();
+    http
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1')
+      .flush(estadoJob('LISTO'));
+    http
+      .expectOne('/api/haberes/report/ui/bonoDependencia/pdf/job/job-1/file')
       .flush(new Blob(['pdf']));
   });
 
