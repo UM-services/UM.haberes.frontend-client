@@ -21,3 +21,16 @@ export interface ResultadoEnvioBono {
   mensaje: string;
   ok: boolean;
 }
+
+/**
+ * Estado del job de generación del PDF consolidado:
+ * `POST /api/haberes/report/ui/bonoDependencia/pdf/{anho}/{mes}/{dependenciaId}/{salida}`.
+ */
+export interface BonoDependenciaPdfJob {
+  jobId: string;
+  estado: 'EN_PROCESO' | 'LISTO' | 'ERROR';
+  procesados: number;
+  total: number;
+  mensaje: string | null;
+  fallidos: readonly { legajoId: string; motivo: string }[];
+}

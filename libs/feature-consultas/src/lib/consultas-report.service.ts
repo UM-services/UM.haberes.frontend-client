@@ -2,6 +2,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { BonoDependenciaPdfJob } from './bonos-dependencia/bonos-dependencia.models';
+
 /**
  * Acceso único a los reportes del módulo Liquidación en haberes-report.
  *
@@ -54,9 +56,48 @@ export class ConsultasReportService {
     });
   }
 
-  /** Mensaje de negocio para un error HTTP, sin exponer detalles técnicos al usuario. */  mensajeDeError(error: unknown, porDefecto: string): string {
+  /**
+   * Lanza en el report-service la generación del PDF consolidado de la dependencia. Devuelve
+   * enseguida el job: la pantalla consulta su avance con {@link estadoPdfBonoDependencia}.
+   */
+  iniciarPdfBonoDependencia(
+    anho: number,
+    mes: number,
+    dependenciaId: number,
+    salida: string
+  ): Observable<BonoDependenciaPdfJob> {
+    return this.http.post<BonoDependenciaPdfJob>(
+      `${this.baseUrl}/bonoDependencia/pdf/${anho}/${mes}/${dependenciaId}/${salida}`,
+      null
+    );
+  }
+
+  /** Estado del job de generación del PDF (progreso, fallidos y mensaje de error). */
+  estadoPdfBonoDependencia(jobId: string): Observable<BonoDependenciaPdfJob> {
+    return this.http.get<BonoDependenciaPdfJob>(
+      `${this.baseUrl}/bonoDependencia/pdf/job/${encodeURIComponent(jobId)}`
+    );
+  }
+
+  /** Descarga el PDF de un job terminado. */
+  descargarPdfBonoDependencia(jobId: string): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/bonoDependencia/pdf/job/${encodeURIComponent(jobId)}/file`,
+      { responseType: 'blob' }
+    );
+  }
+
+  /** Mensaje de negocio para un error HTTP, sin exponer detalles técnicos al usuario. */
+  mensajeDeError(error: unknown, porDefecto: string): string {
     if (error instanceof HttpErrorResponse && error.status === 401) {
       return 'La sesión no está autorizada para consultar reportes. Vuelva a iniciar sesión.';
+    }
+    if (error instanceof HttpErrorResponse) {
+      const cuerpo = error.error as { detail?: unknown; message?: unknown } | null;
+      const detalle = cuerpo?.detail ?? cuerpo?.message;
+      if (typeof detalle === 'string' && detalle.trim()) {
+        return detalle;
+      }
     }
     return porDefecto;
   }

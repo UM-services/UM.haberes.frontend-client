@@ -54,7 +54,7 @@ um.haberes.frontend-client/
 
 | Librería | Alias | Propósito |
 |---|---|---|
-| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`) y panel de opciones (`ui-opciones-panel`) |
+| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`), panel de opciones (`ui-opciones-panel`), pantalla de acceso restringido (`ui-no-acceso`), aviso de inactividad (`ui-inactividad`) y botón de solicitud de acceso (`ui-solicitar-acceso`) |
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo bajo diseño J2 (marca sólo texto) y modal de cambio de clave (`lib-cambio-clave-modal`) |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |

@@ -7,6 +7,12 @@
     </div>
 
     <div class="rounded-lg border border-um-border bg-white p-8 shadow-sm">
+      @if (infoMessage()) {
+        <div class="um-alert um-alert-warn mb-6" role="status">
+          {{ infoMessage() }}
+        </div>
+      }
+
       @if (errorMessage()) {
         <div class="um-alert um-alert-error mb-6" role="alert">
           {{ errorMessage() }}
