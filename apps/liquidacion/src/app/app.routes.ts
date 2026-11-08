@@ -1,5 +1,6 @@
 import { Route, Routes } from '@angular/router';
-import { authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { SIN_ACCESO_RUTA, authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { NoAccesoComponent } from '@haberes/ui-layout';
 import { RUTAS_MIGRADAS, TODAS_LAS_OPCIONES } from './menu-options.data';
 
 /** Liquidación es un módulo global: sólo entra un usuario sin facultad asignada. */
@@ -229,6 +230,11 @@ export const appRoutes: Routes = [
     loadComponent: () => import('@haberes/ui-auth').then(m => m.LoginComponent),
     canActivate: [unauthGuard],
     data: DATOS_MODULO
+  },
+  {
+    // Ruta pública de las guards: explica la denegación sin cerrar la sesión.
+    path: SIN_ACCESO_RUTA,
+    component: NoAccesoComponent
   },
   {
     path: 'inicio',

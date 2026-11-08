@@ -1,5 +1,11 @@
 import { Route } from '@angular/router';
-import { administradorGuard, authGuard, unauthGuard } from '@haberes/shared-api';
+import {
+  SIN_ACCESO_RUTA,
+  administradorGuard,
+  authGuard,
+  unauthGuard,
+} from '@haberes/shared-api';
+import { NoAccesoComponent } from '@haberes/ui-layout';
 
 export const appRoutes: Route[] = [
   {
@@ -8,6 +14,11 @@ export const appRoutes: Route[] = [
     canActivate: [unauthGuard],
     // false = el módulo es global: rechaza usuarios con facultad asignada.
     data: { requireFacultadId: false },
+  },
+  {
+    // Ruta pública de las guards: explica la denegación sin cerrar la sesión.
+    path: SIN_ACCESO_RUTA,
+    component: NoAccesoComponent,
   },
   {
     path: 'personas',

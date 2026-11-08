@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { SIN_ACCESO_RUTA, authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { NoAccesoComponent } from '@haberes/ui-layout';
 
 /** Novedades es un módulo de facultad: sólo entra un usuario con facultad asignada. */
 const DATOS_MODULO = { requireFacultadId: true } as const;
@@ -10,6 +11,11 @@ export const appRoutes: Routes = [
     loadComponent: () => import('@haberes/ui-auth').then(m => m.LoginComponent),
     canActivate: [unauthGuard],
     data: DATOS_MODULO
+  },
+  {
+    // Ruta pública de las guards: explica la denegación sin cerrar la sesión.
+    path: SIN_ACCESO_RUTA,
+    component: NoAccesoComponent
   },
   {
     path: 'anotador',
