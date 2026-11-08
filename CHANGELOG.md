@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.14.0] - 2026-11-08
+
+### Added
+
+- **feat(`shared-api`):** `AccesoDenegadoService` publica el último acceso denegado como señal (`tipo`: `permiso` | `modulo`, `mensaje`, `clave`, `modulo`, `origen` y `timestamp`) y descarta reportes idénticos repetidos dentro de 5 s. Es la vía no destructiva para explicar un 403 o una denegación de guard sin cerrar la sesión.
+- **feat(`shared-api`):** `SIN_ACCESO_RUTA` (`sin-acceso`) es la ruta pública que cada app registra antes del wildcard; `moduloGuard` y `administradorGuard` redirigen allí con `router.parseUrl` en lugar de limpiar la sesión.
+- **feat(`shared-api`):** `INACTIVIDAD_CONFIG` (`enabled`, `avisoMs`, `graciaMs`; por defecto 25 minutos de aviso y 2 minutos de gracia) y `SOPORTE_EMAIL` (vacío por defecto) permiten configurar el aviso de inactividad y el correo de la mesa de ayuda sin tocar los componentes.
+- **feat(`ui-layout`):** `NoAccesoComponent` (`ui-no-acceso`) explica la denegación, ofrece **Volver**, **Ir al inicio** y el cierre de sesión explícito; `SolicitarAccesoComponent` (`ui-solicitar-acceso`) arma un `mailto:` con módulo, legajo y fecha cuando `SOPORTE_EMAIL` está configurado, y si no lo está indica pedir la habilitación a la mesa de ayuda.
+- **feat(`ui-layout`):** `InactividadComponent` (`ui-inactividad`) escucha actividad del documento y, tras `avisoMs` sin interacción, muestra un modal con cuenta regresiva y las acciones **Seguir conectado** y **Cerrar sesión**. Al agotarse la gracia no expulsa al usuario: la sesión de Haberes no tiene token con `exp`, así que el cierre sólo ocurre por decisión explícita.
+- **feat(`ui-layout`):** `<ui-shell>` monta `<ui-inactividad>` y muestra un banner `.um-alert-warn` con el mensaje del 403 (`avisoBanner`), su botón **Solicitar acceso** y **Cerrar**.
+- **feat(`feature-consultas`):** **Bonos por Dependencia** genera el PDF consolidado en segundo plano. Tras `printPrepareDependencia` en el core, `ConsultasReportService.iniciarPdfBonoDependencia` (`POST /ui/bonoDependencia/pdf/{anho}/{mes}/{dependenciaId}/{salida}`) devuelve un `jobId`; la pantalla consulta `estadoPdfBonoDependencia` cada 1,5 s, muestra el avance (`X de Y`), lista los legajos que quedaron fuera del PDF y descarga el archivo con `descargarPdfBonoDependencia` al quedar `LISTO`. Si el job termina en `ERROR` muestra el mensaje del backend.
+
+### Changed
+
+- **feat(`shared-api`):** `errorInterceptor` separa **401** de **403**: un 401 de datos cierra la sesión y navega a `/login?motivo=sesion-expirada&returnUrl=…` (sin navegar si ya está en el login), mientras que un 403 no toca la sesión y publica su mensaje en `AccesoDenegadoService`. Las rutas `/login` e `/isuservalid` quedan excluidas para no destruir una sesión existente por credenciales inválidas.
+- **fix(`ui-auth`):** el login muestra un aviso informativo (`um-alert-warn`) cuando vuelve con `motivo=sesion-expirada`.
+- **fix(`liquidacion`):** el `nginx` del módulo amplía `proxy_read_timeout`/`proxy_send_timeout` a 180 s, porque la preparación del lote de bonos sigue siendo sincrónica aunque el PDF se genere en segundo plano.
+- **docs:** `AGENTS.md` documenta la separación 401/403, la ruta pública `sin-acceso` y la regla de que las guards deniegan sin `clearSession()`; el README de `feature-consultas` actualiza los endpoints de Bonos por Dependencia al flujo por job.
+
+### Fixed
+
+- **fix(`shared-api`):** `moduloGuard` y `administradorGuard` ya no llaman a `clearSession()` al rechazar por facultad: redirigen a `sin-acceso`, de modo que un usuario autenticado no pierde la sesión por visitar un módulo que no le corresponde.
+
+### Tests
+
+- `error.interceptor.spec.ts` (401 con `returnUrl`, 403 que no navega y excluye login/`isuservalid`), `modulo.guard.spec.ts` actualizado a `UrlTree` hacia `sin-acceso` sin `clearSession`, `no-acceso.spec.ts` (mensaje y ausencia de `mailto:` sin soporte), `inactividad.spec.ts` (aviso, reinicio y cierre sólo explícito) y la especificación de **Bonos por Dependencia** cubriendo prepare → job → progreso → fallidos → descarga y el estado `ERROR`.
+
 ## [0.13.1] - 2026-11-03
 
 ### Fixed
