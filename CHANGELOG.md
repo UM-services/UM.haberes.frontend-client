@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.15.0] - 2026-11-09
+
+### Added
+
+- **feat(`feature-liquidacion`):** Nueva librería (`type:feature`, `scope:liquidacion`) para la pantalla **Liquidación Individual** (`/liquidacion/individual`). `LiquidacionIndividualService` es el único cliente del slice `/api/haberes/core/liquidacion-individual` (ficha del período, generar cargos, liquidar, eliminar liquidación, registrar y eliminar novedades) y de `/api/haberes/core/codigo/search`; las escrituras envían `X-Legajo-Solicitante` para que el backend resuelva actor e IP de auditoría. `liquidacion-individual.models.ts` define el contrato tipado de la ficha, sus cargos, novedades, ítems, acciones y respuestas de proceso.
+- **feat(`feature-liquidacion`):** Pantalla **Liquidación Individual** (migración de `frmLiqIndividual.frm`): búsqueda estándar con `<ui-persona-search>` y accesos exactos por legajo y DNI, período con navegación `<` `>` y ajuste de año, y ficha con persona, control, antigüedad, liquidación, cargos no docentes, docentes y con clase, novedades e ítems calculados con totales remunerativo, no remunerativo, deducciones y neto. Las acciones (**Generar Cargos**, **Liquidar**, **Eliminar liquidación**, alta y baja de novedades) se habilitan según `acciones` del backend, respetan el bloqueo informado y permiten **Forzar** con confirmación explícita; cada operación muestra el mensaje de resultado o de negocio devuelto por el backend.
+- **feat(`liquidacion`):** Ruta lazy `liquidacion/individual` con `canActivate: [authGuard, moduloGuard]` y `data: DATOS_MODULO`, y alta en `RUTAS_MIGRADAS`; el menú deja de abrir el placeholder y su descripción pasa a "Cálculo y recálculo de la liquidación de un legajo".
+- **feat(`nx`):** Alias `@haberes/feature-liquidacion` en `tsconfig.base.json` y target `test` con `@angular/build:unit-test` atado a `liquidacion:build:development`.
+
+### Changed
+
+- **docs:** `README.md` incorpora `feature-liquidacion` al árbol del monorepo y a la tabla de librerías, `AGENTS.md` la suma al mapa del workspace y `docs/architecture.mermaid` agrega la dependencia `liquidacion → feature-liquidacion`.
+
+### Fixed
+
+- **fix(`feature-designaciones`):** **Fusionar Todos** separa la duplicación de la fusión: primero procesa los lotes de duplicación del mes anterior y luego relee los docentes del período, igual que el formulario legado (G1). Antes ambas lecturas salían en paralelo, por lo que un período vacío (el único caso donde se permite duplicar) terminaba con una fase de fusión sin legajos.
+- **fix(`feature-designaciones`):** La verificación de cargos del período distingue `cargando`, `ok` y `error`: el botón **Fusionar Todos** y la casilla **Duplicar mes anterior** quedan deshabilitados mientras se verifica o si la consulta falla (fail closed), con badge *Verificando cargos del período...* / *Período sin verificar* (G2).
+- **fix(`feature-designaciones`):** La cancelación se evalúa entre lotes: el lote ya encolado no se envía y el proceso no depura fusiones cuando se canceló.
+- **fix(`feature-designaciones`):** Si falla la depuración de fusiones huérfanas, la pantalla informa **depuración pendiente** y pide reintentar el proceso (G3); el error de lectura de legajos con desarraigo usa ahora el mensaje específico en lugar del genérico del recálculo.
+
+### Tests
+
+- Especificaciones nuevas de `feature-liquidacion`: `LiquidacionIndividualService` (URLs de la ficha, cabecera `X-Legajo-Solicitante` en escrituras, `forzar` en el path y codificación de la búsqueda de códigos) y `LiquidacionIndividualComponent` (estado inicial, carga de ficha al seleccionar legajo, navegación de período con cambio de año, formato de antigüedad, alta de novedad S/N, mensaje de bloqueo y de éxito al liquidar).
+- `fusion-todos.component.spec.ts` cubre la duplicación seguida de la relectura del período (G1), la no ejecución ante fallo de lectura y la verificación fallida del período (G2), la cancelación entre lotes, la acumulación de fallos, la depuración pendiente (G3) y el recálculo de desarraigo.
+
 ## [0.14.0] - 2026-11-08
 
 ### Added
