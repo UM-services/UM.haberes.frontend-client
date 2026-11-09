@@ -41,7 +41,7 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/liquidacion/individual',
         grupo: 'Liquidación',
         origenVb6: 'frmLiqIndividual.frm',
-        descripcion: 'Cálculo y previsualización de recibo de sueldo de un agente específico',
+        descripcion: 'Cálculo y recálculo de la liquidación de un legajo',
         iconSvg: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
       },
       {
@@ -471,6 +471,7 @@ export const TODAS_LAS_OPCIONES: OpcionSistema[] = MENU_GROUPS.flatMap(g => g.it
  * "en desarrollo". Fuente única: la usan app.routes.ts y el panel de inicio.
  */
 export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
+  '/liquidacion/individual',
   '/consultas/bono-individual',
   '/consultas/totales-generales',
   '/consultas/totales-codigo',

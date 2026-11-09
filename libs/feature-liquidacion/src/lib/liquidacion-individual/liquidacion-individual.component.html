@@ -1,0 +1,367 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Operaciones de Liquidación</span>
+      <h1 class="um-page-title">Liquidación Individual</h1>
+      <p class="um-page-desc max-w-2xl">
+        Cálculo y recálculo de la liquidación de un legajo para el período seleccionado: cargos,
+        novedades, ítems calculados y totales.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" class="um-btn-secondary" (click)="salir()">Salir</button>
+    </div>
+  </div>
+
+  <!-- Legajo y período -->
+  <div class="um-card">
+    <div class="um-eyebrow mb-3">Legajo y período</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+
+      <div class="md:col-span-6">
+        <ui-persona-search
+          label="Legajo o Apellido, Nombre"
+          placeholder="Escriba apellido, nombre o legajo..."
+          buscandoLabel="Buscando legajo..."
+          [persona]="persona()"
+          (seleccionada)="onPersonaSeleccionada($event)"
+        />
+      </div>
+
+      <div class="md:col-span-2">
+        <label for="li-legajo" class="um-label">Legajo</label>
+        <input id="li-legajo" type="text" inputmode="numeric"
+               [ngModel]="legajoInput()" (ngModelChange)="legajoInput.set($event)"
+               (keyup.enter)="buscarPorLegajo()" (blur)="buscarPorLegajo()"
+               placeholder="Legajo + ENTER" class="um-input font-mono tabular-nums" />
+      </div>
+
+      <div class="md:col-span-2">
+        <label for="li-documento" class="um-label">Documento</label>
+        <input id="li-documento" type="text" inputmode="numeric"
+               [ngModel]="documentoInput()" (ngModelChange)="documentoInput.set($event)"
+               (keyup.enter)="buscarPorDocumento()" (blur)="buscarPorDocumento()"
+               placeholder="DNI + ENTER" class="um-input font-mono tabular-nums" />
+      </div>
+
+      <div class="md:col-span-2">
+        <div class="flex items-end gap-2">
+          <div class="flex-1">
+            <label for="li-mes" class="um-label">Mes</label>
+            <input id="li-mes" type="number" min="1" max="12"
+                   [ngModel]="mes()"
+                   (change)="mes.set(+$any($event.target).value); cargarFicha(true)"
+                   class="um-input text-center font-semibold tabular-nums" />
+          </div>
+          <div class="flex-1">
+            <label for="li-anho" class="um-label">Año</label>
+            <input id="li-anho" type="number"
+                   [ngModel]="anho()"
+                   (change)="anho.set(+$any($event.target).value); cargarFicha(true)"
+                   class="um-input text-center font-semibold tabular-nums" />
+          </div>
+        </div>
+        <div class="flex gap-1 mt-2">
+          <button type="button" class="um-btn-secondary flex-1 py-1" aria-label="Mes anterior"
+                  (click)="cambiarMes(-1)">‹</button>
+          <button type="button" class="um-btn-secondary flex-1 py-1" aria-label="Mes siguiente"
+                  (click)="cambiarMes(1)">›</button>
+        </div>
+      </div>
+
+    </div>
+
+    @if (hayFicha()) {
+      <div class="mt-4 flex flex-wrap gap-3">
+        <div class="px-3 py-2 bg-um-surface rounded border border-um-border">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-um-muted">Estado</span>
+          <p class="text-xs font-mono font-bold text-um-ink tabular-nums">{{ estadoTexto() }}</p>
+        </div>
+        <div class="px-3 py-2 bg-um-surface rounded border border-um-border">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-um-muted">Antigüedad</span>
+          <p class="text-xs text-um-text">{{ antiguedadTexto() }}</p>
+        </div>
+        <div class="px-3 py-2 bg-um-surface rounded border border-um-border">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-um-muted">Control</span>
+          <p class="text-xs text-um-text">
+            @if (ficha()!.control) {
+              Modo {{ ficha()!.control!.modoLiquidacionId ?? '—' }}
+            } @else {
+              Sin datos de control
+            }
+          </p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Avisos -->
+  @if (acciones()?.bloqueado) {
+    <div class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      {{ acciones()?.motivoBloqueo }}
+    </div>
+  }
+  @if (error()) {
+    <div class="rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div>
+  }
+  @if (exito()) {
+    <div class="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ exito() }}</div>
+  }
+
+  @if (!hayFicha()) {
+    <div class="um-card text-center py-10">
+      <p class="text-sm text-um-muted">
+        @if (cargando()) {
+          Cargando la liquidación del legajo...
+        } @else {
+          Seleccione un legajo para ver sus cargos, novedades y liquidación del período.
+        }
+      </p>
+    </div>
+  } @else {
+
+    <!-- Cargos -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+      <div class="um-card overflow-hidden">
+        <div class="um-eyebrow mb-3">Cargos No Docentes</div>
+        <div class="overflow-x-auto">
+          <table class="um-table w-full">
+            <thead>
+              <tr>
+                <th>Alta</th><th>Baja</th><th>Categoría</th><th>Dependencia</th>
+                <th class="text-right">Básico</th><th class="text-right">H/Jornada</th>
+                <th class="text-right">Presentismo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cargo of ficha()!.cargosNoDocentes; track cargo.cargoLiquidacionId) {
+                <tr>
+                  <td class="font-mono tabular-nums">{{ fechaLegible(cargo.fechaDesde) }}</td>
+                  <td class="font-mono tabular-nums">{{ fechaLegible(cargo.fechaHasta) }}</td>
+                  <td>{{ cargo.categoriaNombre ?? '—' }}</td>
+                  <td class="font-mono">{{ cargo.dependenciaAcronimo ?? '—' }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ cargo.categoriaBasico | number:'1.2-2' }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ cargo.horasJornada | number:'1.2-2' }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ cargo.presentismo }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="text-center text-um-muted py-4">Sin cargos no docentes</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="um-card overflow-hidden">
+        <div class="um-eyebrow mb-3">Cargos Docentes</div>
+        <div class="overflow-x-auto">
+          <table class="um-table w-full">
+            <thead>
+              <tr>
+                <th>Alta</th><th>Baja</th><th>Categoría</th><th>Dependencia</th>
+                <th class="text-right">Básico</th><th class="text-right">Presentismo</th>
+                <th class="text-right">E. Docente</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cargo of ficha()!.cargosDocentes; track cargo.cargoLiquidacionId) {
+                <tr>
+                  <td class="font-mono tabular-nums">{{ fechaLegible(cargo.fechaDesde) }}</td>
+                  <td class="font-mono tabular-nums">{{ fechaLegible(cargo.fechaHasta) }}</td>
+                  <td>{{ cargo.categoriaNombre ?? '—' }}</td>
+                  <td class="font-mono">{{ cargo.dependenciaAcronimo ?? '—' }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ cargo.categoriaBasico | number:'1.2-2' }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ cargo.presentismo }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ cargo.estadoDocente | number:'1.2-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="text-center text-um-muted py-4">Sin cargos docentes</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Cargos con clase -->
+    <div class="um-card overflow-hidden">
+      <div class="um-eyebrow mb-3">Cargos con Clase</div>
+      <div class="overflow-x-auto">
+        <table class="um-table w-full">
+          <thead>
+            <tr>
+              <th>Cargo</th><th>Facultad</th><th>Sede</th><th>Desde</th><th>Hasta</th>
+              <th class="text-right">Horas</th><th class="text-right">Valor Hora</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cargo of ficha()!.cargosConClase; track cargo.cargoClaseDetalleId) {
+              <tr>
+                <td>{{ cargo.descripcion }}</td>
+                <td class="font-mono">{{ cargo.facultadReducido ?? '—' }}</td>
+                <td>{{ cargo.sedeNombre ?? '—' }}</td>
+                <td class="font-mono tabular-nums">{{ periodoLegible(cargo.periodoDesde) }}</td>
+                <td class="font-mono tabular-nums">{{ periodoLegible(cargo.periodoHasta) }}</td>
+                <td class="text-right font-mono tabular-nums">{{ cargo.horas }}</td>
+                <td class="text-right font-mono tabular-nums">{{ cargo.valorHora | number:'1.2-2' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="text-center text-um-muted py-4">Sin cargos con clase</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Novedades -->
+    <div class="um-card overflow-hidden">
+      <div class="um-eyebrow mb-3">Novedades del período</div>
+      <div class="overflow-x-auto">
+        <table class="um-table w-full">
+          <thead>
+            <tr>
+              <th>Observaciones</th><th>Código</th><th>Nombre</th>
+              <th class="text-right">Importe</th><th class="text-center">Valor</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (novedad of ficha()!.novedades; track novedad.novedadId) {
+              <tr>
+                <td>{{ novedad.observaciones ?? '—' }}</td>
+                <td class="font-mono tabular-nums">{{ novedad.codigoId }}</td>
+                <td>{{ novedad.codigoNombre ?? '—' }}</td>
+                <td class="text-right font-mono tabular-nums">{{ novedad.importe | number:'1.2-2' }}</td>
+                <td class="text-center font-mono">{{ novedad.value || '—' }}</td>
+                <td class="text-right">
+                  <button type="button" class="um-btn-secondary px-2 py-1 text-xs"
+                          [disabled]="procesando()"
+                          (click)="eliminarNovedad(novedad.novedadId)">Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="text-center text-um-muted py-4">Sin novedades cargadas</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 border-t border-um-border pt-4">
+        <div class="um-eyebrow mb-3">Agregar / actualizar novedad</div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          <div class="md:col-span-4 relative">
+            <label for="li-codigo" class="um-label">Código</label>
+            <input id="li-codigo" type="text" class="um-input"
+                   [ngModel]="codigoTexto()" (ngModelChange)="codigoTexto.set($event); buscarCodigos()"
+                   placeholder="Código o nombre" autocomplete="off" />
+            @if (codigos().length > 0) {
+              <ul class="absolute z-50 mt-1 w-full max-h-40 overflow-y-auto rounded border border-um-border bg-white shadow">
+                @for (codigo of codigos(); track codigo.codigoId) {
+                  <li>
+                    <button type="button" class="w-full text-left px-3 py-2 text-xs hover:bg-um-selected"
+                            (click)="seleccionarCodigo(codigo)">
+                      <span class="font-mono font-bold">{{ codigo.codigoId }}</span> · {{ codigo.nombre }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+          <div class="md:col-span-2">
+            <label for="li-importe" class="um-label">Importe / (S/N)</label>
+            <input id="li-importe" type="text" class="um-input font-mono tabular-nums"
+                   [ngModel]="importeTexto()" (ngModelChange)="importeTexto.set($event)"
+                   placeholder="0.00 / S / N" />
+          </div>
+          <div class="md:col-span-4">
+            <label for="li-observaciones" class="um-label">Observaciones</label>
+            <input id="li-observaciones" type="text" class="um-input"
+                   [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)" />
+          </div>
+          <div class="md:col-span-2">
+            <button type="button" class="um-btn-primary w-full"
+                    [disabled]="procesando() || !codigoSeleccionado()"
+                    (click)="agregarNovedad()">Agregar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liquidación -->
+    <div class="um-card overflow-hidden">
+      <div class="um-eyebrow mb-3">Liquidación del período</div>
+      <div class="overflow-x-auto">
+        <table class="um-table w-full">
+          <thead>
+            <tr><th>Código</th><th class="text-right">Importe</th></tr>
+          </thead>
+          <tbody>
+            @for (item of ficha()!.items; track item.itemId) {
+              <tr>
+                <td><span class="font-mono tabular-nums">{{ item.codigoId }}</span> · {{ item.codigoNombre ?? '—' }}</td>
+                <td class="text-right font-mono tabular-nums">{{ item.importe | number:'1.2-2' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="2" class="text-center text-um-muted py-4">
+                El legajo no tiene liquidación calculada en el período.
+              </td></tr>
+            }
+          </tbody>
+          @if (ficha()!.liquidacion; as liquidacion) {
+            <tfoot>
+              <tr class="border-t border-um-border-strong">
+                <td class="font-semibold">Total remunerativo</td>
+                <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalRemunerativo | number:'1.2-2' }}</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Total no remunerativo</td>
+                <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalNoRemunerativo | number:'1.2-2' }}</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Total deducciones</td>
+                <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalDeduccion | number:'1.2-2' }}</td>
+              </tr>
+              <tr>
+                <td class="font-bold">Neto</td>
+                <td class="text-right font-mono tabular-nums font-bold">{{ liquidacion.totalNeto | number:'1.2-2' }}</td>
+              </tr>
+            </tfoot>
+          }
+        </table>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="um-card">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <label class="flex items-center gap-2 text-sm text-um-text select-none">
+          <input type="checkbox" class="h-4 w-4"
+                 [ngModel]="forzar()" (ngModelChange)="forzar.set($event)" />
+          <span>Forzar sobre liquidación bloqueada</span>
+        </label>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="um-btn-secondary"
+                  [disabled]="procesando() || !acciones()?.puedeGenerarCargos"
+                  (click)="generarCargos()">
+            {{ procesando() ? 'Procesando...' : 'Generar Cargos' }}
+          </button>
+          <button type="button" class="um-btn-primary"
+                  [disabled]="procesando() || !acciones()?.puedeLiquidar"
+                  (click)="liquidar()">
+            Liquidar
+          </button>
+          <button type="button" class="um-btn-secondary"
+                  [disabled]="procesando() || !acciones()?.puedeEliminarLiquidacion"
+                  (click)="eliminarLiquidacion()">
+            Eliminar liquidación
+          </button>
+        </div>
+      </div>
+    </div>
+
+  }
+</div>
