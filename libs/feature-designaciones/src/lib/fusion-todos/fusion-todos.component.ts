@@ -2,19 +2,17 @@ import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Subject, catchError, concatMap, finalize, forkJoin, from, map, of, switchMap, takeUntil, tap, toArray } from 'rxjs';
+import { EMPTY, Subject, catchError, concatMap, finalize, from, map, of, switchMap, takeUntil, tap, toArray } from 'rxjs';
 
 import { mensajeDeError } from '@haberes/shared-api';
 
-import { FalloLote, FusionTodosService } from './fusion-todos.service';
+import { FalloLote, FusionTodosService, PersonaLote } from './fusion-todos.service';
 import { Periodo, moverMes, periodoTexto } from '../cargos-clase/cargos-clase.models';
 
 type Fase = 'duplicar' | 'fusionar';
 
-interface LoteFase {
-  tipo: Fase;
-  legajos: number[];
-}
+/** Estado de la consulta que habilita (o no) la duplicación del período. */
+type EstadoCargos = 'cargando' | 'ok' | 'error';
 
 /**
  * Proceso masivo del período: duplica los cargos del mes anterior (opcional),
@@ -42,6 +40,7 @@ export class FusionTodosComponent {
   readonly periodo = signal<Periodo>(periodoActual());
   readonly duplicar = signal<boolean>(false);
   readonly hayCargos = signal<boolean>(false);
+  readonly estadoCargos = signal<EstadoCargos>('cargando');
 
   readonly running = signal<boolean>(false);
   readonly cancelado = signal<boolean>(false);
@@ -49,6 +48,7 @@ export class FusionTodosComponent {
   readonly total = signal<number>(0);
   readonly estado = signal<string>('');
   readonly fallidos = signal<FalloLote[]>([]);
+  readonly depuracionPendiente = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly exito = signal<string | null>(null);
 
@@ -75,50 +75,73 @@ export class FusionTodosComponent {
 
   /** Fusionar Todos: duplicar (opcional) + fusión + desarraigo + depuración. */
   fusionarTodos(): void {
-    if (this.running()) {
+    if (this.running() || this.estadoCargos() !== 'ok') {
       return;
     }
     const { anho, mes } = this.periodo();
     const duplicar = this.duplicar();
+    const previo = moverMes(this.periodo(), -1);
     this.reiniciar();
 
-    forkJoin({
-      actuales: this.service.getDocentes(anho, mes).pipe(catchError(() => of([]))),
-      previos: duplicar
-        ? this.service.getDocentes(moverMes(this.periodo(), -1).anho, moverMes(this.periodo(), -1).mes).pipe(
-            catchError(() => of([]))
-          )
-        : of([])
-    })
-      .pipe(
-        switchMap(({ actuales, previos }) => {
-          const fases: LoteFase[] = [];
-          if (duplicar) {
-            fases.push({ tipo: 'duplicar', legajos: previos.map((persona) => persona.legajoId) });
-          }
-          fases.push({ tipo: 'fusionar', legajos: actuales.map((persona) => persona.legajoId) });
+    // G1: los docentes del período se leen DESPUÉS de duplicar, igual que el legacy.
+    // Antes se leían en paralelo con la duplicación, por lo que un período vacío
+    // (el único caso donde se permite duplicar) producía una fase de fusión vacía.
+    const previos$ = duplicar ? this.service.getDocentes(previo.anho, previo.mes) : of<PersonaLote[]>([]);
+    let duplicados = 0;
 
-          const total = fases.reduce((acumulado, fase) => acumulado + fase.legajos.length, 0);
-          this.total.set(total);
-          if (total === 0) {
-            this.error.set('No hay docentes para procesar en el período.');
+    previos$
+      .pipe(
+        tap((previos) => {
+          duplicados = previos.length;
+          if (duplicar) {
+            this.total.update((valor) => valor + previos.length);
+          }
+        }),
+        switchMap((previos) => {
+          if (!duplicar || previos.length === 0 || this.cancelado()) {
+            return of(null);
+          }
+          return this.procesarLotes('duplicar', previos.map((persona) => persona.legajoId)).pipe(
+            toArray(),
+            map(() => null)
+          );
+        }),
+        switchMap(() => {
+          if (this.cancelado()) {
+            return of<PersonaLote[]>([]);
+          }
+          this.estado.set('Leyendo los docentes del período...');
+          return this.service.getDocentes(anho, mes);
+        }),
+        tap((actuales) => this.total.update((valor) => valor + actuales.length)),
+        switchMap((actuales) => {
+          if (this.cancelado()) {
             return of(false);
           }
-          return from(fases).pipe(
-            concatMap((fase) => this.procesarFase(fase)),
-            takeUntil(this.cancel$),
+          if (actuales.length === 0) {
+            this.error.set(
+              duplicados > 0
+                ? 'Se duplicaron los cargos del mes anterior, pero el período quedó sin docentes para fusionar.'
+                : 'No hay docentes para procesar en el período.'
+            );
+            return of(false);
+          }
+          return this.procesarLotes('fusionar', actuales.map((persona) => persona.legajoId)).pipe(
             toArray(),
             map(() => true)
           );
         }),
-        switchMap((continuar) => {
-          if (!continuar || this.cancelado()) {
+        switchMap((fusionado) => {
+          if (!fusionado || this.cancelado()) {
             return of(false);
           }
           this.estado.set('Depurando fusiones huérfanas...');
           return this.service.depurar(anho, mes).pipe(
             map(() => true),
-            catchError(() => of(false))
+            catchError(() => {
+              this.depuracionPendiente.set(true);
+              return of(false);
+            })
           );
         }),
         finalize(() => this.running.set(false))
@@ -147,10 +170,6 @@ export class FusionTodosComponent {
     this.service
       .getLegajosDesarraigo(anho, mes)
       .pipe(
-        catchError(() => {
-          this.error.set('No se pudieron obtener los legajos con desarraigo.');
-          return of([]);
-        }),
         switchMap((personas) => {
           const legajos = personas.map((persona) => persona.legajoId);
           this.total.set(legajos.length);
@@ -165,7 +184,7 @@ export class FusionTodosComponent {
       .subscribe({
         complete: () => this.cerrarProceso(),
         error: (err: HttpErrorResponse) =>
-          this.error.set(mensajeDeError(err, 'No se pudo completar el recálculo de desarraigo.'))
+          this.error.set(mensajeDeError(err, 'No se pudieron obtener los legajos con desarraigo.'))
       });
   }
 
@@ -178,13 +197,6 @@ export class FusionTodosComponent {
     this.cancel$.next();
   }
 
-  private procesarFase(fase: LoteFase): ReturnType<FusionTodosComponent['procesarLotes']> {
-    this.estado.set(
-      fase.tipo === 'duplicar' ? 'Duplicando los cargos del mes anterior...' : 'Fusionando designaciones...'
-    );
-    return this.procesarLotes(fase.tipo, fase.legajos);
-  }
-
   private procesarLotes(tipo: Fase | 'desarraigo', legajos: number[]) {
     if (legajos.length === 0) {
       return of(null);
@@ -193,9 +205,16 @@ export class FusionTodosComponent {
     const { anho, mes } = this.periodo();
     let numeroLote = 0;
 
+    this.estado.set(`${textoFase(tipo)} ${legajos.length} legajos...`);
+
     return from(lotes).pipe(
       takeUntil(this.cancel$),
       concatMap((lote) => {
+        // El lote ya encolado no se envía si el usuario canceló: la cancelación
+        // aplica entre lotes (el que está en vuelo termina normalmente).
+        if (this.cancelado()) {
+          return EMPTY;
+        }
         numeroLote++;
         const peticion =
           tipo === 'duplicar'
@@ -230,6 +249,9 @@ export class FusionTodosComponent {
       this.exito.set(`Proceso cancelado: ${this.procesados()} de ${this.total()} legajos.`);
       return;
     }
+    if (this.error()) {
+      return;
+    }
     const fallidos = this.fallidos().length;
     if (fallidos > 0) {
       this.exito.set(`Proceso terminado: ${this.procesados()} legajos, ${fallidos} con error.`);
@@ -245,6 +267,7 @@ export class FusionTodosComponent {
     this.procesados.set(0);
     this.total.set(0);
     this.fallidos.set([]);
+    this.depuracionPendiente.set(false);
     this.error.set(null);
     this.exito.set(null);
     this.estado.set('Iniciando proceso...');
@@ -253,17 +276,27 @@ export class FusionTodosComponent {
   /** Público: lo invoca el template al cambiar el período. */
   cargarEstadoDuplicar(): void {
     const { anho, mes } = this.periodo();
-    this.service
-      .getCargosPeriodo(anho, mes)
-      .pipe(catchError(() => of([])))
-      .subscribe((cargos) => {
+    this.estadoCargos.set('cargando');
+    this.service.getCargosPeriodo(anho, mes).subscribe({
+      next: (cargos) => {
         const hay = cargos.length > 0;
         this.hayCargos.set(hay);
+        this.estadoCargos.set('ok');
         if (hay) {
           // Como el legacy: si el período ya tiene cargos no se puede duplicar.
           this.duplicar.set(false);
         }
-      });
+      },
+      error: (err: HttpErrorResponse) => {
+        // Fail closed: sin poder verificar el período no se habilita duplicar.
+        this.hayCargos.set(false);
+        this.duplicar.set(false);
+        this.estadoCargos.set('error');
+        this.error.set(
+          mensajeDeError(err, 'No se pudo verificar si el período ya tiene cargos cargados.')
+        );
+      }
+    });
   }
 }
 
