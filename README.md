@@ -29,6 +29,7 @@ um.haberes.frontend-client/
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos legajo y docentes sede
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
+│   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual por legajo
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
 │   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable y asientos individuales
 │   ├── feature-personas/     # @haberes/feature-personas — Datos personales y CBU
@@ -61,6 +62,7 @@ um.haberes.frontend-client/
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
+| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
 | `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |

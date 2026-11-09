@@ -13,6 +13,14 @@ const bonoIndividualRoute: Route = {
   data: DATOS_MODULO
 };
 
+const liquidacionIndividualRoute: Route = {
+  path: 'liquidacion/individual',
+  loadComponent: () =>
+    import('@haberes/feature-liquidacion').then(m => m.LiquidacionIndividualComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const totalesGeneralesRoute: Route = {
   path: 'consultas/totales-generales',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.TotalesGeneralesComponent),
@@ -243,6 +251,7 @@ export const appRoutes: Routes = [
     data: DATOS_MODULO
   },
   bonoIndividualRoute,
+  liquidacionIndividualRoute,
   totalesGeneralesRoute,
   totalesCodigoRoute,
   comparacionMesesRoute,
