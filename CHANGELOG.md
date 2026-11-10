@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.16.0] - 2026-11-10
+
+### Added
+
+- **feat(`feature-cargos`):** Nueva pantalla **Asignación de Cargos y Facultades** (`/liquidacion/asig-cargos`): búsqueda estándar con `<ui-persona-search>` más accesos exactos por legajo y DNI (`getPersonaByLegajo` / `getPersonaByDocumento`, disparados con ENTER y blur), grilla de cargos del agente con categoría, dependencia, básico, horas, jornada, presentismo y tipo (docente/no docente). El formulario permite **alta**, **actualización** y **baja** (con confirmación explícita); las fechas se envían con el horario y offset que devolvió el backend para no correr el día.
+- **feat(`feature-cargos`):** Panel de **facultades habilitadas**: alta y baja de `personaFacultad` con confirmación, select limitado a las facultades que el agente todavía no tiene y mensaje específico ante `409` (facultad ya habilitada).
+- **feat(`feature-cargos`):** Reglas de jornada y horas según la categoría: con `liquidaPorHora` la jornada queda en **Media** y las horas son editables; sin liquidación por hora las horas se envían en cero y la jornada se elige entre Media y Completa.
+- **feat(`feature-cargos`):** `AsignacionCargosService` es el único cliente de `/api/haberes/core/cargo`, `/personaFacultad`, `/categoria/asignables`, `/dependencia` y `/facultad`; los catálogos se piden en paralelo con `forkJoin` y cada escritura envía `X-Legajo-Solicitante` para que haberes-core resuelva el actor de auditoría. `asignacion-cargos.models.ts` define el contrato tipado (`Cargo`, `CargoRequest`, `PersonaFacultad`, catálogos) y los helpers `fechaInput`, `fechaPayload`, `textoFecha`, `textoJornada` y `fechaHoy`.
+- **feat(`liquidacion`):** Ruta lazy `liquidacion/asig-cargos` con `canActivate: [authGuard, moduloGuard]` y `data: DATOS_MODULO`, más su alta en `RUTAS_MIGRADAS`; la opción del menú deja de ser placeholder y su descripción pasa a "Alta, baja y actualización de cargos del agente y sus facultades habilitadas".
+- **feat(`nx`):** `feature-cargos` pasa de `scope:novedades` a `scope:shared` (la consumen `novedades` y `liquidacion`) y `@haberes/feature-cargos` exporta la nueva pantalla, sus modelos y su servicio.
+
+### Tests
+
+- `asignacion-cargos.service.spec.ts`: catálogos en paralelo, listado por legajo, `POST`/`PUT`/`DELETE` de cargos con cabecera de auditoría, facultades habilitadas del legajo y alta/baja por `unique`.
+- `asignacion-cargos.component.spec.ts`: estado inicial con catálogos, carga de cargos y facultades al elegir agente, jornada forzada y horas editables con categoría por hora, precarga del formulario al seleccionar un cargo, alta con recarga de grilla, edición conservando el offset de la fecha original, baja cancelada sin llamada al backend y mensaje de duplicado al habilitar una facultad existente.
+
+### Changed
+
+- **docs:** `README.md` describe `feature-cargos` como reportes de cargos y docentes por sede **más** la asignación de cargos y facultades, y el bloque de badges suma `npm` y GitHub Actions; `docs/architecture.mermaid` agrega la dependencia `liquidacion → feature-cargos (AsignacionCargos)`.
+
 ## [0.15.0] - 2026-11-09
 
 ### Added

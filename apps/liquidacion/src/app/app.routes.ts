@@ -21,6 +21,14 @@ const liquidacionIndividualRoute: Route = {
   data: DATOS_MODULO
 };
 
+const asigCargosRoute: Route = {
+  path: 'liquidacion/asig-cargos',
+  loadComponent: () =>
+    import('@haberes/feature-cargos').then(m => m.AsignacionCargosComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const totalesGeneralesRoute: Route = {
   path: 'consultas/totales-generales',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.TotalesGeneralesComponent),
@@ -252,6 +260,7 @@ export const appRoutes: Routes = [
   },
   bonoIndividualRoute,
   liquidacionIndividualRoute,
+  asigCargosRoute,
   totalesGeneralesRoute,
   totalesCodigoRoute,
   comparacionMesesRoute,

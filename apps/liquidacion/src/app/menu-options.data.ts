@@ -25,7 +25,7 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/liquidacion/asig-cargos',
         grupo: 'Liquidación',
         origenVb6: 'frmAsigCargo.frm',
-        descripcion: 'Asignación de cargos docentes/no docentes a facultades y dependencias',
+        descripcion: 'Alta, baja y actualización de cargos del agente y sus facultades habilitadas',
         iconSvg: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
       },
       {
@@ -472,6 +472,7 @@ export const TODAS_LAS_OPCIONES: OpcionSistema[] = MENU_GROUPS.flatMap(g => g.it
  */
 export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/liquidacion/individual',
+  '/liquidacion/asig-cargos',
   '/consultas/bono-individual',
   '/consultas/totales-generales',
   '/consultas/totales-codigo',

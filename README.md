@@ -7,8 +7,10 @@
 ![Vitest](https://img.shields.io/badge/Vitest-4.1.11-6E9F18?logo=vitest&logoColor=white)
 ![Playwright](https://img.shields.io/badge/Playwright-1.64.0-2EAD33?logo=playwright&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-20%2B-5FA04E?logo=nodedotjs&logoColor=white)
+![npm](https://img.shields.io/badge/npm-11.6.2-CB3837?logo=npm&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-multietapa-2496ED?logo=docker&logoColor=white)
 ![Nginx](https://img.shields.io/badge/Nginx-SSL-009639?logo=nginx&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)
 
 Frontend corporativo para la gestión de haberes universitarios. Monorepo Nx con aplicaciones Angular 22 standalone.
 
@@ -27,7 +29,7 @@ um.haberes.frontend-client/
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards, env
 │   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
-│   ├── feature-cargos/       # @haberes/feature-cargos — Reportes de cargos legajo y docentes sede
+│   ├── feature-cargos/       # @haberes/feature-cargos — Cargos del legajo, docentes sede y asignación de cargos
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
 │   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual por legajo
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
@@ -60,7 +62,7 @@ um.haberes.frontend-client/
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
-| `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF) |
+| `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
 | `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
