@@ -87,9 +87,28 @@
     </div>
   }
 
+  @if (fallidosGeneracion().length > 0) {
+    <div class="um-card border-amber-200 bg-amber-50 text-sm text-amber-700">
+      <p class="font-semibold">
+        El PDF se generó sin {{ fallidosGeneracion().length }} legajo(s).
+      </p>
+      <ul class="mt-2 list-disc pl-5 text-xs">
+        @for (fallido of fallidosGeneracion(); track fallido.legajoId) {
+          <li>Legajo {{ fallido.legajoId }}: {{ fallido.motivo }}</li>
+        }
+      </ul>
+    </div>
+  }
+
   @if (progreso(); as progresoActual) {
     <div class="um-card text-sm text-um-text">
-      Enviando {{ progresoActual.actual }} de {{ progresoActual.total }}...
+      @if (imprimiendo()) {
+        <span>
+          Generando el PDF{{ progresoActual.total > 0 ? ' (' + progresoActual.actual + ' de ' + progresoActual.total + ')' : '' }}...
+        </span>
+      } @else {
+        <span>Enviando {{ progresoActual.actual }} de {{ progresoActual.total }}...</span>
+      }
     </div>
   }
 

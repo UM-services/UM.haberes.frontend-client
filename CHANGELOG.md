@@ -1,5 +1,77 @@
 # Changelog
 
+## [0.16.0] - 2026-11-10
+
+### Added
+
+- **feat(`feature-cargos`):** Nueva pantalla **Asignación de Cargos y Facultades** (`/liquidacion/asig-cargos`): búsqueda estándar con `<ui-persona-search>` más accesos exactos por legajo y DNI (`getPersonaByLegajo` / `getPersonaByDocumento`, disparados con ENTER y blur), grilla de cargos del agente con categoría, dependencia, básico, horas, jornada, presentismo y tipo (docente/no docente). El formulario permite **alta**, **actualización** y **baja** (con confirmación explícita); las fechas se envían con el horario y offset que devolvió el backend para no correr el día.
+- **feat(`feature-cargos`):** Panel de **facultades habilitadas**: alta y baja de `personaFacultad` con confirmación, select limitado a las facultades que el agente todavía no tiene y mensaje específico ante `409` (facultad ya habilitada).
+- **feat(`feature-cargos`):** Reglas de jornada y horas según la categoría: con `liquidaPorHora` la jornada queda en **Media** y las horas son editables; sin liquidación por hora las horas se envían en cero y la jornada se elige entre Media y Completa.
+- **feat(`feature-cargos`):** `AsignacionCargosService` es el único cliente de `/api/haberes/core/cargo`, `/personaFacultad`, `/categoria/asignables`, `/dependencia` y `/facultad`; los catálogos se piden en paralelo con `forkJoin` y cada escritura envía `X-Legajo-Solicitante` para que haberes-core resuelva el actor de auditoría. `asignacion-cargos.models.ts` define el contrato tipado (`Cargo`, `CargoRequest`, `PersonaFacultad`, catálogos) y los helpers `fechaInput`, `fechaPayload`, `textoFecha`, `textoJornada` y `fechaHoy`.
+- **feat(`liquidacion`):** Ruta lazy `liquidacion/asig-cargos` con `canActivate: [authGuard, moduloGuard]` y `data: DATOS_MODULO`, más su alta en `RUTAS_MIGRADAS`; la opción del menú deja de ser placeholder y su descripción pasa a "Alta, baja y actualización de cargos del agente y sus facultades habilitadas".
+- **feat(`nx`):** `feature-cargos` pasa de `scope:novedades` a `scope:shared` (la consumen `novedades` y `liquidacion`) y `@haberes/feature-cargos` exporta la nueva pantalla, sus modelos y su servicio.
+
+### Tests
+
+- `asignacion-cargos.service.spec.ts`: catálogos en paralelo, listado por legajo, `POST`/`PUT`/`DELETE` de cargos con cabecera de auditoría, facultades habilitadas del legajo y alta/baja por `unique`.
+- `asignacion-cargos.component.spec.ts`: estado inicial con catálogos, carga de cargos y facultades al elegir agente, jornada forzada y horas editables con categoría por hora, precarga del formulario al seleccionar un cargo, alta con recarga de grilla, edición conservando el offset de la fecha original, baja cancelada sin llamada al backend y mensaje de duplicado al habilitar una facultad existente.
+
+### Changed
+
+- **docs:** `README.md` describe `feature-cargos` como reportes de cargos y docentes por sede **más** la asignación de cargos y facultades, y el bloque de badges suma `npm` y GitHub Actions; `docs/architecture.mermaid` agrega la dependencia `liquidacion → feature-cargos (AsignacionCargos)`.
+
+## [0.15.0] - 2026-11-09
+
+### Added
+
+- **feat(`feature-liquidacion`):** Nueva librería (`type:feature`, `scope:liquidacion`) para la pantalla **Liquidación Individual** (`/liquidacion/individual`). `LiquidacionIndividualService` es el único cliente del slice `/api/haberes/core/liquidacion-individual` (ficha del período, generar cargos, liquidar, eliminar liquidación, registrar y eliminar novedades) y de `/api/haberes/core/codigo/search`; las escrituras envían `X-Legajo-Solicitante` para que el backend resuelva actor e IP de auditoría. `liquidacion-individual.models.ts` define el contrato tipado de la ficha, sus cargos, novedades, ítems, acciones y respuestas de proceso.
+- **feat(`feature-liquidacion`):** Pantalla **Liquidación Individual** (migración de `frmLiqIndividual.frm`): búsqueda estándar con `<ui-persona-search>` y accesos exactos por legajo y DNI, período con navegación `<` `>` y ajuste de año, y ficha con persona, control, antigüedad, liquidación, cargos no docentes, docentes y con clase, novedades e ítems calculados con totales remunerativo, no remunerativo, deducciones y neto. Las acciones (**Generar Cargos**, **Liquidar**, **Eliminar liquidación**, alta y baja de novedades) se habilitan según `acciones` del backend, respetan el bloqueo informado y permiten **Forzar** con confirmación explícita; cada operación muestra el mensaje de resultado o de negocio devuelto por el backend.
+- **feat(`liquidacion`):** Ruta lazy `liquidacion/individual` con `canActivate: [authGuard, moduloGuard]` y `data: DATOS_MODULO`, y alta en `RUTAS_MIGRADAS`; el menú deja de abrir el placeholder y su descripción pasa a "Cálculo y recálculo de la liquidación de un legajo".
+- **feat(`nx`):** Alias `@haberes/feature-liquidacion` en `tsconfig.base.json` y target `test` con `@angular/build:unit-test` atado a `liquidacion:build:development`.
+
+### Changed
+
+- **docs:** `README.md` incorpora `feature-liquidacion` al árbol del monorepo y a la tabla de librerías, `AGENTS.md` la suma al mapa del workspace y `docs/architecture.mermaid` agrega la dependencia `liquidacion → feature-liquidacion`.
+
+### Fixed
+
+- **fix(`feature-designaciones`):** **Fusionar Todos** separa la duplicación de la fusión: primero procesa los lotes de duplicación del mes anterior y luego relee los docentes del período, igual que el formulario legado (G1). Antes ambas lecturas salían en paralelo, por lo que un período vacío (el único caso donde se permite duplicar) terminaba con una fase de fusión sin legajos.
+- **fix(`feature-designaciones`):** La verificación de cargos del período distingue `cargando`, `ok` y `error`: el botón **Fusionar Todos** y la casilla **Duplicar mes anterior** quedan deshabilitados mientras se verifica o si la consulta falla (fail closed), con badge *Verificando cargos del período...* / *Período sin verificar* (G2).
+- **fix(`feature-designaciones`):** La cancelación se evalúa entre lotes: el lote ya encolado no se envía y el proceso no depura fusiones cuando se canceló.
+- **fix(`feature-designaciones`):** Si falla la depuración de fusiones huérfanas, la pantalla informa **depuración pendiente** y pide reintentar el proceso (G3); el error de lectura de legajos con desarraigo usa ahora el mensaje específico en lugar del genérico del recálculo.
+
+### Tests
+
+- Especificaciones nuevas de `feature-liquidacion`: `LiquidacionIndividualService` (URLs de la ficha, cabecera `X-Legajo-Solicitante` en escrituras, `forzar` en el path y codificación de la búsqueda de códigos) y `LiquidacionIndividualComponent` (estado inicial, carga de ficha al seleccionar legajo, navegación de período con cambio de año, formato de antigüedad, alta de novedad S/N, mensaje de bloqueo y de éxito al liquidar).
+- `fusion-todos.component.spec.ts` cubre la duplicación seguida de la relectura del período (G1), la no ejecución ante fallo de lectura y la verificación fallida del período (G2), la cancelación entre lotes, la acumulación de fallos, la depuración pendiente (G3) y el recálculo de desarraigo.
+
+## [0.14.0] - 2026-11-08
+
+### Added
+
+- **feat(`shared-api`):** `AccesoDenegadoService` publica el último acceso denegado como señal (`tipo`: `permiso` | `modulo`, `mensaje`, `clave`, `modulo`, `origen` y `timestamp`) y descarta reportes idénticos repetidos dentro de 5 s. Es la vía no destructiva para explicar un 403 o una denegación de guard sin cerrar la sesión.
+- **feat(`shared-api`):** `SIN_ACCESO_RUTA` (`sin-acceso`) es la ruta pública que cada app registra antes del wildcard; `moduloGuard` y `administradorGuard` redirigen allí con `router.parseUrl` en lugar de limpiar la sesión.
+- **feat(`shared-api`):** `INACTIVIDAD_CONFIG` (`enabled`, `avisoMs`, `graciaMs`; por defecto 25 minutos de aviso y 2 minutos de gracia) y `SOPORTE_EMAIL` (vacío por defecto) permiten configurar el aviso de inactividad y el correo de la mesa de ayuda sin tocar los componentes.
+- **feat(`ui-layout`):** `NoAccesoComponent` (`ui-no-acceso`) explica la denegación, ofrece **Volver**, **Ir al inicio** y el cierre de sesión explícito; `SolicitarAccesoComponent` (`ui-solicitar-acceso`) arma un `mailto:` con módulo, legajo y fecha cuando `SOPORTE_EMAIL` está configurado, y si no lo está indica pedir la habilitación a la mesa de ayuda.
+- **feat(`ui-layout`):** `InactividadComponent` (`ui-inactividad`) escucha actividad del documento y, tras `avisoMs` sin interacción, muestra un modal con cuenta regresiva y las acciones **Seguir conectado** y **Cerrar sesión**. Al agotarse la gracia no expulsa al usuario: la sesión de Haberes no tiene token con `exp`, así que el cierre sólo ocurre por decisión explícita.
+- **feat(`ui-layout`):** `<ui-shell>` monta `<ui-inactividad>` y muestra un banner `.um-alert-warn` con el mensaje del 403 (`avisoBanner`), su botón **Solicitar acceso** y **Cerrar**.
+- **feat(`feature-consultas`):** **Bonos por Dependencia** genera el PDF consolidado en segundo plano. Tras `printPrepareDependencia` en el core, `ConsultasReportService.iniciarPdfBonoDependencia` (`POST /ui/bonoDependencia/pdf/{anho}/{mes}/{dependenciaId}/{salida}`) devuelve un `jobId`; la pantalla consulta `estadoPdfBonoDependencia` cada 1,5 s, muestra el avance (`X de Y`), lista los legajos que quedaron fuera del PDF y descarga el archivo con `descargarPdfBonoDependencia` al quedar `LISTO`. Si el job termina en `ERROR` muestra el mensaje del backend.
+
+### Changed
+
+- **feat(`shared-api`):** `errorInterceptor` separa **401** de **403**: un 401 de datos cierra la sesión y navega a `/login?motivo=sesion-expirada&returnUrl=…` (sin navegar si ya está en el login), mientras que un 403 no toca la sesión y publica su mensaje en `AccesoDenegadoService`. Las rutas `/login` e `/isuservalid` quedan excluidas para no destruir una sesión existente por credenciales inválidas.
+- **fix(`ui-auth`):** el login muestra un aviso informativo (`um-alert-warn`) cuando vuelve con `motivo=sesion-expirada`.
+- **fix(`liquidacion`):** el `nginx` del módulo amplía `proxy_read_timeout`/`proxy_send_timeout` a 180 s, porque la preparación del lote de bonos sigue siendo sincrónica aunque el PDF se genere en segundo plano.
+- **docs:** `AGENTS.md` documenta la separación 401/403, la ruta pública `sin-acceso` y la regla de que las guards deniegan sin `clearSession()`; el README de `feature-consultas` actualiza los endpoints de Bonos por Dependencia al flujo por job.
+
+### Fixed
+
+- **fix(`shared-api`):** `moduloGuard` y `administradorGuard` ya no llaman a `clearSession()` al rechazar por facultad: redirigen a `sin-acceso`, de modo que un usuario autenticado no pierde la sesión por visitar un módulo que no le corresponde.
+
+### Tests
+
+- `error.interceptor.spec.ts` (401 con `returnUrl`, 403 que no navega y excluye login/`isuservalid`), `modulo.guard.spec.ts` actualizado a `UrlTree` hacia `sin-acceso` sin `clearSession`, `no-acceso.spec.ts` (mensaje y ausencia de `mailto:` sin soporte), `inactividad.spec.ts` (aviso, reinicio y cierre sólo explícito) y la especificación de **Bonos por Dependencia** cubriendo prepare → job → progreso → fallidos → descarga y el estado `ERROR`.
+
 ## [0.13.1] - 2026-11-03
 
 ### Fixed

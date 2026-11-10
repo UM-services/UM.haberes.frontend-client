@@ -1,17 +1,26 @@
-import { authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { SIN_ACCESO_RUTA, authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
 
 import { appRoutes } from './app.routes';
 
 describe('rutas del módulo Liquidación', () => {
   const login = appRoutes.find((ruta) => ruta.path === 'login');
-  // Toda ruta con componente (no redirects ni login) debe estar protegida.
+  // Toda ruta con componente (no redirects, login ni la pantalla pública) debe estar protegida.
   const protegidas = appRoutes.filter(
-    (ruta) => ruta.path !== 'login' && ruta.redirectTo === undefined,
+    (ruta) =>
+      ruta.path !== 'login' &&
+      ruta.path !== SIN_ACCESO_RUTA &&
+      ruta.redirectTo === undefined,
   );
 
   it('el login evalúa la regla de facultad del módulo', () => {
     expect(login?.canActivate).toContain(unauthGuard);
     expect(login?.data?.['requireFacultadId']).toBe(false);
+  });
+
+  it('expone una pantalla pública para explicar el acceso restringido', () => {
+    const sinAcceso = appRoutes.find((ruta) => ruta.path === SIN_ACCESO_RUTA);
+    expect(sinAcceso).toBeDefined();
+    expect(sinAcceso?.canActivate).toBeUndefined();
   });
 
   it('todas las rutas exigen sesión y el guard de facultad', () => {

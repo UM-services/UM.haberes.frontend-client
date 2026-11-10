@@ -1,8 +1,15 @@
-import { Component, inject, Input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, Input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { APP_ENV_INFO, AuthService, getEnvDisplay } from '@haberes/shared-api';
+import {
+  APP_ENV_INFO,
+  AccesoDenegadoService,
+  AuthService,
+  getEnvDisplay,
+} from '@haberes/shared-api';
 import { CambioClaveModalComponent } from '@haberes/ui-auth';
+import { InactividadComponent } from '../inactividad/inactividad';
+import { SolicitarAccesoComponent } from '../solicitar-acceso/solicitar-acceso';
 
 export interface ShellMenuItem {
   label: string;
@@ -32,7 +39,13 @@ const ENV_BADGE_BASE_CLASSES =
   selector: 'ui-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, RouterModule, CambioClaveModalComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    CambioClaveModalComponent,
+    InactividadComponent,
+    SolicitarAccesoComponent,
+  ],
   template: `
     @if (isLoggedIn$ | async; as user) {
       <div class="flex min-h-screen bg-um-canvas text-um-ink">
@@ -294,11 +307,28 @@ const ENV_BADGE_BASE_CLASSES =
 
           <!-- Vista de Contenido Central -->
           <main class="flex-1 w-full max-w-[1320px] mx-auto px-4 py-7 sm:px-7 lg:px-12 lg:py-9">
+            @if (avisoBanner(); as aviso) {
+              <div class="um-alert um-alert-warn mb-6" role="alert">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold">Acceso restringido</p>
+                    <p class="mt-1 text-sm">{{ aviso.mensaje }}</p>
+                  </div>
+                  <div class="flex shrink-0 gap-2">
+                    <ui-solicitar-acceso [contexto]="moduleName" />
+                    <button type="button" class="um-btn-secondary" (click)="cerrarAviso()">
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
             <router-outlet></router-outlet>
           </main>
         </div>
 
         <lib-cambio-clave-modal [isOpen]="isCambioClaveOpen()" (closed)="cerrarCambioClave()" />
+        <ui-inactividad />
       </div>
     } @else {
       <!-- Vista Limpia para Login / Desautenticado -->
@@ -326,6 +356,18 @@ export class UiShellComponent {
   readonly isLoggedIn$ = this.authService.currentUser$;
 
   readonly isCambioClaveOpen = signal(false);
+
+  private readonly accesoDenegado = inject(AccesoDenegadoService);
+
+  /** Aviso accionable de un 403: se muestra en la pantalla, sin expulsar al login. */
+  readonly avisoBanner = computed(() => {
+    const detalle = this.accesoDenegado.detalle();
+    return detalle?.origen ? detalle : null;
+  });
+
+  cerrarAviso(): void {
+    this.accesoDenegado.limpiar();
+  }
 
   abrirCambioClave(): void {
     this.isCambioClaveOpen.set(true);

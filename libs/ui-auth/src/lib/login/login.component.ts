@@ -13,9 +13,13 @@ import { AuthService } from '@haberes/shared-api';
 })
 export class LoginComponent {
   requireFacultadId: boolean | null = null;
+  readonly infoMessage = signal<string>('');
 
   constructor() {
     this.requireFacultadId = this.route.snapshot.data['requireFacultadId'] ?? null;
+    if (this.route.snapshot.queryParams['motivo'] === 'sesion-expirada') {
+      this.infoMessage.set('Tu sesión expiró. Volvé a ingresar para continuar.');
+    }
   }
 
   private readonly fb = inject(FormBuilder);
