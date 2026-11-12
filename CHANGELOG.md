@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.17.0] - 2026-11-12
+
+### Added
+
+- **feat(`feature-control-periodo`):** Nueva librería y pantalla **Control del período** (`/control-periodo`): registro único por mes con los parámetros que consume la liquidación (fechas de liquidación, pago y depósito, alícuotas, topes SIJP, adicionales, estados docentes y modo de liquidación). Navegación `<`/`>` con rollover de año, recarga al cambiar año/mes, aviso de «período nuevo», badge de estado, `controlId` visible y confirmación cuando se descartan cambios sin guardar.
+- **feat(`feature-control-periodo`):** **Copiar período anterior** con confirmación previa, aviso ámbar cuando las fechas copiadas no pertenecen al período destino y mensajes de negocio ante `409` (el período ya tiene datos) y `404` (el mes anterior está vacío).
+- **feat(`feature-control-periodo`):** Validaciones de guardado: modo de liquidación y las cuatro fechas obligatorias, `desde ≤ hasta` e importes no negativos. El formulario envía siempre el registro completo y recarga desde el backend después de guardar.
+- **feat(`feature-usuarios`):** Nueva librería y pantalla **Usuarios** (`/usuarios`, grupo **Seguridad** del módulo Administrador): listado de usuarios de Haberes (`GET /api/haberes/core/usuario/`) con legajo, apellido y nombre (resueltos con `POST /api/haberes/core/persona/legajos`), alcance (facultad o **Global**) y filtro en vivo por legajo, apellido o nombre. Cada fila habilita o revoca el flag `administrador` con `PUT /api/haberes/core/usuario/{legajoId}/administrador/{valor}`; la sesión actual queda marcada y no puede revocarse el flag a sí misma.
+- **feat(`feature-usuarios`):** Sólo los usuarios sin facultad asignada pueden recibir el flag: el botón queda deshabilitado para el resto, el backend rechaza la habilitación y el sistema conserva siempre al menos un administrador. `UsuariosService` es el único cliente de los endpoints de usuarios y de personas por legajo.
+- **feat(`shared-api`):** `Persona.administrador` (flag que viene de `usuario`, no de la persona) y `AuthService.esAdministrador`; la sesión revalida el flag contra haberes-core en cada arranque y **no** lo persiste en `localStorage`, igual que `facultadId`.
+- **feat(`ui-layout`):** Pipes del design system `umImporte` (formato argentino fijo `1.234.567,89`, modo `'simbolo'` para anteponer `$` y `—` para valores vacíos) y `umFecha` (`dd/MM/yyyy`, con `HH:mm` cuando el dato trae hora real y modos `auto`/`siempre`/`nunca`), independientes de `LOCALE_ID`.
+- **feat(`ui-layout`):** Componente `ui-input-fecha`, `ControlValueAccessor` que muestra siempre `dd/mm/aaaa` sin depender del locale del navegador, conserva el valor ISO `yyyy-MM-dd` y mantiene el calendario nativo opcional.
+- **feat(`ui-layout`):** Directiva `[uiStickyFooter]` (clase de tema `.um-sticky-footer`) para barras de acciones fijas al pie con `position: sticky`: quedan visibles durante el scroll y no tapan el final del contenido.
+- **feat(`feature-categorias`):** Soporte de **puntos ETEC** en el catálogo: columna en la grilla y campo en el formulario. Una categoría con `puntos > 0` se marca como docente, sin básico y sin liquidación por hora, porque se liquida como `puntos × valor del punto`.
+- **feat(`feature-etec-asignaciones`):** Nueva pantalla **Asignación de Cargos ETEC** (`/liquidacion/etec/asig-cargos`): búsqueda estándar de persona (`<ui-persona-search>` + legajo/DNI exactos), alta, actualización y baja de asignaciones en `etec_asignacion_cargo` a través de `haberes-etec`. El select de cargos usa `GET /api/haberes/etec/cargo/` filtrado a `puntos > 0 && docente = 1`, la dependencia es obligatoria, y la lista muestra cargo, puntos, dependencia, alta, baja, estado, observaciones e importe del período.
+- **feat(`feature-etec-asignaciones`):** Selector de período (año/mes con `<`/`>`) que consulta `GET /api/haberes/core/control/periodo/{anho}/{mes}/opcional` y calcula el importe de referencia como `puntos × valorPuntoEtec`, con aviso cuando el período no tiene valor de punto cargado.
+- **feat(`liquidacion`):** Ruta lazy `liquidacion/etec/asig-cargos` con `authGuard` + `moduloGuard` y `DATOS_MODULO`; nueva opción **Asignación de Cargos ETEC** en el menú y en `RUTAS_MIGRADAS`.
+- **feat(`administrador`):** Ruta lazy `control-periodo` con `canActivate: [authGuard, administradorGuard]`, ítem **Control del Período** al frente del grupo **Parámetros de cálculo**, y ruta lazy `usuarios` (`feature-usuarios`) con el grupo **Seguridad**; ambas con tarjeta en el panel de inicio.
+- **feat(`shared-api`):** `lib/util/fecha.ts` expone `fechaInput` y `fechaPayload` para reconstruir el horario y el offset que devuelve el backend (`yyyy-MM-dd'T'HH:mm:ssXX`) sin correr el día; `fechaPayload` devuelve cadena vacía sin fecha.
+- **feat(`haberes-core`):** `GET /api/haberes/core/control/periodo/{anho}/{mes}/opcional` devuelve `200` con el registro o con cuerpo vacío cuando el período es nuevo, sin el `400` del endpoint existente.
+- **feat(`haberes-core`):** `POST /api/haberes/core/control/copiar/{anho}/{mes}` crea el período copiando literalmente el mes anterior (incluidas sus fechas); responde `409` si el período destino ya tiene datos y `404` si el anterior no existe. Nuevas excepciones `ControlYaExisteException` y `ControlOrigenException`.
+- **feat(`haberes-etec`):** `FeignAuditActorConfig` propaga `X-Usuario-Legajo` / `X-Legajo-Solicitante` de la request entrante a las llamadas Feign hacia `haberes-core`, para que las escrituras ETEC queden auditadas con actor.
+
+### Changed
+
+- **feat(`administrador`):** El acceso al módulo deja de depender sólo de `facultadId == null`: `administradorGuard` exige `facultadId == null` **y** `usuario.administrador === 1`, y el login declara `requireAdministrador: true` para rechazar el ingreso de usuarios sin el flag. La regla es aditiva e implementa `PLANIFICACION_CAMPO_ADMINISTRADOR_USUARIO_HABERES.md` (D1); quienes ya usaban el módulo sin el flag necesitan habilitarlo desde **Usuarios**.
+- **feat(`feature-categorias`):** El alta sugiere el siguiente `categoriaId` (máximo de la grilla y `getLast`) en un campo editable, con control de ID duplicado; en edición el ID queda fijo. El período deja de elegirse en pantalla y usa el año/mes del sistema, igual que el cliente anterior. Básico y estado docente muestran vista previa con `umImporte` y el panel de edición queda `sticky` en pantallas anchas.
+- **feat(`feature-personas`, `feature-clases`, `feature-sedes`, `feature-cargos-clase`):** Los importes de grilla y formularios pasan a `umImporte` y las fechas de **Personas** a `ui-input-fecha`, en lugar de `number: '1.2-2'` y `<input type="date">`.
+- **feat(`liquidacion`):** La opción y la pantalla existentes pasan a llamarse **Asignación de Cargos No Docentes** (`/liquidacion/asig-cargos`); la ruta, el circuito de `cargo` y la grilla (todos los cargos con badge Docente/No docente) no cambian.
+- **feat(`liquidacion`):** `OpcionSistema.origenVb6` pasa a ser opcional: la opción ETEC no tiene formulario legacy de origen.
+- **feat(`liquidacion`):** se elimina la opción placeholder **Control de Liquidación** (`/liquidacion/control`), que apuntaba al mismo formulario ya migrado al módulo Administrador y no tenía ruta implementada.
+- **fix(`feature-control-periodo`):** el campo **Jubilación patronal** se guarda en `jubilpat`; el cliente anterior lo escribía en `osocipat` y lo pisaba, por lo que nunca se persistía.
+- **docs:** `README.md` y `AGENTS.md` suman `feature-control-periodo`, `feature-usuarios` y `feature-etec-asignaciones`, y documentan la regla del flag `administrador`; `libs/ui-layout/README.md` documenta las pipes, `ui-input-fecha` y `[uiStickyFooter]`; `docs/architecture.mermaid` agrega las dependencias `administrador → feature-control-periodo`, `administrador → feature-usuarios` y `liquidacion → feature-etec-asignaciones`.
+
+### Tests
+
+- `ControlControllerTest`: período opcional con y sin datos, copia exitosa, `409` cuando el destino existe y `404` cuando falta el mes anterior.
+- `ControlServiceTest`: copia campo por campo de los 40 importes, las fechas, los textos y el modo; período destino ocupado sin `save`; origen ausente sin `save`; rollover enero → diciembre.
+- `control-periodo.service.spec.ts`: endpoint opcional y `null` para cuerpo vacío, catálogo de modos, `POST`/`PUT` con payload completo, copia sin body y propagación del `409`.
+- `control-periodo.component.spec.ts`: período nuevo y existente, aviso de fechas fuera del período, navegación `<`/`>`, descarte cancelado, copia exitosa y bloqueada, mensaje de `409`, validaciones, guarda bloqueada cuando el año escrito no coincide con el período cargado y `POST` vs `PUT` conservando el offset de las fechas.
+- `usuarios.component.spec.ts`: listado con nombres y alcance, filtro por legajo, apellido y nombre, y bloqueo de edición de la sesión actual y de los usuarios con facultad.
+- `usuarios.service.spec.ts`: listado de usuarios, personas por legajo y `PUT` del flag con el valor en la ruta.
+- `administrador.guard.spec.ts`: acceso con `facultadId == null` y `administrador == 1`, denegación sin el flag, denegación con facultad y sin sesión, siempre sin `clearSession()`.
+- `auth.service.spec.ts`: el flag se expone desde la sesión revalidada, queda en `false` sin el flag y no se persiste en `localStorage`.
+- `fecha.spec.ts`: recorte a `yyyy-MM-dd`, conservación de horario/offset (incluido `Z`), medianoche UTC en altas y cadena vacía.
+- `importe.pipe.spec.ts`, `fecha.pipe.spec.ts`, `fecha-input.util.spec.ts`, `input-fecha.spec.ts` y `sticky-footer.directive.spec.ts`: formato argentino de importes y fechas, parseo/emisión ISO del input y clase de tema de la barra fija.
+- `categorias.component.spec.ts`: sugerencia del siguiente `categoriaId` al crear.
+- `asignaciones-etec.service.spec.ts`: catálogos en paralelo con filtro de cargos ETEC, listado por legajo, `POST` con barra final y `X-Legajo-Solicitante`, `PUT`/`DELETE` por id y valor del punto opcional (con y sin control).
+- `asignaciones-etec.component.spec.ts`: catálogos y valor inicial, carga de asignaciones por persona, selector de período con recálculo de importe, aviso sin valor de punto, edición, dependencia obligatoria, `POST`/`PUT` con offset de fechas, baja cancelada y `409` de solape.
+- `acceso-facultad.spec.ts` (E2E): el usuario simulado declara `administrador: 0`, acorde a la sesión que valida el `administradorGuard`.
+- `FeignAuditActorConfigTest`: copia de headers con request asociada, sin request y respetando un header ya presente.
+
 ## [0.16.0] - 2026-11-10
 
 ### Added
