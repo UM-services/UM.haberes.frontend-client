@@ -29,7 +29,8 @@
       "@haberes/feature-cargos-clase": ["./libs/feature-cargos-clase/src/index.ts"],
       "@haberes/feature-clases": ["./libs/feature-clases/src/index.ts"],
       "@haberes/feature-codigos": ["./libs/feature-codigos/src/index.ts"],
-      "@haberes/feature-sedes": ["./libs/feature-sedes/src/index.ts"]
+      "@haberes/feature-sedes": ["./libs/feature-sedes/src/index.ts"],
+      "@haberes/feature-control-periodo": ["./libs/feature-control-periodo/src/index.ts"]
     },
     "rootDir": "."
   }
