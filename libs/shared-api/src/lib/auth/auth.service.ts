@@ -53,6 +53,8 @@ export interface Persona {
   situacionAfip?: number | null;
   modeloContratacionAfip?: number | null;
   directivoEtec?: number | null;
+  /** Flag administrador de Haberes (viene de `usuario`, no de la persona). */
+  administrador?: number | null;
 }
 
 export interface Usuario {
@@ -62,6 +64,7 @@ export interface Usuario {
   facultadId?: number;
   facultadNombre?: string;
   build?: number;
+  administrador?: number;
 }
 
 interface FacultadResumen {
@@ -110,6 +113,12 @@ export class AuthService {
    * globales, como Administrador).
    */
   readonly facultadId = computed<number | null>(() => this.currentUser()?.facultadId ?? null);
+
+  /**
+   * Flag `usuario.administrador` de la sesión validada. Con la regla vigente
+   * (D1: aditivo estricto) el módulo Administrador exige además `facultadId == null`.
+   */
+  readonly esAdministrador = computed<boolean>(() => this.currentUser()?.administrador === 1);
 
   /** legajoId persistido, sin datos derivados que puedan quedar desactualizados. */
   private storedLegajoId: number | null;
@@ -280,6 +289,7 @@ export class AuthService {
       id: persona.legajoId,
       facultadId: usuario.facultadId ?? null,
       facultadNombre: facultad?.nombre ?? null,
+      administrador: usuario.administrador ?? 0,
       sede: persona.sede ?? 'Sede Central',
     };
     this.currentUserSubject.next(session);

@@ -1,0 +1,224 @@
+<div class="w-full pb-4">
+  <header class="um-page-header">
+    <div>
+      <p class="um-eyebrow">Parámetros de cálculo</p>
+      <h1 class="um-page-title">Control del período</h1>
+      <p class="um-page-desc">
+        Fechas, alícuotas y topes que usa la liquidación del período. Hay un único registro por mes.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-2">
+      <button
+        type="button"
+        class="um-btn-secondary h-9 w-9 justify-center px-0 font-mono text-base"
+        title="Mes anterior"
+        aria-label="Mes anterior"
+        (click)="irAnterior()"
+        [disabled]="cargando()"
+      >
+        &lt;
+      </button>
+      <div>
+        <label class="um-label" for="control-mes">Mes</label>
+        <input
+          id="control-mes"
+          name="mes"
+          type="number"
+          min="1"
+          max="12"
+          class="um-input w-20 text-center font-mono tabular-nums"
+          [ngModel]="mes()"
+          (ngModelChange)="mes.set(+$event)"
+          (change)="recargarPeriodo()"
+          (keydown.enter)="recargarPeriodo()"
+        />
+      </div>
+      <div>
+        <label class="um-label" for="control-anho">Año</label>
+        <input
+          id="control-anho"
+          name="anho"
+          type="number"
+          min="2000"
+          max="2100"
+          class="um-input w-24 text-center font-mono tabular-nums"
+          [ngModel]="anho()"
+          (ngModelChange)="anho.set(+$event)"
+          (change)="recargarPeriodo()"
+          (keydown.enter)="recargarPeriodo()"
+        />
+      </div>
+      <button
+        type="button"
+        class="um-btn-secondary h-9 w-9 justify-center px-0 font-mono text-base"
+        title="Mes siguiente"
+        aria-label="Mes siguiente"
+        (click)="irSiguiente()"
+        [disabled]="cargando()"
+      >
+        &gt;
+      </button>
+      <span
+        class="um-badge"
+        [class.text-emerald-700]="esNuevo()"
+        [class.text-um-muted]="!esNuevo()"
+      >
+        {{ esNuevo() ? 'Período nuevo' : 'Período existente' }}
+      </span>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="um-alert um-alert-error mt-4" role="alert">{{ error() }}</div>
+  }
+  @if (mensaje()) {
+    <div class="um-alert um-alert-success mt-4">{{ mensaje() }}</div>
+  }
+  @if (avisoFechas()) {
+    <div class="um-alert um-alert-warn mt-4">
+      Las fechas de liquidación no pertenecen a {{ periodoTexto }}. Revisarlas antes de liquidar.
+    </div>
+  }
+  @if (esNuevo() && !cargando()) {
+    <div class="um-alert mt-4">
+      Sin datos para {{ periodoTexto }}. Complete los parámetros y guarde, o copie el período
+      anterior con sus mismos valores.
+    </div>
+  }
+
+  <div [class.opacity-60]="cargando()" [class.pointer-events-none]="cargando()">
+    <div class="mt-6 grid gap-6">
+      <section class="um-card p-4">
+        <h2 class="text-sm font-semibold text-um-ink">1. Período y fechas</h2>
+        <p class="mt-1 text-xs text-um-muted">
+          Ventana de liquidación y fechas de pago y depósito del período.
+        </p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div>
+            <label class="um-label" for="control-fecha-desde">Desde</label>
+            <ui-input-fecha inputId="control-fecha-desde" [(valor)]="form.fechaDesde" />
+          </div>
+          <div>
+            <label class="um-label" for="control-fecha-hasta">Hasta</label>
+            <ui-input-fecha inputId="control-fecha-hasta" [(valor)]="form.fechaHasta" />
+          </div>
+          <div>
+            <label class="um-label" for="control-fecha-pago">Pago</label>
+            <ui-input-fecha inputId="control-fecha-pago" [(valor)]="form.fechaPago" />
+          </div>
+          <div>
+            <label class="um-label" for="control-fecha-deposito">Depósito</label>
+            <ui-input-fecha inputId="control-fecha-deposito" [(valor)]="form.fechaDeposito" />
+          </div>
+        </div>
+      </section>
+
+      <section class="um-card p-4">
+        <h2 class="text-sm font-semibold text-um-ink">2. Liquidación y depósito</h2>
+        <p class="mt-1 text-xs text-um-muted">
+          Modo de liquidación del período y datos administrativos del depósito.
+        </p>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div>
+            <label class="um-label" for="control-modo">Modo de liquidación</label>
+            <select
+              id="control-modo"
+              name="modoLiquidacionId"
+              class="um-input w-full"
+              [(ngModel)]="form.modoLiquidacionId"
+            >
+              <option [ngValue]="null">Seleccione…</option>
+              @for (modo of modos(); track modo.modoLiquidacionId) {
+                <option [ngValue]="modo.modoLiquidacionId">{{ modo.descripcion }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="um-label" for="control-aporte-jubilatorio">Aporte jubilatorio</label>
+            <input
+              id="control-aporte-jubilatorio"
+              name="aporteJubilatorio"
+              type="text"
+              maxlength="15"
+              class="um-input w-full font-mono"
+              [(ngModel)]="form.aporteJubilatorio"
+            />
+          </div>
+          <div>
+            <label class="um-label" for="control-deposito-banco">Banco de depósito</label>
+            <input
+              id="control-deposito-banco"
+              name="depositoBanco"
+              type="text"
+              maxlength="15"
+              class="um-input w-full"
+              [(ngModel)]="form.depositoBanco"
+            />
+          </div>
+        </div>
+      </section>
+
+      @for (seccion of secciones; track seccion.id; let i = $index) {
+        <section class="um-card p-4">
+          <h2 class="text-sm font-semibold text-um-ink">{{ i + 3 }}. {{ seccion.titulo }}</h2>
+          <p class="mt-1 text-xs text-um-muted">{{ seccion.descripcion }}</p>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            @for (campo of seccion.campos; track campo.campo) {
+              <div>
+                <label class="um-label" [for]="'control-' + campo.campo">{{ campo.label }}</label>
+                <input
+                  [id]="'control-' + campo.campo"
+                  [name]="campo.campo"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  class="um-input w-full text-right font-mono tabular-nums"
+                  [class.um-input-invalid]="importeNegativo(campo.campo)"
+                  [(ngModel)]="form.importes[campo.campo]"
+                />
+                <p class="mt-1 text-right font-mono text-[11px] tabular-nums text-um-muted">
+                  {{ form.importes[campo.campo] | umImporte: 'simbolo' }}
+                </p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  </div>
+
+  <div uiStickyFooter>
+    <p class="text-xs text-um-muted">
+      Período <span class="font-mono tabular-nums">{{ periodoTexto }}</span>
+      @if (form.controlId !== null) {
+        · Registro <span class="font-mono">#{{ form.controlId }}</span>
+      }
+      @if (cargando()) {
+        · Cargando…
+      }
+    </p>
+    <div class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="um-btn-secondary"
+        (click)="copiarAnterior()"
+        [disabled]="!esNuevo() || copiando() || cargando()"
+        [title]="
+          esNuevo() ? 'Copia los parámetros del mes anterior' : 'Ya existen datos para este período'
+        "
+      >
+        {{ copiando() ? 'Copiando…' : 'Copiar período anterior' }}
+      </button>
+      <button
+        type="button"
+        class="um-btn-primary"
+        (click)="guardar()"
+        [disabled]="guardando() || cargando()"
+      >
+        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>

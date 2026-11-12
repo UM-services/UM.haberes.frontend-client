@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { mensajeDeError } from '@haberes/shared-api';
+import { ImportePipe } from '@haberes/ui-layout';
 import { Clase, ClasesService } from './clases.service';
 
 @Component({
   selector: 'lib-clases',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImportePipe],
   templateUrl: './clases.component.html',
 })
 export class ClasesComponent implements OnInit {

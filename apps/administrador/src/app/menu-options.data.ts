@@ -29,9 +29,15 @@ export const ADMINISTRADOR_MENU_GROUPS: MenuGroup[] = [
     iconSvg:
       'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
     items: [
+      { label: 'Control del Período', path: '/control-periodo' },
       { label: 'Adicional Carga Horaria', path: '/adicionales' },
       { label: 'Sedes', path: '/sedes' },
     ],
+  },
+  {
+    title: 'Seguridad',
+    iconSvg: 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3zm0 5v5m0 3h.01',
+    items: [{ label: 'Usuarios', path: '/usuarios' }],
   },
 ];
 
@@ -90,6 +96,12 @@ export const ADMINISTRADOR_GRUPOS: GrupoPanel[] = [
     descripcion: 'Valores y sedes que intervienen en el cálculo de adicionales',
     items: [
       {
+        label: 'Control del Período',
+        path: '/control-periodo',
+        descripcion: 'Fechas, alícuotas y topes del período que usa la liquidación',
+        disponible: true,
+      },
+      {
         label: 'Adicional Carga Horaria',
         path: '/adicionales',
         descripcion: 'Rangos de horas y porcentaje de adicional por facultad y sede',
@@ -99,6 +111,19 @@ export const ADMINISTRADOR_GRUPOS: GrupoPanel[] = [
         label: 'Sedes',
         path: '/sedes',
         descripcion: 'Sedes, importe de desarraigo y sede de reemplazo',
+        disponible: true,
+      },
+    ],
+  },
+  {
+    id: 'seguridad',
+    title: 'Seguridad',
+    descripcion: 'Acceso al módulo y habilitación de administradores',
+    items: [
+      {
+        label: 'Usuarios',
+        path: '/usuarios',
+        descripcion: 'Habilitación del flag administrador de Haberes',
         disponible: true,
       },
     ],

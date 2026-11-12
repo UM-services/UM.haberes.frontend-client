@@ -189,6 +189,42 @@ describe('AuthService', () => {
     expect(service.facultadId()).toBeNull();
   });
 
+  it('expone el flag administrador de la sesión revalidada', () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ version: 2, legajoId: 123 }));
+    const service = crearServicio();
+
+    expect(service.esAdministrador()).toBe(false);
+
+    service.ensureSession().subscribe();
+    http.expectOne('/api/haberes/core/persona/123').flush(persona);
+    http.expectOne('/api/haberes/core/usuario/123').flush({
+      legajoId: 123,
+      usuarioId: 7,
+      facultadId: null,
+      administrador: 1,
+    });
+
+    expect(service.esAdministrador()).toBe(true);
+    expect(service.currentUserValue?.administrador).toBe(1);
+    // El flag no se persiste: se revalida contra el backend en cada arranque.
+    expect(JSON.parse(localStorage.getItem(SESSION_KEY) ?? '{}')).toEqual({
+      version: 2,
+      legajoId: 123,
+    });
+  });
+
+  it('un usuario sin el flag administrador queda en false', () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ version: 2, legajoId: 123 }));
+    const service = crearServicio();
+
+    service.ensureSession().subscribe();
+    http.expectOne('/api/haberes/core/persona/123').flush(persona);
+    http.expectOne('/api/haberes/core/usuario/123').flush({ legajoId: 123, usuarioId: 7 });
+
+    expect(service.esAdministrador()).toBe(false);
+    expect(service.currentUserValue?.administrador).toBe(0);
+  });
+
   it('logout limpia la sesión persistida y publicada', () => {
     localStorage.setItem(SESSION_KEY, JSON.stringify({ version: 2, legajoId: 123 }));
     const service = crearServicio();

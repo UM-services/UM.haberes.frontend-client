@@ -11,6 +11,8 @@ export interface Categoria {
   noDocente: number;
   liquidaPorHora: number;
   estadoDocente: number;
+  /** Puntaje del cargo ETEC. 0 = categoría común. */
+  puntos: number;
 }
 
 /** Payload de `POST /categoria/{anho}/{mes}` y `PUT /categoria/{id}/{anho}/{mes}`. */
@@ -22,6 +24,8 @@ export interface CategoriaRequest {
   noDocente: number;
   liquidaPorHora: number;
   estadoDocente: number;
+  /** Puntaje del cargo ETEC. 0 = categoría común. */
+  puntos: number;
 }
 
 export interface CategoriaUploadRequest {

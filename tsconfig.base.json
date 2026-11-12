@@ -21,6 +21,7 @@
       "@haberes/feature-cargos": ["./libs/feature-cargos/src/index.ts"],
       "@haberes/feature-bonos": ["./libs/feature-bonos/src/index.ts"],
       "@haberes/feature-liquidacion": ["./libs/feature-liquidacion/src/index.ts"],
+      "@haberes/feature-etec-asignaciones": ["./libs/feature-etec-asignaciones/src/index.ts"],
       "@haberes/feature-consultas": ["./libs/feature-consultas/src/index.ts"],
       "@haberes/feature-contabilidad": ["./libs/feature-contabilidad/src/index.ts"],
       "@haberes/feature-personas": ["./libs/feature-personas/src/index.ts"],
@@ -29,7 +30,9 @@
       "@haberes/feature-cargos-clase": ["./libs/feature-cargos-clase/src/index.ts"],
       "@haberes/feature-clases": ["./libs/feature-clases/src/index.ts"],
       "@haberes/feature-codigos": ["./libs/feature-codigos/src/index.ts"],
-      "@haberes/feature-sedes": ["./libs/feature-sedes/src/index.ts"]
+      "@haberes/feature-sedes": ["./libs/feature-sedes/src/index.ts"],
+      "@haberes/feature-control-periodo": ["./libs/feature-control-periodo/src/index.ts"],
+      "@haberes/feature-usuarios": ["./libs/feature-usuarios/src/index.ts"]
     },
     "rootDir": "."
   }

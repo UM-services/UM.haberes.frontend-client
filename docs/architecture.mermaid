@@ -2,13 +2,13 @@ graph TD
   Client((Navegador))
   Client-->Liquidacion["liquidacion :4209"]
   Client-->Novedades["novedades :4208"]
-  Client-->Administrador["administrador :4211 (solo facultadId null)"]
+  Client-->Administrador["administrador :4211 (facultadId null + administrador = 1)"]
 
   Liquidacion-->Gateway["haberes-gateway-service :8091 /api/"]
   Novedades-->Gateway
   Administrador-->Gateway
 
-  Liquidacion---Layout1["ui-layout - UiShell J2 / ui-persona-search / no-acceso / inactividad"]
+  Liquidacion---Layout1["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer"]
   Liquidacion---Auth1["ui-auth - Login"]
   Liquidacion---API1["shared-api - Auth/Persona/Env/Errores/moduloGuard"]
   Liquidacion---Bonos["feature-bonos - BonoIndividual"]
@@ -18,15 +18,16 @@ graph TD
   Liquidacion---DesigLiq["feature-designaciones - Designaciones / CargosClase / FusionTodos"]
   Liquidacion---AnotLiq["feature-anotador - Anotaciones / Visado"]
   Liquidacion---CargLiq["feature-cargos - AsignacionCargos"]
+  Liquidacion---Etec["feature-etec-asignaciones - AsignacionesEtec"]
 
-  Novedades---Layout2["ui-layout - UiShell J2 / ui-persona-search / no-acceso / inactividad"]
+  Novedades---Layout2["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer"]
   Novedades---Auth2["ui-auth - Login"]
   Novedades---API2["shared-api - Auth/Persona/Env/Errores/moduloGuard"]
   Novedades---Desig["feature-designaciones - Designaciones / AsigCursos"]
   Novedades---Anot["feature-anotador - Anotaciones"]
   Novedades---Carg["feature-cargos - CargosLegajo / DocentesSede"]
 
-  Administrador---Layout3["ui-layout - UiShell J2 / ui-persona-search / no-acceso / inactividad"]
+  Administrador---Layout3["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer"]
   Administrador---Auth3["ui-auth - Login"]
   Administrador---API3["shared-api - Auth/Persona/Env/Errores/administradorGuard"]
   Administrador---Personas["feature-personas - DatosPersonales"]
@@ -36,3 +37,5 @@ graph TD
   Administrador---CargosClase["feature-cargos-clase - CargosClase"]
   Administrador---Adicionales["feature-adicionales - Adicionales"]
   Administrador---Sedes["feature-sedes - Sedes"]
+  Administrador---ControlPeriodo["feature-control-periodo - Control del periodo"]
+  Administrador---Usuarios["feature-usuarios - Usuarios"]

@@ -29,6 +29,14 @@ const asigCargosRoute: Route = {
   data: DATOS_MODULO
 };
 
+const etecAsigCargosRoute: Route = {
+  path: 'liquidacion/etec/asig-cargos',
+  loadComponent: () =>
+    import('@haberes/feature-etec-asignaciones').then(m => m.AsignacionesEtecComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const totalesGeneralesRoute: Route = {
   path: 'consultas/totales-generales',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.TotalesGeneralesComponent),
@@ -261,6 +269,7 @@ export const appRoutes: Routes = [
   bonoIndividualRoute,
   liquidacionIndividualRoute,
   asigCargosRoute,
+  etecAsigCargosRoute,
   totalesGeneralesRoute,
   totalesCodigoRoute,
   comparacionMesesRoute,

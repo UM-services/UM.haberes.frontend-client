@@ -1,5 +1,5 @@
 /**
- * Modelos de Asignación de Cargos y Facultades.
+ * Modelos de Asignación de Cargos No Docentes.
  *
  * El backend devuelve `categoria` y `dependencia` embebidas en cada cargo y
  * `facultad` embebida en cada facultad habilitada, así que la grilla no

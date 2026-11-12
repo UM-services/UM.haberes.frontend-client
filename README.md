@@ -40,7 +40,9 @@ um.haberes.frontend-client/
 │   ├── feature-clases/       # @haberes/feature-clases — Clases y valor hora
 │   ├── feature-cargos-clase/ # @haberes/feature-cargos-clase — Cargos con clase
 │   ├── feature-adicionales/  # @haberes/feature-adicionales — Adicional carga horaria
-│   └── feature-sedes/        # @haberes/feature-sedes — Sedes y desarraigo
+│   ├── feature-sedes/       # @haberes/feature-sedes — Sedes y desarraigo
+│   ├── feature-control-periodo/ # @haberes/feature-control-periodo — Control del período
+│   └── feature-usuarios/     # @haberes/feature-usuarios — Usuarios y flag administrador
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -51,29 +53,32 @@ um.haberes.frontend-client/
 |---|---|---|
 | `novedades` | 4208 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
 | `liquidacion` | 4209 | Módulo de liquidación de haberes y catálogo central de operaciones |
-| `administrador` | 4211 | Módulo de administración de parámetros, restringido a usuarios sin facultad asignada |
+| `administrador` | 4211 | Módulo de administración de parámetros, restringido a usuarios sin facultad asignada y con el flag `administrador` de Haberes habilitado |
 
 ## Librerías
 
 | Librería | Alias | Propósito |
 |---|---|---|
-| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`), panel de opciones (`ui-opciones-panel`), pantalla de acceso restringido (`ui-no-acceso`), aviso de inactividad (`ui-inactividad`) y botón de solicitud de acceso (`ui-solicitar-acceso`) |
+| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`), panel de opciones (`ui-opciones-panel`), pantalla de acceso restringido (`ui-no-acceso`), aviso de inactividad (`ui-inactividad`), botón de solicitud de acceso (`ui-solicitar-acceso`), pipes `umImporte`/`umFecha`, input de fecha `ui-input-fecha` y directiva `[uiStickyFooter]` |
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo bajo diseño J2 (marca sólo texto) y modal de cambio de clave (`lib-cambio-clave-modal`) |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
-| `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
+| `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
+| `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): alta y baja con dependencia, fechas, observaciones, valor del punto del período e importe estimado (`/liquidacion/etec/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
 | `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
 | `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
-| `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, flags y vigencia mensual |
+| `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, puntos ETEC, flags y vigencia mensual |
 | `feature-codigos` | `@haberes/feature-codigos` | Códigos de concepto, grupo contable y conceptos AFIP |
 | `feature-clases` | `@haberes/feature-clases` | Clases de hora cátedra y valor hora |
 | `feature-cargos-clase` | `@haberes/feature-cargos-clase` | Cargos con clase y asignaciones por período |
 | `feature-adicionales` | `@haberes/feature-adicionales` | Rangos de adicional por carga horaria |
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
+| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP y modo de liquidación |
+| `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
 
 ## Sistema de Diseño Institucional (J2)
 
@@ -82,7 +87,8 @@ Todas las aplicaciones comparten el tema visual **J2** institucional de 4 capas,
 - **Tokens (`@theme static`)**: Paleta `um-*` (`bg-um-sidebar`, `text-um-ink`, `border-um-border`, `bg-um-surface`, `text-um-primary`), tipografía Inter institucional, espaciados y radios. Es la única fuente de colores corporativos.
 - **Base y Densidad (`@layer base`)**: Escala global del `87.5%` (~14px base) para maximizar la densidad visual en escritorio, normalización de spinners numéricos y cifras tabulares (`tabular-nums`) para alineación contable precisa.
 - **Shell Estructural (`<ui-shell>`)**: Shell J2 (`@haberes/ui-layout`) con sidebar oscuro institucional, badge de ambiente coloreado según entorno (`APP_ENV_INFO`), usuario, sede, cambio de clave, logout y menú polimórfico (lineal para `novedades` y agrupado para `liquidacion`).
-- **Utilidades de Componentes (`@layer components`)**: Clases semánticas `.um-*`: `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`.um-input-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`) y `.um-table`.
+- **Utilidades de Componentes (`@layer components`)**: Clases semánticas `.um-*`: `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`.um-input-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`), `.um-table` y `.um-sticky-footer`.
+- **Pipes y controles compartidos**: `umImporte` (importes en `1.234.567,89`, con modo `'simbolo'`), `umFecha` (`dd/MM/yyyy` con hora opcional), `ui-input-fecha` (fecha `dd/mm/aaaa` estable, valor ISO) y `[uiStickyFooter]` (barra de acciones fija al pie) viven en `@haberes/ui-layout`; no se reimplementan por pantalla.
 - **Marca institucional**: La marca del shell y del login es siempre texto (`UM · Haberes` + nombre del módulo en el sidebar; `um-eyebrow`/`um-page-title` en login), espejo de tesoreria-frontend; no se usan logos ni imágenes de marca.
 - **Nomenclatura limpia**: Prohibición de términos o referencias a Visual Basic 6 (`.frm`, `.vbp`, etc.) en cualquier título, badge o etiqueta visible al usuario. Ver detalle completo en [AGENTS.md](AGENTS.md).
 

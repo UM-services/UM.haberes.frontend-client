@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Persona, mensajeDeError } from '@haberes/shared-api';
-import { PersonaSearchComponent } from '@haberes/ui-layout';
+import { PersonaSearchComponent, ImportePipe, InputFechaComponent } from '@haberes/ui-layout';
 import {
   AntiguedadPeriodo,
   Contacto,
@@ -54,7 +54,7 @@ interface ContactoForm {
   selector: 'lib-personas',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, PersonaSearchComponent],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent, ImportePipe, InputFechaComponent],
   templateUrl: './personas.component.html',
 })
 export class PersonasComponent implements OnInit {

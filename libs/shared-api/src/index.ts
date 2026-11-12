@@ -14,3 +14,4 @@ export * from './lib/env/env-display';
 export * from './lib/env/env-info';
 export * from './lib/util/api-error';
 export * from './lib/util/periodo';
+export * from './lib/util/fecha';

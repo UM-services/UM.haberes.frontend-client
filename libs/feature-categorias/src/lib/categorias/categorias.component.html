@@ -4,37 +4,11 @@
       <p class="um-eyebrow">Catálogos de liquidación</p>
       <h1 class="um-page-title">Categorías</h1>
       <p class="um-page-desc">
-        Básicos por categoría, flags docente/no docente y vigencia mensual.
+        Básicos por categoría, flags docente/no docente, puntos ETEC y vigencia mensual.
       </p>
     </div>
 
     <div class="flex flex-wrap items-end gap-2">
-      <div>
-        <label class="um-label" for="categoria-anho">Año</label>
-        <input
-          id="categoria-anho"
-          type="number"
-          min="2000"
-          max="2100"
-          class="um-input w-24 text-center font-mono tabular-nums"
-          [ngModel]="anho()"
-          (ngModelChange)="anho.set($event)"
-          name="anho"
-        />
-      </div>
-      <div>
-        <label class="um-label" for="categoria-mes">Mes</label>
-        <input
-          id="categoria-mes"
-          type="number"
-          min="1"
-          max="12"
-          class="um-input w-20 text-center font-mono tabular-nums"
-          [ngModel]="mes()"
-          (ngModelChange)="mes.set($event)"
-          name="mes"
-        />
-      </div>
       <button type="button" class="um-btn-primary" (click)="nueva()">Nueva categoría</button>
       <button type="button" class="um-btn-secondary" (click)="exportar()">Exportar</button>
       <label class="um-btn-secondary cursor-pointer">
@@ -58,7 +32,7 @@
   }
 
   <p class="mt-3 text-xs text-um-muted">
-    El período seleccionado versiona el básico mensual. La importación usa el mismo período.
+    El básico se versiona en el período actual. La importación usa ese mismo período.
   </p>
 
   <div class="mt-4 grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -73,17 +47,18 @@
             <th class="text-center">No doc.</th>
             <th class="text-center">L/hora</th>
             <th class="text-right">Estado docente</th>
+            <th class="text-right">Puntos ETEC</th>
             <th class="w-20"></th>
           </tr>
         </thead>
         <tbody>
           @if (cargando()) {
             <tr>
-              <td colspan="8" class="py-8 text-center text-um-muted">Cargando…</td>
+              <td colspan="9" class="py-8 text-center text-um-muted">Cargando…</td>
             </tr>
           } @else if (categorias().length === 0) {
             <tr>
-              <td colspan="8" class="py-8 text-center text-um-muted">
+              <td colspan="9" class="py-8 text-center text-um-muted">
                 Sin categorías registradas.
               </td>
             </tr>
@@ -97,7 +72,7 @@
               <td class="font-mono tabular-nums">{{ categoria.categoriaId }}</td>
               <td>{{ categoria.nombre }}</td>
               <td class="text-right font-mono tabular-nums">
-                {{ categoria.basico | number: '1.2-2' }}
+                {{ categoria.basico | umImporte }}
               </td>
               <td class="text-center">
                 @if (categoria.docente === 1) {
@@ -121,7 +96,14 @@
                 }
               </td>
               <td class="text-right font-mono tabular-nums">
-                {{ categoria.estadoDocente ?? 0 | number: '1.2-2' }}
+                {{ categoria.estadoDocente ?? 0 | umImporte }}
+              </td>
+              <td class="text-right font-mono tabular-nums">
+                @if ((categoria.puntos ?? 0) > 0) {
+                  <span class="um-badge bg-um-selected text-um-primary">{{ categoria.puntos }}</span>
+                } @else {
+                  <span class="text-um-muted">—</span>
+                }
               </td>
               <td class="text-right">
                 <button
@@ -138,7 +120,7 @@
       </table>
     </section>
 
-    <section class="um-card h-fit">
+    <section class="um-card h-fit xl:sticky xl:top-6">
       <h2 class="um-eyebrow">{{ esNueva() ? 'Nueva categoría' : 'Editar categoría' }}</h2>
 
       <div class="mt-4 space-y-4">
@@ -146,10 +128,16 @@
           <label class="um-label" for="categoria-id">Categoría</label>
           <input
             id="categoria-id"
-            class="um-input font-mono"
-            [value]="form.categoriaId || '—'"
-            readonly
+            type="number"
+            min="1"
+            class="um-input font-mono tabular-nums"
+            [(ngModel)]="form.categoriaId"
+            [disabled]="!esNueva()"
+            name="categoriaId"
           />
+          <p class="mt-1 text-[11px] text-um-muted">
+            Se sugiere el próximo ID; podés cambiarlo. En edición queda fijo.
+          </p>
         </div>
 
         <div>
@@ -166,9 +154,38 @@
             min="0"
             class="um-input text-right font-mono tabular-nums"
             [(ngModel)]="form.basico"
+            [disabled]="esCargoEtec"
             name="basico"
           />
+          <p class="mt-1 text-right font-mono text-[11px] tabular-nums text-um-muted">
+            {{ form.basico | umImporte: 'simbolo' }}
+          </p>
         </div>
+
+        <div>
+          <label class="um-label" for="categoria-puntos">Puntos ETEC</label>
+          <input
+            id="categoria-puntos"
+            type="number"
+            step="0.01"
+            min="0"
+            class="um-input text-right font-mono tabular-nums"
+            [(ngModel)]="form.puntos"
+            (ngModelChange)="onPuntosChange()"
+            name="puntos"
+          />
+          <p class="mt-1 text-right font-mono text-[11px] tabular-nums text-um-muted">
+            {{ form.puntos ?? 0 }} puntos
+          </p>
+        </div>
+
+        @if (esCargoEtec) {
+          <p class="rounded border border-um-border bg-um-surface px-3 py-2 text-[11px] leading-relaxed text-um-muted">
+            Cargo por puntos ETEC: se liquida como
+            <span class="font-mono tabular-nums">puntos × valor del punto</span>. El básico
+            se ignora y el cargo queda marcado como docente.
+          </p>
+        }
 
         <div>
           <label class="um-label" for="categoria-estado">Estado docente</label>
@@ -180,20 +197,23 @@
             [(ngModel)]="form.estadoDocente"
             name="estadoDocente"
           />
+          <p class="mt-1 text-right font-mono text-[11px] tabular-nums text-um-muted">
+            {{ form.estadoDocente | umImporte: 'simbolo' }}
+          </p>
         </div>
 
         <fieldset class="space-y-2">
           <legend class="um-label">Condiciones</legend>
           <label class="flex items-center gap-2 text-sm text-um-text">
-            <input type="checkbox" [(ngModel)]="form.docente" name="docente" />
+            <input type="checkbox" [(ngModel)]="form.docente" [disabled]="esCargoEtec" name="docente" />
             Docente
           </label>
           <label class="flex items-center gap-2 text-sm text-um-text">
-            <input type="checkbox" [(ngModel)]="form.noDocente" name="noDocente" />
+            <input type="checkbox" [(ngModel)]="form.noDocente" [disabled]="esCargoEtec" name="noDocente" />
             No docente
           </label>
           <label class="flex items-center gap-2 text-sm text-um-text">
-            <input type="checkbox" [(ngModel)]="form.liquidaPorHora" name="liquidaPorHora" />
+            <input type="checkbox" [(ngModel)]="form.liquidaPorHora" [disabled]="esCargoEtec" name="liquidaPorHora" />
             Liquida por hora
           </label>
         </fieldset>

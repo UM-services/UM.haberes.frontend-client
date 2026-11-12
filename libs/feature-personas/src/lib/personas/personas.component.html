@@ -136,13 +136,7 @@
 
             <div>
               <label class="um-label" for="persona-nacimiento">Nacimiento</label>
-              <input
-                id="persona-nacimiento"
-                type="date"
-                class="um-input font-mono tabular-nums"
-                [(ngModel)]="form.nacimiento"
-                name="nacimiento"
-              />
+              <ui-input-fecha inputId="persona-nacimiento" [(valor)]="form.nacimiento" />
             </div>
 
             <div>
@@ -234,13 +228,7 @@
 
             <div>
               <label class="um-label" for="persona-alta-docente">Alta docente</label>
-              <input
-                id="persona-alta-docente"
-                type="date"
-                class="um-input font-mono tabular-nums"
-                [(ngModel)]="form.altaDocente"
-                name="altaDocente"
-              />
+              <ui-input-fecha inputId="persona-alta-docente" [(valor)]="form.altaDocente" />
             </div>
 
             <div>
@@ -256,12 +244,9 @@
 
             <div>
               <label class="um-label" for="persona-alta-administrativa">Alta administrativa</label>
-              <input
-                id="persona-alta-administrativa"
-                type="date"
-                class="um-input font-mono tabular-nums"
-                [(ngModel)]="form.altaAdministrativa"
-                name="altaAdministrativa"
+              <ui-input-fecha
+                inputId="persona-alta-administrativa"
+                [(valor)]="form.altaAdministrativa"
               />
             </div>
 
@@ -538,7 +523,7 @@
                 <td class="font-mono tabular-nums">{{ fila.mes }}/{{ fila.anho }}</td>
                 <td class="font-mono text-xs">{{ fila.cbu }}</td>
                 <td class="text-right font-mono tabular-nums">
-                  {{ fila.fijo | number: '1.2-2' }}
+                  {{ fila.fijo | umImporte }}
                 </td>
                 <td class="text-right font-mono tabular-nums">
                   {{ fila.porcentaje | number: '1.2-2' }}
@@ -603,6 +588,9 @@
             [(ngModel)]="cbuForm.fijo"
             name="cbuFijo"
           />
+          <p class="mt-1 text-right font-mono text-[11px] tabular-nums text-um-muted">
+            {{ cbuForm.fijo | umImporte: 'simbolo' }}
+          </p>
         </div>
         <div>
           <label class="um-label" for="cbu-porcentaje">%</label>

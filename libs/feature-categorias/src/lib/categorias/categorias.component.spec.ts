@@ -27,4 +27,22 @@ describe('CategoriasComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
     expect(fixture.componentInstance.categorias()).toEqual([]);
   });
+
+  it('sugiere el siguiente id al crear', async () => {
+    const stub = {
+      ...serviceStub,
+      getLast: () => of({ categoriaId: 1306, nombre: 'Última' }),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [CategoriasComponent],
+      providers: [{ provide: CategoriasService, useValue: stub }],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(CategoriasComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.nueva();
+
+    expect(fixture.componentInstance.form.categoriaId).toBe(1307);
+  });
 });
