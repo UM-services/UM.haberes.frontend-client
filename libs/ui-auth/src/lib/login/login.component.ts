@@ -13,10 +13,12 @@ import { AuthService } from '@haberes/shared-api';
 })
 export class LoginComponent {
   requireFacultadId: boolean | null = null;
+  requireAdministrador: boolean | null = null;
   readonly infoMessage = signal<string>('');
 
   constructor() {
     this.requireFacultadId = this.route.snapshot.data['requireFacultadId'] ?? null;
+    this.requireAdministrador = this.route.snapshot.data['requireAdministrador'] ?? null;
     if (this.route.snapshot.queryParams['motivo'] === 'sesion-expirada') {
       this.infoMessage.set('Tu sesión expiró. Volvé a ingresar para continuar.');
     }
@@ -113,6 +115,11 @@ export class LoginComponent {
           if (this.requireFacultadId === false && response.usuario.facultadId) {
             this.authService.clearSession();
             this.errorMessage.set('Módulo GLOBAL. Usuario restringido a facultad.');
+            return;
+          }
+          if (this.requireAdministrador === true && response.usuario.administrador !== 1) {
+            this.authService.clearSession();
+            this.errorMessage.set('Módulo ADMINISTRADOR. Usuario NO habilitado.');
             return;
           }
           this.router.navigate(['/']);
