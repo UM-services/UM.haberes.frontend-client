@@ -23,12 +23,12 @@ import {
 } from './asignacion-cargos.models';
 
 /**
- * Asignación de Cargos y Facultades de un agente.
+ * Asignación de Cargos No Docentes de un agente.
  *
  * Misma operación que el formulario legado: alta, actualización y baja de
  * cargos del legajo y habilitación/remoción de sus facultades. Las reglas de
  * jornada y horas según `liquidaPorHora` se aplican en la pantalla; el backend
- * valida el resto.
+ * valida el resto. Los cargos con puntos (ETEC) tienen su propia pantalla.
  */
 @Component({
   selector: 'haberes-asignacion-cargos',

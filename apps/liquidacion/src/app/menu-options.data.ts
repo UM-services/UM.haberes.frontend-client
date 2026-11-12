@@ -2,7 +2,8 @@ import { MenuGroup, MenuItem } from '@haberes/ui-layout';
 
 export interface OpcionSistema extends MenuItem {
   grupo: string;
-  origenVb6: string;
+  /** Formulario legacy de origen; interno, nunca se renderiza en la UI. */
+  origenVb6?: string;
   descripcion: string;
 }
 
@@ -21,12 +22,19 @@ export const MENU_GROUPS: GrupoOpciones[] = [
     iconSvg: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
     items: [
       {
-        label: 'Asignación de Cargos y Facultades',
+        label: 'Asignación de Cargos No Docentes',
         path: '/liquidacion/asig-cargos',
         grupo: 'Liquidación',
         origenVb6: 'frmAsigCargo.frm',
-        descripcion: 'Alta, baja y actualización de cargos del agente y sus facultades habilitadas',
+        descripcion: 'Alta, baja y actualización de cargos no docentes del agente y sus facultades habilitadas',
         iconSvg: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
+      },
+      {
+        label: 'Asignación de Cargos ETEC',
+        path: '/liquidacion/etec/asig-cargos',
+        grupo: 'Liquidación',
+        descripcion: 'Alta y baja de cargos con puntos del agente, con dependencia, fechas y valor del punto',
+        iconSvg: 'M9 7h6m-6 4h6m-6 4h3m6 5H6a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2z'
       },
       {
         label: 'Novedades',
@@ -67,14 +75,6 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         origenVb6: 'frmTransferir.frm',
         descripcion: 'Consolidación y migración de novedades entre períodos y facultades',
         iconSvg: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'
-      },
-      {
-        label: 'Control de Liquidación',
-        path: '/liquidacion/control',
-        grupo: 'Liquidación',
-        origenVb6: 'frmControl.frm',
-        descripcion: 'Controles de consistencia, validaciones de cálculos y auditoría de haberes',
-        iconSvg: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
       },
       {
         label: 'Planilla No Docentes',
@@ -473,6 +473,7 @@ export const TODAS_LAS_OPCIONES: OpcionSistema[] = MENU_GROUPS.flatMap(g => g.it
 export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/liquidacion/individual',
   '/liquidacion/asig-cargos',
+  '/liquidacion/etec/asig-cargos',
   '/consultas/bono-individual',
   '/consultas/totales-generales',
   '/consultas/totales-codigo',

@@ -12,7 +12,7 @@ import {
 } from './asignacion-cargos.models';
 
 /**
- * Cliente de la pantalla Asignación de Cargos y Facultades.
+ * Cliente de la pantalla Asignación de Cargos No Docentes.
  *
  * Las escrituras envían `X-Legajo-Solicitante` para que haberes-core resuelva
  * el actor de la auditoría (el backend no lo recibe en el body).
