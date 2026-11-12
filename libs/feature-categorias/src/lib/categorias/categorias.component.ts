@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { mensajeDeError } from '@haberes/shared-api';
+import { ImportePipe } from '@haberes/ui-layout';
 import { Categoria, CategoriasService } from './categorias.service';
 
 interface CategoriaForm {
@@ -9,6 +10,7 @@ interface CategoriaForm {
   nombre: string;
   basico: number;
   estadoDocente: number;
+  puntos: number;
   docente: boolean;
   noDocente: boolean;
   liquidaPorHora: boolean;
@@ -18,7 +20,7 @@ interface CategoriaForm {
   selector: 'lib-categorias',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImportePipe],
   templateUrl: './categorias.component.html',
 })
 export class CategoriasComponent implements OnInit {
@@ -32,8 +34,9 @@ export class CategoriasComponent implements OnInit {
   readonly mensaje = signal('');
   readonly esNueva = signal(true);
 
-  readonly anho = signal(new Date().getFullYear());
-  readonly mes = signal(new Date().getMonth() + 1);
+  // El legacy usaba la fecha del sistema: el período no se elige en pantalla.
+  private readonly anho = new Date().getFullYear();
+  private readonly mes = new Date().getMonth() + 1;
 
   form: CategoriaForm = this.formVacio();
 
@@ -57,14 +60,26 @@ export class CategoriasComponent implements OnInit {
 
   nueva(): void {
     this.limpiar();
+
+    // Sugerencia inmediata con la grilla ya cargada; no depende del request.
+    const ultimoLocal = this.categorias().reduce(
+      (max, categoria) => Math.max(max, Number(categoria.categoriaId) || 0),
+      0,
+    );
+    const sugerido = ultimoLocal + 1;
+    this.form = { ...this.formVacio(), categoriaId: sugerido };
+    this.esNueva.set(true);
+
+    // Si la grilla está desactualizada, el backend puede tener un ID mayor.
     this.service.getLast().subscribe({
       next: (ultima) => {
-        this.form = { ...this.formVacio(), categoriaId: (ultima?.categoriaId ?? 0) + 1 };
-        this.esNueva.set(true);
+        const siguiente = Math.max(ultimoLocal, Number(ultima?.categoriaId) || 0) + 1;
+        if (this.esNueva() && this.form.categoriaId === sugerido) {
+          this.form = { ...this.form, categoriaId: siguiente };
+        }
       },
       error: () => {
-        this.form = { ...this.formVacio(), categoriaId: 1 };
-        this.esNueva.set(true);
+        // La sugerencia local ya quedó cargada.
       },
     });
   }
@@ -76,6 +91,7 @@ export class CategoriasComponent implements OnInit {
       nombre: categoria.nombre ?? '',
       basico: Number(categoria.basico ?? 0),
       estadoDocente: Number(categoria.estadoDocente ?? 0),
+      puntos: Number(categoria.puntos ?? 0),
       docente: categoria.docente === 1,
       noDocente: categoria.noDocente === 1,
       liquidaPorHora: categoria.liquidaPorHora === 1,
@@ -89,6 +105,20 @@ export class CategoriasComponent implements OnInit {
     this.form = this.formVacio();
   }
 
+  get esCargoEtec(): boolean {
+    return Number(this.form.puntos ?? 0) > 0;
+  }
+
+  /** Al cargar puntos, el cargo pasa al circuito ETEC (docente, sin básico ni hora). */
+  onPuntosChange(): void {
+    if (this.esCargoEtec) {
+      this.form.docente = true;
+      this.form.noDocente = false;
+      this.form.liquidaPorHora = false;
+      this.form.basico = 0;
+    }
+  }
+
   guardar(): void {
     this.limpiarMensajes();
 
@@ -96,31 +126,49 @@ export class CategoriasComponent implements OnInit {
       this.error.set('El nombre de la categoría es obligatorio.');
       return;
     }
-    if (!this.form.basico || this.form.basico <= 0) {
-      this.error.set('El básico debe ser mayor a cero.');
+
+    const categoriaId = Number(this.form.categoriaId);
+    if (!Number.isInteger(categoriaId) || categoriaId <= 0) {
+      this.error.set('La categoría debe tener un ID entero mayor a cero.');
+      return;
+    }
+    if (this.esNueva() && this.categorias().some((categoria) => categoria.categoriaId === categoriaId)) {
+      this.error.set(`La categoría ${categoriaId} ya existe. Seleccionala en la grilla para editarla.`);
       return;
     }
 
-    const anho = Number(this.anho());
-    const mes = Number(this.mes());
-    if (!anho || anho < 2000 || !mes || mes < 1 || mes > 12) {
-      this.error.set('El período debe tener un año válido y un mes entre 1 y 12.');
+    const puntos = Number(this.form.puntos ?? 0);
+    if (puntos < 0) {
+      this.error.set('Los puntos no pueden ser negativos.');
+      return;
+    }
+
+    // Un cargo con puntos (ETEC) se liquida por puntos × valor del punto: no usa
+    // básico, es docente y no liquida por hora.
+    if (puntos > 0) {
+      this.form.docente = true;
+      this.form.noDocente = false;
+      this.form.liquidaPorHora = false;
+      this.form.basico = 0;
+    } else if (!this.form.basico || this.form.basico <= 0) {
+      this.error.set('El básico debe ser mayor a cero, o el cargo debe tener puntos.');
       return;
     }
 
     const payload = {
-      categoriaId: this.form.categoriaId,
+      categoriaId,
       nombre: this.form.nombre.trim(),
       basico: Number(this.form.basico),
       estadoDocente: Number(this.form.estadoDocente ?? 0),
       docente: this.form.docente ? 1 : 0,
       noDocente: this.form.noDocente ? 1 : 0,
       liquidaPorHora: this.form.liquidaPorHora ? 1 : 0,
+      puntos,
     };
 
     const request$ = this.esNueva()
-      ? this.service.create(payload, anho, mes)
-      : this.service.update(payload, anho, mes);
+      ? this.service.create(payload, this.anho, this.mes)
+      : this.service.update(payload, this.anho, this.mes);
 
     this.guardando.set(true);
     request$.subscribe({
@@ -173,12 +221,8 @@ export class CategoriasComponent implements OnInit {
     input.value = '';
     if (!archivo) return;
 
-    const anho = Number(this.anho());
-    const mes = Number(this.mes());
-    if (!anho || anho < 2000 || !mes || mes < 1 || mes > 12) {
-      this.error.set('El período debe tener un año válido y un mes entre 1 y 12.');
-      return;
-    }
+    const anho = this.anho;
+    const mes = this.mes;
 
     this.limpiarMensajes();
     this.importando.set(true);
@@ -213,6 +257,7 @@ export class CategoriasComponent implements OnInit {
       nombre: '',
       basico: 0,
       estadoDocente: 0,
+      puntos: 0,
       docente: false,
       noDocente: false,
       liquidaPorHora: false,
