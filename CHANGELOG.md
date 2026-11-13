@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.18.0] - 2026-11-13
+
+### Added
+
+- **feat(`simulador-novedades`):** Nueva app (`:4212`) que replica las pantallas del módulo Novedades para administradores globales. Su login declara `requireFacultadId: false` + `requireAdministrador: true`; todas las rutas usan `[authGuard, moduloGuard, administradorGuard]`, las pantallas suman `facultadSimuladaGuard` y `/inicio` queda fuera de esa guard porque es donde se elige la facultad.
+- **feat(`simulador-novedades`):** Barra `app-facultad-bar` proyectada dentro de `<ui-shell>`, visible en todas las pantallas: selector con el catálogo de haberes-core (`GET /api/haberes/core/facultad/`, cacheado con `shareReplay(1)` por `FacultadesSimuladorService`), aviso ámbar «Simulando como *facultad*» con la advertencia de que los cambios impactan datos reales, y estado de error con `mensajeDeError` si el catálogo no carga. Al cambiar de facultad se re-monta la pantalla activa (`onSameUrlNavigation: 'reload'`) y se limpia el aviso de acceso denegado.
+- **feat(`simulador-novedades`):** Panel `/inicio` explica el paso pendiente mientras no hay facultad elegida y habilita el directorio de operaciones en cuanto se selecciona una.
+- **feat(`shared-api`):** `AuthService.simularFacultad()`, `facultadSimuladaNombre` y `simulandoFacultad`; `facultadId` devuelve la facultad simulada mientras la simulación está activa. Sólo un usuario con `administrador === 1` puede fijarla (en otra sesión es no-op), vive en memoria, nunca se persiste en `localStorage` y `clearSession()` la descarta. Los guards siguen leyendo `user.facultadId` de `ensureSession()`, así que la simulación no otorga acceso a otro módulo.
+- **feat(`shared-api`):** `facultadSimuladaGuard`: exige una facultad simulada activa y, si falta, vuelve a `/inicio` sin cerrar la sesión; sin sesión redirige a `/login`.
+- **feat(`novedades-menu`):** Nueva librería `@haberes/novedades-menu` (`type:ui`, `scope:shared`) con `NOVEDADES_MENU_ITEMS` y `NOVEDADES_GRUPOS`, el menú lateral y el directorio del panel principal de Novedades.
+- **feat(`ui-layout`):** `<ui-shell>` proyecta el contenido de la app (`<ng-content>`) al inicio del área principal; las apps que no proyectan nada no cambian.
+- **feat(`simulador-novedades-e2e`):** Proyecto Playwright (chromium) con `BASE_URL` sobre `http://localhost:4212`: rechazo de usuarios con facultad y de usuarios sin el flag, ingreso del administrador con el pedido de facultad, habilitación del directorio y del aviso al seleccionar, y retorno al directorio cuando falta la selección.
+- **feat(CI):** `simulador-novedades` se suma a las matrices `apps` de `deploy-develop.yml`, `deploy-staging.yml` y `docker-publish.yml`; `npm run serve:all` lo levanta en `4212`.
+
+### Changed
+
+- **feat(`novedades`):** El menú lateral y el directorio del panel dejan de vivir en la app (`menu-options.data.ts` se elimina) y pasan a `@haberes/novedades-menu`, para que `novedades` y `simulador-novedades` muestren exactamente las mismas opciones y en el mismo orden.
+- **chore(build):** Nuevo alias `@haberes/novedades-menu` en `tsconfig.base.json`.
+- **docs:** `README.md` documenta la app, la librería compartida, el puerto `4212` y los comandos de desarrollo; `libs/ui-layout/README.md` documenta la proyección de contenido de `<ui-shell>` y el uso de una librería compartida para los grupos del panel; `docs/architecture.mermaid` suma `simulador-novedades` y `novedades-menu`.
+
+### Tests
+
+- `facultad-simulada.guard.spec.ts`: acceso con facultad activa, retorno a `/inicio` sin cerrar la sesión y redirección a `/login` sin sesión.
+- `auth.service.spec.ts`: un administrador simula otra facultad sin alterar la sesión ni `localStorage`, un usuario con facultad no puede simular, y `logout()` descarta la simulación.
+- `ui-shell.spec.ts`: el contenido proyectado por la app aparece en la vista autenticada.
+- `novedades-menu.data.spec.ts`: el menú cubre todas las pantallas, cada opción tiene label e ícono, el directorio replica el menú sin el panel y todas sus opciones están disponibles.
+- `app.routes.spec.ts` (simulador): login con `requireFacultadId: false` + `requireAdministrador: true`, ruta pública de acceso restringido, guards en todas las rutas, `facultadSimuladaGuard` en cada pantalla, `/inicio` sin esa guard y pantallas idénticas a `NOVEDADES_MENU_ITEMS`.
+- `app.spec.ts` (simulador): la app se crea y reutiliza el menú del módulo Novedades.
+- `simulador.spec.ts` (E2E): usuario con facultad y usuario sin flag terminan en `/sin-acceso` conservando la sesión, el administrador entra y ve el pedido de facultad, la selección habilita el directorio y una pantalla sin facultad vuelve a `/inicio`.
+
 ## [0.17.0] - 2026-11-12
 
 ### Added
