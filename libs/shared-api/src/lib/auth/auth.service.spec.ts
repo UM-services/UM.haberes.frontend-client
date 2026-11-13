@@ -238,4 +238,73 @@ describe('AuthService', () => {
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
     expect(service.currentUserValue).toBeNull();
   });
+
+  it('un administrador puede simular otra facultad sin cambiar la sesión', () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ version: 2, legajoId: 123 }));
+    const service = crearServicio();
+
+    service.ensureSession().subscribe();
+    http.expectOne('/api/haberes/core/persona/123').flush(persona);
+    http.expectOne('/api/haberes/core/usuario/123').flush({
+      legajoId: 123,
+      usuarioId: 7,
+      facultadId: null,
+      administrador: 1,
+    });
+
+    expect(service.facultadId()).toBeNull();
+    expect(service.simulandoFacultad()).toBe(false);
+
+    service.simularFacultad({ facultadId: 9, nombre: 'Derecho' });
+
+    expect(service.facultadId()).toBe(9);
+    expect(service.facultadSimuladaNombre()).toBe('Derecho');
+    expect(service.simulandoFacultad()).toBe(true);
+    // La sesión revalidada conserva la facultad real (null): la simulación es
+    // sólo un contexto de filtrado y no altera la identidad.
+    expect(service.currentUserValue?.facultadId).toBeNull();
+    expect(JSON.parse(localStorage.getItem(SESSION_KEY) ?? '{}')).toEqual({
+      version: 2,
+      legajoId: 123,
+    });
+  });
+
+  it('un usuario con facultad no puede simular otra facultad', () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ version: 2, legajoId: 123 }));
+    const service = crearServicio();
+
+    service.ensureSession().subscribe();
+    flushSession({ nombre: 'Ingeniería' });
+
+    expect(service.facultadId()).toBe(3);
+
+    service.simularFacultad({ facultadId: 9, nombre: 'Derecho' });
+
+    expect(service.facultadId()).toBe(3);
+    expect(service.facultadSimuladaNombre()).toBeNull();
+    expect(service.simulandoFacultad()).toBe(false);
+  });
+
+  it('cerrar sesión descarta la facultad simulada', () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ version: 2, legajoId: 123 }));
+    const service = crearServicio();
+
+    service.ensureSession().subscribe();
+    http.expectOne('/api/haberes/core/persona/123').flush(persona);
+    http.expectOne('/api/haberes/core/usuario/123').flush({
+      legajoId: 123,
+      usuarioId: 7,
+      facultadId: null,
+      administrador: 1,
+    });
+
+    service.simularFacultad({ facultadId: 9, nombre: 'Derecho' });
+    expect(service.simulandoFacultad()).toBe(true);
+
+    service.logout();
+
+    expect(service.facultadId()).toBeNull();
+    expect(service.facultadSimuladaNombre()).toBeNull();
+    expect(service.simulandoFacultad()).toBe(false);
+  });
 });
