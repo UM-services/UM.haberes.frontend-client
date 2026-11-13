@@ -1,0 +1,20 @@
+{
+  "name": "novedades-menu",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/novedades-menu/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["type:ui", "scope:shared"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "novedades:build:development",
+        "tsConfig": "libs/novedades-menu/tsconfig.spec.json"
+      }
+    }
+  }
+}
