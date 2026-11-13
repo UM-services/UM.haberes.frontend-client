@@ -1,0 +1,91 @@
+{
+  "name": "simulador-novedades",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/simulador-novedades/src",
+  "tags": ["type:app", "scope:simulador"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/simulador-novedades",
+        "browser": "apps/simulador-novedades/src/main.ts",
+        "tsConfig": "apps/simulador-novedades/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/simulador-novedades/public"
+          }
+        ],
+        "styles": ["apps/simulador-novedades/src/styles.css"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "fileReplacements": [
+            {
+              "replace": "apps/simulador-novedades/src/environments/environment.ts",
+              "with": "apps/simulador-novedades/src/environments/environment.development.ts"
+            }
+          ],
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4212
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "simulador-novedades:build:production"
+        },
+        "development": {
+          "buildTarget": "simulador-novedades:build:development"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "simulador-novedades:build:development",
+        "watch": false
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "simulador-novedades:build",
+        "port": 4212,
+        "staticFilePath": "dist/apps/simulador-novedades/browser",
+        "spa": true
+      }
+    }
+  }
+}
