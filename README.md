@@ -22,11 +22,14 @@ um.haberes.frontend-client/
 │   ├── administrador/        # App de Administración de parámetros de Haberes
 │   ├── liquidacion/          # App de Liquidación de Haberes
 │   ├── novedades/            # App de Gestión de Novedades, Designaciones, Anotaciones y Cargos
-│   └── novedades-e2e/        # Tests E2E (Playwright) de novedades
+│   ├── simulador-novedades/  # Réplica de Novedades con selector de facultad (administradores)
+│   ├── novedades-e2e/        # Tests E2E (Playwright) de novedades
+│   └── simulador-novedades-e2e/ # Tests E2E (Playwright) del simulador
 ├── libs/
 │   ├── ui-layout/            # @haberes/ui-layout — Shell institucional J2 unificado (ui-shell, ui-opciones-panel)
 │   ├── ui-auth/              # @haberes/ui-auth — Login y cambio de clave J2
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards, env
+│   ├── novedades-menu/       # @haberes/novedades-menu — Menú y directorio compartidos de Novedades
 │   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Cargos del legajo, docentes sede y asignación de cargos
@@ -54,6 +57,7 @@ um.haberes.frontend-client/
 | `novedades` | 4208 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
 | `liquidacion` | 4209 | Módulo de liquidación de haberes y catálogo central de operaciones |
 | `administrador` | 4211 | Módulo de administración de parámetros, restringido a usuarios sin facultad asignada y con el flag `administrador` de Haberes habilitado |
+| `simulador-novedades` | 4212 | Réplica del módulo Novedades para administradores: mismas pantallas con un selector de facultad, para soporte y diagnóstico |
 
 ## Librerías
 
@@ -62,6 +66,7 @@ um.haberes.frontend-client/
 | `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`), panel de opciones (`ui-opciones-panel`), pantalla de acceso restringido (`ui-no-acceso`), aviso de inactividad (`ui-inactividad`), botón de solicitud de acceso (`ui-solicitar-acceso`), pipes `umImporte`/`umFecha`, input de fecha `ui-input-fecha` y directiva `[uiStickyFooter]` |
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo bajo diseño J2 (marca sólo texto) y modal de cambio de clave (`lib-cambio-clave-modal`) |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
+| `novedades-menu` | `@haberes/novedades-menu` | Menú lateral y directorio del panel principal de Novedades, compartidos entre `novedades` y `simulador-novedades` |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
@@ -99,19 +104,23 @@ Todas las aplicaciones comparten el tema visual **J2** institucional de 4 capas,
 nx serve liquidacion
 nx serve novedades
 nx serve administrador
+nx serve simulador-novedades
 
 # Build producción
 nx build liquidacion --configuration=production
 nx build novedades --configuration=production
 nx build administrador --configuration=production
+nx build simulador-novedades --configuration=production
 
 # Tests
 nx test liquidacion
 nx test novedades
 nx test administrador
+nx test simulador-novedades
 
-# Tests E2E (levanta novedades en 4208; BASE_URL apunta a una app desplegada)
+# Tests E2E (levantan la app en 4208 / 4212; BASE_URL apunta a una app desplegada)
 nx e2e novedades-e2e
+nx e2e simulador-novedades-e2e
 
 # Linting
 nx lint liquidacion
@@ -141,6 +150,7 @@ docker build -f docker/app.Dockerfile --build-arg APP=novedades -t um-haberes-no
 npm run docker:app -- novedades        # build + up -d
 npm run docker:app -- liquidacion --no-up
 npm run docker:app -- administrador    # módulo administrador (4211)
+npm run docker:app -- simulador-novedades  # simulador de Novedades (4212)
 
 # Ejecutar con backend personalizado + entorno/version
 docker run -e BACKEND_URL=http://backend:8091 -e ENV_NAME=develop -e APP_VERSION=abc123 -p 443:443 um-haberes-novedades-client
