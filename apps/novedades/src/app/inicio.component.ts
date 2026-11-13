@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { NOVEDADES_GRUPOS } from '@haberes/novedades-menu';
 import { UiOpcionesPanelComponent } from '@haberes/ui-layout';
-import { NOVEDADES_GRUPOS } from './menu-options.data';
 
 /** Panel principal del módulo Novedades: catálogo de opciones en formato hub. */
 @Component({

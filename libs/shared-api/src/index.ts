@@ -4,6 +4,7 @@ export * from './lib/auth/auth.guard';
 export * from './lib/auth/unauth.guard';
 export * from './lib/auth/administrador.guard';
 export * from './lib/auth/modulo.guard';
+export * from './lib/auth/facultad-simulada.guard';
 export * from './lib/acceso-denegado.service';
 export * from './lib/acceso.constants';
 export * from './lib/inactividad.config';

@@ -3,12 +3,14 @@ graph TD
   Client-->Liquidacion["liquidacion :4209"]
   Client-->Novedades["novedades :4208"]
   Client-->Administrador["administrador :4211 (facultadId null + administrador = 1)"]
+  Client-->Simulador["simulador-novedades :4212 (facultadId null + administrador = 1 + facultad simulada)"]
 
   Liquidacion-->Gateway["haberes-gateway-service :8091 /api/"]
   Novedades-->Gateway
   Administrador-->Gateway
+  Simulador-->Gateway
 
-  Liquidacion---Layout1["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer"]
+  Liquidacion---Layout1["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Liquidacion---Auth1["ui-auth - Login"]
   Liquidacion---API1["shared-api - Auth/Persona/Env/Errores/moduloGuard"]
   Liquidacion---Bonos["feature-bonos - BonoIndividual"]
@@ -20,14 +22,15 @@ graph TD
   Liquidacion---CargLiq["feature-cargos - AsignacionCargos"]
   Liquidacion---Etec["feature-etec-asignaciones - AsignacionesEtec"]
 
-  Novedades---Layout2["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer"]
+  Novedades---Layout2["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Novedades---Auth2["ui-auth - Login"]
   Novedades---API2["shared-api - Auth/Persona/Env/Errores/moduloGuard"]
   Novedades---Desig["feature-designaciones - Designaciones / AsigCursos"]
   Novedades---Anot["feature-anotador - Anotaciones"]
   Novedades---Carg["feature-cargos - CargosLegajo / DocentesSede"]
+  Novedades---MenuNov["novedades-menu - Menu lateral / Directorio del panel"]
 
-  Administrador---Layout3["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer"]
+  Administrador---Layout3["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Administrador---Auth3["ui-auth - Login"]
   Administrador---API3["shared-api - Auth/Persona/Env/Errores/administradorGuard"]
   Administrador---Personas["feature-personas - DatosPersonales"]
@@ -39,3 +42,12 @@ graph TD
   Administrador---Sedes["feature-sedes - Sedes"]
   Administrador---ControlPeriodo["feature-control-periodo - Control del periodo"]
   Administrador---Usuarios["feature-usuarios - Usuarios"]
+
+  Simulador---Layout4["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
+  Simulador---Auth4["ui-auth - Login"]
+  Simulador---API4["shared-api - Auth/Persona/Env/Errores/moduloGuard/administradorGuard/facultadSimuladaGuard"]
+  Simulador---MenuSim["novedades-menu - Menu lateral / Directorio del panel"]
+  Simulador---DesigSim["feature-designaciones - Designaciones / AsigCursos"]
+  Simulador---AnotSim["feature-anotador - Anotaciones"]
+  Simulador---CargSim["feature-cargos - CargosLegajo / DocentesSede"]
+  Simulador---FacultadBar["FacultadBar - selector de facultad simulada (GET core/facultad)"]

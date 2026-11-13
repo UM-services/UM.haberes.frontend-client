@@ -32,7 +32,8 @@
       "@haberes/feature-codigos": ["./libs/feature-codigos/src/index.ts"],
       "@haberes/feature-sedes": ["./libs/feature-sedes/src/index.ts"],
       "@haberes/feature-control-periodo": ["./libs/feature-control-periodo/src/index.ts"],
-      "@haberes/feature-usuarios": ["./libs/feature-usuarios/src/index.ts"]
+      "@haberes/feature-usuarios": ["./libs/feature-usuarios/src/index.ts"],
+      "@haberes/novedades-menu": ["./libs/novedades-menu/src/index.ts"]
     },
     "rootDir": "."
   }

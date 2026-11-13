@@ -1,4 +1,4 @@
-import { computed, Injectable, inject } from '@angular/core';
+import { computed, Injectable, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -72,6 +72,15 @@ interface FacultadResumen {
 }
 
 /**
+ * Facultad que un administrador elige en el módulo Simulador Novedades para
+ * reemplazar la facultad de la sesión (que en un administrador global es null).
+ */
+export interface FacultadSimulada {
+  facultadId: number;
+  nombre: string;
+}
+
+/**
  * Sesion persistida. Solo guardamos el legajoId: la facultad se revalida
  * contra haberes-core en cada arranque (ver `ensureSession`). Antes se
  * guardaba la Persona completa, incluido `facultadId`, y el navegador quedaba
@@ -108,17 +117,40 @@ export class AuthService {
   });
 
   /**
-   * Facultad asignada a la sesión. Es el filtro que usan todas las pantallas de
+   * Facultad simulada por un administrador en el módulo Simulador Novedades.
+   * No se persiste: vive en memoria y se descarta con `clearSession()`.
+   */
+  private readonly facultadSimulada = signal<FacultadSimulada | null>(null);
+
+  /**
+   * Facultad efectiva de la sesión. Es el filtro que usan todas las pantallas de
    * Haberes; null cuando el usuario no tiene facultad asignada (módulos
    * globales, como Administrador).
+   *
+   * En el módulo Simulador Novedades un administrador puede reemplazarla por la
+   * facultad que quiere inspeccionar. Los guards de acceso NO usan este computed:
+   * leen `user.facultadId` de `ensureSession()`, para que la simulación nunca
+   * otorgue acceso a otro módulo.
    */
-  readonly facultadId = computed<number | null>(() => this.currentUser()?.facultadId ?? null);
+  readonly facultadId = computed<number | null>(
+    () => this.facultadSimulada()?.facultadId ?? this.currentUser()?.facultadId ?? null,
+  );
+
+  /** Nombre de la facultad simulada, para el aviso persistente del simulador. */
+  readonly facultadSimuladaNombre = computed<string | null>(
+    () => this.facultadSimulada()?.nombre ?? null,
+  );
 
   /**
    * Flag `usuario.administrador` de la sesión validada. Con la regla vigente
    * (D1: aditivo estricto) el módulo Administrador exige además `facultadId == null`.
    */
   readonly esAdministrador = computed<boolean>(() => this.currentUser()?.administrador === 1);
+
+  /** true cuando `facultadId` proviene de la simulación y no de la sesión. */
+  readonly simulandoFacultad = computed<boolean>(
+    () => this.esAdministrador() && this.facultadSimulada() !== null,
+  );
 
   /** legajoId persistido, sin datos derivados que puedan quedar desactualizados. */
   private storedLegajoId: number | null;
@@ -266,10 +298,23 @@ export class AuthService {
     return this.http.put<void>(`${this.usuarioUrl}/setpassword`, { legajoId, password, build: 1 });
   }
 
+  /**
+   * Elige la facultad a simular en el módulo Simulador Novedades.
+   *
+   * Sólo un administrador global (sin facultad y con el flag) puede fijarla;
+   * en cualquier otra sesión es un no-op. La elección no se persiste: se
+   * descarta al cerrar sesión para no arrastrar un contexto viejo.
+   */
+  simularFacultad(facultad: FacultadSimulada | null): void {
+    if (!this.esAdministrador()) return;
+    this.facultadSimulada.set(facultad);
+  }
+
   clearSession() {
     this.storedLegajoId = null;
     this.sessionValidated = false;
     this.validation$ = null;
+    this.facultadSimulada.set(null);
     this.currentUserSubject.next(null);
     localStorage.removeItem(SESSION_KEY);
   }

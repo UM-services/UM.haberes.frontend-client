@@ -307,6 +307,9 @@ const ENV_BADGE_BASE_CLASSES =
 
           <!-- Vista de Contenido Central -->
           <main class="flex-1 w-full max-w-[1320px] mx-auto px-4 py-7 sm:px-7 lg:px-12 lg:py-9">
+            <!-- Contenido proyectado por la app (p. ej. la barra de facultad del
+                 Simulador Novedades). Las demás apps no proyectan nada. -->
+            <ng-content></ng-content>
             @if (avisoBanner(); as aviso) {
               <div class="um-alert um-alert-warn mb-6" role="alert">
                 <div class="flex flex-wrap items-start justify-between gap-3">
