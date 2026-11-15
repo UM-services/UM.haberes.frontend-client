@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import {
   CodigoBusqueda,
+  CodigoGrupo,
   FichaLiquidacionIndividual,
   NovedadRegistradaResponse,
   RegistroNovedadRequest,
@@ -23,6 +24,12 @@ export class LiquidacionIndividualService {
 
   private readonly url = '/api/haberes/core/liquidacion-individual';
   private readonly codigoUrl = '/api/haberes/core/codigo';
+  private readonly codigoGrupoUrl = '/api/haberes/core/codigogrupo';
+
+  /** Catálogo que indica si cada concepto es remunerativo, no remunerativo, descuento o total. */
+  grupos(): Observable<CodigoGrupo[]> {
+    return this.http.get<CodigoGrupo[]>(`${this.codigoGrupoUrl}/`);
+  }
 
   ficha(legajoId: number, anho: number, mes: number): Observable<FichaLiquidacionIndividual> {
     return this.http.get<FichaLiquidacionIndividual>(`${this.url}/${legajoId}/${anho}/${mes}`);

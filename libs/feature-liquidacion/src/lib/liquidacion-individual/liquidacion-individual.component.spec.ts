@@ -52,6 +52,28 @@ describe('LiquidacionIndividualComponent', () => {
     }
   });
 
+  const fichaConItems = (): FichaLiquidacionIndividual => ({
+    ...fichaBase(),
+    liquidacion: {
+      liquidacionId: 7,
+      bloqueado: 0,
+      estado: 1,
+      liquida: 'S',
+      totalRemunerativo: 1500,
+      totalNoRemunerativo: 0,
+      totalDeduccion: 300,
+      totalNeto: 1200,
+      fechaLiquidacion: null,
+      fechaAcreditacion: null
+    },
+    items: [
+      { itemId: 1, codigoId: 1, codigoNombre: 'ASIGNACION CARGO', importe: 1000 },
+      { itemId: 2, codigoId: 985, codigoNombre: 'PRESENTISMO ETEC', importe: 200 },
+      { itemId: 3, codigoId: 61, codigoNombre: 'JUBILACION', importe: 300 },
+      { itemId: 4, codigoId: 96, codigoNombre: 'TOTAL REMUNERATIVO', importe: 1200 }
+    ]
+  });
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -156,5 +178,43 @@ describe('LiquidacionIndividualComponent', () => {
 
     httpMock.expectOne('/api/haberes/core/liquidacion-individual/1001/2026/11').flush(fichaBase());
     expect(component.exito()).toBe('Liquidación generada correctamente.');
+  });
+
+  it('separa los conceptos por grupo y no muestra los totales como concepto', () => {
+    component.seleccionarPersona(persona);
+    httpMock.expectOne('/api/haberes/core/liquidacion-individual/1001/2026/11').flush(fichaConItems());
+    httpMock.expectOne('/api/haberes/core/codigogrupo/').flush([
+      { codigoId: 1, remunerativo: 1, noRemunerativo: 0, deduccion: 0, total: 0 },
+      { codigoId: 985, remunerativo: 1, noRemunerativo: 0, deduccion: 0, total: 0 },
+      { codigoId: 61, remunerativo: 0, noRemunerativo: 0, deduccion: 1, total: 0 },
+      { codigoId: 96, remunerativo: 0, noRemunerativo: 0, deduccion: 0, total: 1 }
+    ]);
+
+    const grupos = component.itemsAgrupados();
+    expect(grupos?.map((grupo) => grupo.clave)).toEqual(['remunerativo', 'deduccion']);
+    expect(grupos?.[0].items.map((item) => item.codigoId)).toEqual([1, 985]);
+    expect(grupos?.[0].total).toBe(1500);
+    expect(grupos?.[1].items.map((item) => item.codigoId)).toEqual([61]);
+    expect(grupos?.[1].total).toBe(300);
+  });
+
+  it('sin catálogo de grupos deja la tabla plana', () => {
+    component.seleccionarPersona(persona);
+    httpMock.expectOne('/api/haberes/core/liquidacion-individual/1001/2026/11').flush(fichaConItems());
+    httpMock.expectOne('/api/haberes/core/codigogrupo/')
+      .flush('error', { status: 500, statusText: 'Server Error' });
+
+    expect(component.itemsAgrupados()).toBeNull();
+  });
+
+  it('refresca el catálogo de grupos al recargar la ficha', () => {
+    component.seleccionarPersona(persona);
+    httpMock.expectOne('/api/haberes/core/liquidacion-individual/1001/2026/11').flush(fichaConItems());
+    httpMock.expectOne('/api/haberes/core/codigogrupo/').flush([]);
+
+    component.cargarFicha();
+
+    httpMock.expectOne('/api/haberes/core/liquidacion-individual/1001/2026/11').flush(fichaConItems());
+    httpMock.expectOne('/api/haberes/core/codigogrupo/').flush([]);
   });
 });

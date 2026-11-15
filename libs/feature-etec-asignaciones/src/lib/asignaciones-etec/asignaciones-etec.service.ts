@@ -29,7 +29,7 @@ export class AsignacionesEtecService {
   private readonly cargoUrl = '/api/haberes/etec/cargo';
   private readonly asignacionUrl = '/api/haberes/etec/asignacion-cargo';
   private readonly dependenciaUrl = '/api/haberes/core/dependencia';
-  private readonly controlUrl = '/api/haberes/core/control';
+  private readonly controlUrl = '/api/haberes/core/etec/control';
 
   catalogos(): Observable<CatalogosEtec> {
     return forkJoin({
@@ -67,9 +67,9 @@ export class AsignacionesEtecService {
     return this.http.delete<void>(`${this.asignacionUrl}/${asignacionCargoId}`, this.headers(solicitante));
   }
 
-  /** `200` con cuerpo vacío cuando el período todavía no tiene control cargado. */
+  /** `200` con cuerpo vacío cuando el período todavía no tiene control ETEC cargado. */
   valorPunto(anho: number, mes: number): Observable<ControlPeriodo | null> {
-    return this.http.get<ControlPeriodo | null>(`${this.controlUrl}/periodo/${anho}/${mes}/opcional`);
+    return this.http.get<ControlPeriodo | null>(`${this.controlUrl}/${anho}/${mes}/opcional`);
   }
 
   private headers(solicitante: number | null): { headers: Record<string, string> } {

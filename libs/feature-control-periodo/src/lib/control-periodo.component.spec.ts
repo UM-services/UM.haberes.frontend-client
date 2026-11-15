@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { API_URL } from '@haberes/shared-api';
 
 import { ControlPeriodoComponent } from './control-periodo.component';
-import { ControlPeriodo, ModoLiquidacion, mesSiguiente } from './control-periodo.models';
+import { ControlEtec, ControlPeriodo, ModoLiquidacion, mesSiguiente } from './control-periodo.models';
 
 describe('ControlPeriodoComponent', () => {
   let fixture: ComponentFixture<ControlPeriodoComponent>;
@@ -71,8 +71,6 @@ describe('ControlPeriodoComponent', () => {
       estadoDocenteAdjunto: 0,
       estadoDocenteAuxiliar: 0,
       adicionalHoraCargoClase: 0,
-      horaReferenciaEtec: 0,
-      valorPuntoEtec: 0,
       modoLiquidacionId: 2,
     };
   }
@@ -85,13 +83,40 @@ describe('ControlPeriodoComponent', () => {
     return `/api/haberes/core/control/copiar/${anho}/${mes}`;
   }
 
+  function urlEtec(anho = anhoInicial, mes = mesInicial): string {
+    return `/api/haberes/core/etec/control/${anho}/${mes}`;
+  }
+
+  function urlEtecOpcional(anho = anhoInicial, mes = mesInicial): string {
+    return `${urlEtec(anho, mes)}/opcional`;
+  }
+
+  function urlEtecCopiar(anho = anhoInicial, mes = mesInicial): string {
+    return `/api/haberes/core/etec/control/copiar/${anho}/${mes}`;
+  }
+
+  function urlEscala(): string {
+    return '/api/haberes/core/etec/arraigo/escala';
+  }
+
   function flushPeriodoNuevo(): void {
     http.expectOne('/api/haberes/core/modoLiquidacion/').flush(modos);
+    http.expectOne(urlEtecOpcional()).flush(null);
+    http.expectOne(urlEscala()).flush([]);
     http.expectOne(urlPeriodo()).flush(null);
   }
 
   function flushPeriodoExistente(control: ControlPeriodo = controlPeriodo()): void {
     http.expectOne('/api/haberes/core/modoLiquidacion/').flush(modos);
+    http.expectOne(urlEtecOpcional()).flush(null);
+    http.expectOne(urlEscala()).flush([]);
+    http.expectOne(urlPeriodo()).flush(control);
+  }
+
+  function flushRecarga(control: ControlPeriodo | null = controlPeriodo(),
+                        etec: ControlEtec | null = null): void {
+    http.expectOne(urlEtecOpcional()).flush(etec);
+    http.expectOne(urlEscala()).flush([]);
     http.expectOne(urlPeriodo()).flush(control);
   }
 
@@ -174,6 +199,8 @@ describe('ControlPeriodoComponent', () => {
     const siguiente = mesSiguiente(anhoInicial, mesInicial);
 
     component.irSiguiente();
+    http.expectOne(urlEtecOpcional(siguiente.anho, siguiente.mes)).flush(null);
+    http.expectOne(urlEscala()).flush([]);
     http.expectOne(urlPeriodo(siguiente.anho, siguiente.mes)).flush(null);
 
     expect(confirmar).not.toHaveBeenCalled();
@@ -205,7 +232,10 @@ describe('ControlPeriodoComponent', () => {
     const post = http.expectOne(urlCopiar());
     expect(post.request.method).toBe('POST');
     post.flush(controlPeriodo());
-    http.expectOne(urlPeriodo()).flush(controlPeriodo());
+    const etecPost = http.expectOne(urlEtecCopiar());
+    expect(etecPost.request.method).toBe('POST');
+    etecPost.flush(null);
+    flushRecarga();
 
     expect(component.esNuevo()).toBe(false);
     expect(component.form.controlId).toBe(12);
@@ -270,6 +300,8 @@ describe('ControlPeriodoComponent', () => {
 
     component.guardar();
 
+    http.expectOne(urlEtecOpcional(anhoInicial + 1, mesInicial)).flush(null);
+    http.expectOne(urlEscala()).flush([]);
     http.expectOne(urlPeriodo(anhoInicial + 1, mesInicial)).flush(null);
     http.expectNone('/api/haberes/core/control/');
     confirmar.mockRestore();
@@ -278,7 +310,7 @@ describe('ControlPeriodoComponent', () => {
   it('crea el período con POST cuando no existe', () => {
     flushPeriodoNuevo();
     completarFormulario();
-    component.form.importes.valorPuntoEtec = 1234.56;
+    component.etecForm.valorPuntoEtec = 311.3633;
 
     component.guardar();
     const post = http.expectOne('/api/haberes/core/control/');
@@ -287,10 +319,13 @@ describe('ControlPeriodoComponent', () => {
     expect(post.request.body.mes).toBe(mesInicial);
     expect(post.request.body.fechaDesde).toBe(`${anhoInicial}-${mm}-01T00:00:00+0000`);
     expect(post.request.body.modoLiquidacionId).toBe(2);
-    expect(post.request.body.valorPuntoEtec).toBe(1234.56);
     expect(post.request.body.controlId).toBeUndefined();
     post.flush(controlPeriodo());
-    http.expectOne(urlPeriodo()).flush(controlPeriodo());
+    const etecPost = http.expectOne(urlEtec());
+    expect(etecPost.request.method).toBe('POST');
+    expect(etecPost.request.body.valorPuntoEtec).toBe(311.3633);
+    etecPost.flush(null);
+    flushRecarga();
 
     expect(component.mensaje()).toContain('Parámetros guardados');
   });
@@ -306,8 +341,45 @@ describe('ControlPeriodoComponent', () => {
     expect(put.request.body.aporteJubilatorio).toBe('12');
     expect(put.request.body.fechaHasta).toBe(`${anhoInicial}-${mm}-29T00:00:00+0000`);
     put.flush(controlPeriodo());
-    http.expectOne(urlPeriodo()).flush(controlPeriodo());
+    const etecPost = http.expectOne(urlEtec());
+    etecPost.flush(null);
+    flushRecarga();
 
     expect(component.mensaje()).toContain('Parámetros guardados');
+  });
+
+  it('carga y guarda la escala de arraigo', () => {
+    http.expectOne('/api/haberes/core/modoLiquidacion/').flush(modos);
+    http.expectOne(urlEtecOpcional()).flush(null);
+    http.expectOne(urlEscala()).flush([
+      { escalaArraigoEtecId: 1, aniosMinimos: 2, porcentaje: 20 },
+      { escalaArraigoEtecId: 2, aniosMinimos: 10, porcentaje: 60 },
+    ]);
+    http.expectOne(urlPeriodo()).flush(null);
+
+    expect(component.escalaArraigo().length).toBe(2);
+
+    component.escalaArraigo.set([{ escalaArraigoEtecId: null, aniosMinimos: 3, porcentaje: 25 }]);
+    component.guardarEscalaArraigo();
+    const put = http.expectOne(urlEscala());
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual([{ aniosMinimos: 3, porcentaje: 25 }]);
+    put.flush([{ escalaArraigoEtecId: 7, aniosMinimos: 3, porcentaje: 25 }]);
+
+    expect(component.escalaArraigo().length).toBe(1);
+    expect(component.mensaje()).toContain('Escala de arraigo guardada');
+  });
+
+  it('no envía la escala si hay antigüedades repetidas o años inválidos', () => {
+    flushPeriodoNuevo();
+    component.escalaArraigo.set([
+      { escalaArraigoEtecId: null, aniosMinimos: 2, porcentaje: 20 },
+      { escalaArraigoEtecId: null, aniosMinimos: 2, porcentaje: 30 },
+    ]);
+
+    component.guardarEscalaArraigo();
+
+    http.expectNone(urlEscala());
+    expect(component.error()).toContain('repetida');
   });
 });

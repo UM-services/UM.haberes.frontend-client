@@ -80,6 +80,26 @@ export interface ItemFicha {
   importe: number | null;
 }
 
+/** Fila del catálogo `codigo_grupo`: a qué bloque pertenece cada concepto. */
+export interface CodigoGrupo {
+  codigoId: number;
+  remunerativo: number;
+  noRemunerativo: number;
+  deduccion: number;
+  total: number;
+}
+
+export type GrupoConcepto = 'remunerativo' | 'noRemunerativo' | 'deduccion' | 'total' | 'otro';
+export type GrupoItemClave = Exclude<GrupoConcepto, 'total'>;
+
+/** Bloque de conceptos de la liquidación con su total (el `total` del grupo sale de la liquidación). */
+export interface GrupoItems {
+  clave: GrupoItemClave;
+  titulo: string;
+  total: number | null;
+  items: ItemFicha[];
+}
+
 export interface AccionesFicha {
   puedeGenerarCargos: boolean;
   puedeLiquidar: boolean;
