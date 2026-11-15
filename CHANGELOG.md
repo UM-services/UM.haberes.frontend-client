@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.19.0] - 2026-11-15
+
+### Added
+
+- **feat(`feature-liquidacion`):** el detalle de **Liquidación del período** separa los conceptos en bloques **Remunerativos**, **No remunerativos**, **Descuentos** y **Otros**, cada uno con su total, y deja el **Neto** al pie. Los códigos de total (96–99) dejan de listarse como conceptos y el catálogo `codigo_grupo` se refresca con cada ficha, de modo que un código nuevo se clasifica sin recargar la página; si el catálogo no está disponible, la pantalla mantiene la tabla plana anterior.
+- **feat(`feature-control-periodo`):** nueva sección **ETEC (cargos por puntos)** dentro de Control del período, con los siete parámetros de `control_etec` (valor del punto con cuatro decimales, monto fijo del cargo, presentismo, adicional carrera docente, garantía, horas adicionales y valor hora adicional). Se guarda junto con el período (`POST /api/haberes/core/etec/control/{anho}/{mes}`), se copia al copiar el período anterior y muestra un badge **Configurado / Sin configurar**. El campo **Valor punto ETEC** sale del control general porque el valor ahora vive en `control_etec`.
+- **feat(`feature-control-periodo`):** la misma tarjeta ETEC incluye el editor de la **escala global de arraigo** (tramos de antigüedad mínima → porcentaje, con agregar/quitar y guardado contra `PUT /api/haberes/core/etec/arraigo/escala`). Valida años mayores o iguales a 1, antigüedades repetidas y porcentajes entre 0 y 100, y no depende del período seleccionado.
+
+### Changed
+
+- **refactor(`feature-control-periodo`, `feature-personas`):** se retiran los datos de ETEC que sólo alimentaban el desglose del bono: desaparece **Hora referencia ETEC** del control de período y el checkbox **Directivo ETEC** del formulario de personas, junto con sus modelos, requests y specs.
+- **feat(`feature-etec-asignaciones`):** el encabezado de la pantalla lee el valor del punto de `GET /api/haberes/core/etec/control/{anho}/{mes}/opcional` en lugar de `control/periodo`.
+
+### Fixed
+
+- **fix(`feature-etec-asignaciones`, `feature-cargos`):** Las fechas de **Alta** y **Baja** de las pantallas *Asignación de Cargos ETEC* y *Asignación de Cargos No Docentes* usan `<ui-input-fecha>` en vez de `<input type="date">`, así que se ven siempre `dd/mm/aaaa` sin depender del locale del navegador; las grillas pasan a `| umFecha` y se elimina el helper `textoFecha` duplicado en cada librería. El valor del formulario sigue siendo ISO `yyyy-MM-dd`.
+
+### Tests
+
+- `control-periodo.component.spec.ts`: el guardado encadena el control del período con el ETEC, la copia incluye el control ETEC anterior, la escala de arraigo se carga y se reemplaza con `PUT`, y no se envía con antigüedades repetidas o años menores a 1.
+- `control-periodo.service.spec.ts`: lectura opcional del control ETEC, guardado con `POST /etec/control/{anho}/{mes}`, copia sin body y `GET`/`PUT` de la escala de arraigo.
+- `liquidacion-individual.component.spec.ts`: agrupación por catálogo, total por bloque, exclusión de los códigos de total, tabla plana cuando falta el catálogo y refresco del catálogo al recargar la ficha.
+- `liquidacion-individual.service.spec.ts`: `grupos()` consulta `GET /api/haberes/core/codigogrupo/`.
+- `asignaciones-etec.service.spec.ts` y `asignaciones-etec.component.spec.ts`: el valor del punto se lee de `/api/haberes/core/etec/control/{anho}/{mes}/opcional`.
+
 ## [0.18.0] - 2026-11-13
 
 ### Added
