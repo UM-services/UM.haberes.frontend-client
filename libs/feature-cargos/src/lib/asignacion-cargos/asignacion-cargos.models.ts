@@ -65,7 +65,7 @@ export interface CatalogosAsignacionCargo {
   facultades: Facultad[];
 }
 
-/** Valor para `<input type="date">` a partir del ISO que devuelve haberes-core. */
+/** Valor ISO (`yyyy-MM-dd`) para el formulario a partir del ISO que devuelve haberes-core. */
 export function fechaInput(valor: string | null | undefined): string {
   return valor ? valor.slice(0, 10) : '';
 }
@@ -83,16 +83,6 @@ export function fechaPayload(original: string | null | undefined, fecha: string)
       ? 'Z'
       : offsetOriginal.replace(':', '');
   return `${fecha}T${horario}${offset}`;
-}
-
-/** Fecha corta para la grilla (`dd/mm/aaaa`). */
-export function textoFecha(valor: string | null | undefined): string {
-  const fecha = fechaInput(valor);
-  if (!fecha) {
-    return '—';
-  }
-  const [anho, mes, dia] = fecha.split('-');
-  return `${dia}/${mes}/${anho}`;
 }
 
 /** Jornada legible: el legado la ocultaba cuando el cargo se liquida por hora. */

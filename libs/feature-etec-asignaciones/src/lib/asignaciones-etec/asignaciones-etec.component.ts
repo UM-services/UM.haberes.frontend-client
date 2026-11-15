@@ -12,7 +12,7 @@ import {
   fechaPayload,
   mensajeDeError
 } from '@haberes/shared-api';
-import { ImportePipe, PersonaSearchComponent } from '@haberes/ui-layout';
+import { FechaPipe, ImportePipe, InputFechaComponent, PersonaSearchComponent } from '@haberes/ui-layout';
 
 import { AsignacionesEtecService } from './asignaciones-etec.service';
 import {
@@ -26,7 +26,6 @@ import {
   periodoActual,
   puntosDe,
   sumarMes,
-  textoFecha,
   textoPeriodo
 } from './asignaciones-etec.models';
 
@@ -41,7 +40,7 @@ import {
   selector: 'haberes-asignaciones-etec',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, PersonaSearchComponent, ImportePipe],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent, FechaPipe, ImportePipe, InputFechaComponent],
   templateUrl: './asignaciones-etec.component.html'
 })
 export class AsignacionesEtecComponent {
@@ -327,10 +326,6 @@ export class AsignacionesEtecComponent {
   }
 
   // --- Presentación -------------------------------------------------------
-
-  textoFechaValor(valor: string | null | undefined): string {
-    return textoFecha(valor);
-  }
 
   nombreCargoDe(asignacion: AsignacionEtec): string {
     if (asignacion.categoriaNombre) {

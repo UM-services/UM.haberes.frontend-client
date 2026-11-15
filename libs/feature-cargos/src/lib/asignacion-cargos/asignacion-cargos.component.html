@@ -130,13 +130,15 @@
 
           <div class="md:col-span-3">
             <label for="ac-alta" class="um-label">Fecha de alta</label>
-            <input id="ac-alta" type="date" [ngModel]="fechaAlta()" (ngModelChange)="fechaAlta.set($event)"
-                   [disabled]="!hayPersona()" class="um-input">
+            <ui-input-fecha inputId="ac-alta"
+                            [valor]="fechaAlta()" (valorChange)="fechaAlta.set($event)"
+                            [disabled]="!hayPersona()" />
           </div>
           <div class="md:col-span-3">
             <label for="ac-baja" class="um-label">Fecha de baja</label>
-            <input id="ac-baja" type="date" [ngModel]="fechaBaja()" (ngModelChange)="fechaBaja.set($event)"
-                   [disabled]="!hayPersona()" class="um-input">
+            <ui-input-fecha inputId="ac-baja"
+                            [valor]="fechaBaja()" (valorChange)="fechaBaja.set($event)"
+                            [disabled]="!hayPersona()" />
           </div>
           <div class="md:col-span-6 flex items-end gap-2">
             <button (click)="guardarCargo()" [disabled]="!puedeGuardar()"
@@ -199,8 +201,8 @@
                     tabindex="0"
                     [class.bg-um-selected]="seleccionado()?.cargoId === cargo.cargoId"
                     class="cursor-pointer">
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ textoFechaValor(cargo.fechaAlta) }}</td>
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ textoFechaValor(cargo.fechaBaja) }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ cargo.fechaAlta | umFecha }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ cargo.fechaBaja | umFecha }}</td>
                   <td class="whitespace-nowrap font-medium text-um-ink">{{ nombreCategoria(cargo) }}</td>
                   <td class="whitespace-nowrap text-um-text">{{ nombreDependencia(cargo) }}</td>
                   <td class="text-right font-mono text-um-ink tabular-nums">{{ cargo.categoria?.basico | number:'1.2-2' }}</td>

@@ -90,16 +90,6 @@ export function textoPeriodo(periodo: Periodo): string {
   return `${String(periodo.mes).padStart(2, '0')}/${periodo.anho}`;
 }
 
-/** Fecha corta para la grilla (`dd/mm/aaaa`). */
-export function textoFecha(valor: string | null | undefined): string {
-  const fecha = valor ? valor.slice(0, 10) : '';
-  if (!fecha) {
-    return '—';
-  }
-  const [anho, mes, dia] = fecha.split('-');
-  return `${dia}/${mes}/${anho}`;
-}
-
 /** Fecha de hoy en formato `yyyy-MM-dd`, sin corrimientos de zona horaria. */
 export function fechaHoy(): string {
   const hoy = new Date();

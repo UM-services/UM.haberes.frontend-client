@@ -5,7 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { take } from 'rxjs';
 
 import { AuthService, Persona, PersonaSearchService, mensajeDeError } from '@haberes/shared-api';
-import { PersonaSearchComponent } from '@haberes/ui-layout';
+import { FechaPipe, InputFechaComponent, PersonaSearchComponent } from '@haberes/ui-layout';
 
 import { AsignacionCargosService } from './asignacion-cargos.service';
 import {
@@ -18,7 +18,6 @@ import {
   fechaHoy,
   fechaInput,
   fechaPayload,
-  textoFecha,
   textoJornada
 } from './asignacion-cargos.models';
 
@@ -34,7 +33,7 @@ import {
   selector: 'haberes-asignacion-cargos',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, PersonaSearchComponent],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent, FechaPipe, InputFechaComponent],
   templateUrl: './asignacion-cargos.component.html'
 })
 export class AsignacionCargosComponent {
@@ -373,10 +372,6 @@ export class AsignacionCargosComponent {
   }
 
   // --- Presentación -------------------------------------------------------
-
-  textoFechaValor(valor: string | null | undefined): string {
-    return textoFecha(valor);
-  }
 
   jornadaTexto(cargo: Cargo): string {
     return textoJornada(cargo.jornada, cargo.horasJornada);

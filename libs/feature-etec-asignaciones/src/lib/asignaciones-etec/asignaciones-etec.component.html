@@ -108,14 +108,16 @@
           </div>
           <div class="md:col-span-3">
             <label for="ae-alta" class="um-label">Fecha de alta</label>
-            <input id="ae-alta" type="date" [ngModel]="fechaAlta()" (ngModelChange)="fechaAlta.set($event)"
-                   [disabled]="!hayPersona()" class="um-input">
+            <ui-input-fecha inputId="ae-alta"
+                            [valor]="fechaAlta()" (valorChange)="fechaAlta.set($event)"
+                            [disabled]="!hayPersona()" />
           </div>
 
           <div class="md:col-span-3">
             <label for="ae-baja" class="um-label">Fecha de baja</label>
-            <input id="ae-baja" type="date" [ngModel]="fechaBaja()" (ngModelChange)="fechaBaja.set($event)"
-                   [disabled]="!hayPersona()" class="um-input">
+            <ui-input-fecha inputId="ae-baja"
+                            [valor]="fechaBaja()" (valorChange)="fechaBaja.set($event)"
+                            [disabled]="!hayPersona()" />
           </div>
           <div class="md:col-span-9">
             <label for="ae-observaciones" class="um-label">Observaciones</label>
@@ -180,8 +182,8 @@
                     tabindex="0"
                     [class.bg-um-selected]="seleccionado()?.asignacionCargoId === asignacion.asignacionCargoId"
                     class="cursor-pointer">
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ textoFechaValor(asignacion.fechaAlta) }}</td>
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ textoFechaValor(asignacion.fechaBaja) }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaAlta | umFecha }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaBaja | umFecha }}</td>
                   <td class="whitespace-nowrap font-medium text-um-ink">{{ nombreCargoDe(asignacion) }}</td>
                   <td class="text-right font-mono text-um-ink tabular-nums">{{ puntosDeAsignacion(asignacion) | number:'1.0-2' }}</td>
                   <td class="whitespace-nowrap text-um-text">{{ nombreDependenciaDe(asignacion) }}</td>
