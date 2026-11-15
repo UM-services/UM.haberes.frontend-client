@@ -52,7 +52,6 @@ export interface Persona {
   localidadAfip?: number | null;
   situacionAfip?: number | null;
   modeloContratacionAfip?: number | null;
-  directivoEtec?: number | null;
   /** Flag administrador de Haberes (viene de `usuario`, no de la persona). */
   administrador?: number | null;
 }
