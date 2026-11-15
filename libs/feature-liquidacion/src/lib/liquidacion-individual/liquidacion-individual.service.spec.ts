@@ -3,7 +3,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { LiquidacionIndividualService } from './liquidacion-individual.service';
-import { FichaLiquidacionIndividual, ResultadoProcesoResponse } from './liquidacion-individual.models';
+import {
+  CodigoGrupo,
+  FichaLiquidacionIndividual,
+  ResultadoProcesoResponse
+} from './liquidacion-individual.models';
 
 describe('LiquidacionIndividualService', () => {
   let service: LiquidacionIndividualService;
@@ -61,6 +65,18 @@ describe('LiquidacionIndividualService', () => {
     req.flush(ficha);
 
     expect(resultado).toEqual(ficha);
+  });
+
+  it('grupos pide el catálogo de codigo_grupo', () => {
+    let resultado: CodigoGrupo[] | undefined;
+
+    service.grupos().subscribe((r) => (resultado = r));
+
+    const req = http.expectOne('/api/haberes/core/codigogrupo/');
+    expect(req.request.method).toBe('GET');
+    req.flush([{ codigoId: 1, remunerativo: 1, noRemunerativo: 0, deduccion: 0, total: 0 }]);
+
+    expect(resultado?.length).toBe(1);
   });
 
   it('las escrituras envían X-Legajo-Solicitante', () => {

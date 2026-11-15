@@ -12,6 +12,8 @@ import { LiquidacionIndividualService } from './liquidacion-individual.service';
 import {
   CodigoBusqueda,
   FichaLiquidacionIndividual,
+  GrupoConcepto,
+  GrupoItems,
   RESULTADOS_EXITOSOS,
   RegistroNovedadRequest,
   ResultadoProcesoResponse
@@ -78,6 +80,53 @@ export class LiquidacionIndividualComponent {
     const indices = `${antiguedad.indiceDocente ?? '—'} / ${antiguedad.indiceAdministrativo ?? '—'}`;
     return `Índices: ${indices} · Antigüedad: ${this.anosMeses(antiguedad.mesesDocentes)} / `
       + `${this.anosMeses(antiguedad.mesesAdministrativos)}`;
+  });
+
+  private readonly gruposPorCodigo = signal<Map<number, GrupoConcepto> | null>(null);
+  private gruposEnCurso = false;
+
+  /**
+   * Conceptos separados por tipo. `null` si todavía no se conoce el catálogo (se muestra la
+   * tabla plana) y `[]` si la liquidación no tiene conceptos.
+   */
+  readonly itemsAgrupados = computed<GrupoItems[] | null>(() => {
+    const catalogo = this.gruposPorCodigo();
+    const ficha = this.ficha();
+    if (!catalogo || catalogo.size === 0 || !ficha) {
+      return null;
+    }
+    const liquidacion = ficha.liquidacion;
+    const secciones: GrupoItems[] = [
+      {
+        clave: 'remunerativo',
+        titulo: 'Remunerativos',
+        total: liquidacion?.totalRemunerativo ?? null,
+        items: []
+      },
+      {
+        clave: 'noRemunerativo',
+        titulo: 'No remunerativos',
+        total: liquidacion?.totalNoRemunerativo ?? null,
+        items: []
+      },
+      {
+        clave: 'deduccion',
+        titulo: 'Descuentos',
+        total: liquidacion?.totalDeduccion ?? null,
+        items: []
+      },
+      { clave: 'otro', titulo: 'Otros conceptos', total: null, items: [] }
+    ];
+    const porClave = new Map(secciones.map((seccion) => [seccion.clave, seccion]));
+    for (const item of ficha.items) {
+      const clave = catalogo.get(item.codigoId) ?? 'otro';
+      // Los códigos de total (96–99) se muestran como total de cada bloque, no como concepto.
+      if (clave === 'total') {
+        continue;
+      }
+      porClave.get(clave)?.items.push(item);
+    }
+    return secciones.filter((seccion) => seccion.items.length > 0);
   });
 
   constructor() {
@@ -173,11 +222,49 @@ export class LiquidacionIndividualComponent {
         this.ficha.set(ficha);
         this.forzar.set(false);
         this.cargando.set(false);
+        if (ficha.items.length > 0) {
+          this.cargarGrupos();
+        }
       },
       error: (err: HttpErrorResponse) => {
         this.ficha.set(null);
         this.error.set(this.mensajeHttp(err, 'No se pudo cargar la liquidación del legajo.'));
         this.cargando.set(false);
+      }
+    });
+  }
+
+  /**
+   * Refresca el catálogo de grupos en cada ficha: si se agrega un código, la próxima
+   * generación lo clasifica sin obligar a recargar la página. Si falla, la ficha sigue
+   * mostrándose en una tabla plana: el agrupamiento es una ayuda de lectura.
+   */
+  private cargarGrupos(): void {
+    if (this.gruposEnCurso) {
+      return;
+    }
+    this.gruposEnCurso = true;
+    this.liquidacion.grupos().subscribe({
+      next: (grupos) => {
+        const catalogo = new Map<number, GrupoConcepto>();
+        for (const grupo of grupos) {
+          const clave: GrupoConcepto = grupo.total
+            ? 'total'
+            : grupo.deduccion
+              ? 'deduccion'
+              : grupo.noRemunerativo
+                ? 'noRemunerativo'
+                : grupo.remunerativo
+                  ? 'remunerativo'
+                  : 'otro';
+          catalogo.set(grupo.codigoId, clave);
+        }
+        this.gruposPorCodigo.set(catalogo);
+        this.gruposEnCurso = false;
+      },
+      error: () => {
+        this.gruposPorCodigo.set(null);
+        this.gruposEnCurso = false;
       }
     });
   }

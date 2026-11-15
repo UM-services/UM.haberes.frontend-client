@@ -294,43 +294,83 @@
     <div class="um-card overflow-hidden">
       <div class="um-eyebrow mb-3">Liquidación del período</div>
       <div class="overflow-x-auto">
-        <table class="um-table w-full">
-          <thead>
-            <tr><th>Código</th><th class="text-right">Importe</th></tr>
-          </thead>
-          <tbody>
-            @for (item of ficha()!.items; track item.itemId) {
-              <tr>
-                <td><span class="font-mono tabular-nums">{{ item.codigoId }}</span> · {{ item.codigoNombre ?? '—' }}</td>
-                <td class="text-right font-mono tabular-nums">{{ item.importe | number:'1.2-2' }}</td>
-              </tr>
-            } @empty {
-              <tr><td colspan="2" class="text-center text-um-muted py-4">
-                El legajo no tiene liquidación calculada en el período.
-              </td></tr>
-            }
-          </tbody>
-          @if (ficha()!.liquidacion; as liquidacion) {
-            <tfoot>
-              <tr class="border-t border-um-border-strong">
-                <td class="font-semibold">Total remunerativo</td>
-                <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalRemunerativo | number:'1.2-2' }}</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">Total no remunerativo</td>
-                <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalNoRemunerativo | number:'1.2-2' }}</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">Total deducciones</td>
-                <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalDeduccion | number:'1.2-2' }}</td>
-              </tr>
-              <tr>
-                <td class="font-bold">Neto</td>
-                <td class="text-right font-mono tabular-nums font-bold">{{ liquidacion.totalNeto | number:'1.2-2' }}</td>
-              </tr>
-            </tfoot>
+        @if (itemsAgrupados(); as grupos) {
+          @if (grupos.length) {
+            <table class="um-table w-full">
+              <thead>
+                <tr><th>Código</th><th class="text-right">Importe</th></tr>
+              </thead>
+              @for (grupo of grupos; track grupo.clave) {
+                <tbody>
+                  <tr class="bg-um-surface">
+                    <td class="text-xs font-semibold uppercase tracking-wide">{{ grupo.titulo }}</td>
+                    <td class="text-right text-xs font-semibold font-mono tabular-nums">
+                      @if (grupo.total !== null) {
+                        {{ grupo.total | number:'1.2-2' }}
+                      }
+                    </td>
+                  </tr>
+                  @for (item of grupo.items; track item.itemId) {
+                    <tr>
+                      <td><span class="font-mono tabular-nums">{{ item.codigoId }}</span> · {{ item.codigoNombre ?? '—' }}</td>
+                      <td class="text-right font-mono tabular-nums">{{ item.importe | number:'1.2-2' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              }
+              @if (ficha()!.liquidacion; as liquidacion) {
+                <tfoot>
+                  <tr class="border-t-2 border-um-border-strong">
+                    <td class="font-bold">Neto</td>
+                    <td class="text-right font-mono tabular-nums font-bold">{{ liquidacion.totalNeto | number:'1.2-2' }}</td>
+                  </tr>
+                </tfoot>
+              }
+            </table>
+          } @else {
+            <p class="text-center text-um-muted py-4">
+              El legajo no tiene liquidación calculada en el período.
+            </p>
           }
-        </table>
+        } @else {
+          <table class="um-table w-full">
+            <thead>
+              <tr><th>Código</th><th class="text-right">Importe</th></tr>
+            </thead>
+            <tbody>
+              @for (item of ficha()!.items; track item.itemId) {
+                <tr>
+                  <td><span class="font-mono tabular-nums">{{ item.codigoId }}</span> · {{ item.codigoNombre ?? '—' }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ item.importe | number:'1.2-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="2" class="text-center text-um-muted py-4">
+                  El legajo no tiene liquidación calculada en el período.
+                </td></tr>
+              }
+            </tbody>
+            @if (ficha()!.liquidacion; as liquidacion) {
+              <tfoot>
+                <tr class="border-t border-um-border-strong">
+                  <td class="font-semibold">Total remunerativo</td>
+                  <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalRemunerativo | number:'1.2-2' }}</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Total no remunerativo</td>
+                  <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalNoRemunerativo | number:'1.2-2' }}</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Total deducciones</td>
+                  <td class="text-right font-mono tabular-nums font-semibold">{{ liquidacion.totalDeduccion | number:'1.2-2' }}</td>
+                </tr>
+                <tr>
+                  <td class="font-bold">Neto</td>
+                  <td class="text-right font-mono tabular-nums font-bold">{{ liquidacion.totalNeto | number:'1.2-2' }}</td>
+                </tr>
+              </tfoot>
+            }
+          </table>
+        }
       </div>
     </div>
 
