@@ -64,7 +64,7 @@ describe('AsignacionesEtecComponent', () => {
   };
 
   const controlPath = (anho: number, mes: number) =>
-    `/api/haberes/core/control/periodo/${anho}/${mes}/opcional`;
+    `/api/haberes/core/etec/control/${anho}/${mes}/opcional`;
 
   const flushInicial = (valorPuntoEtec: number | null = 3000) => {
     const { anho, mes } = periodoActual();

@@ -131,7 +131,7 @@ describe('AsignacionesEtecService', () => {
     let resultado: { valorPuntoEtec: number | null } | null | undefined;
     service.valorPunto(2026, 11).subscribe((r) => (resultado = r));
 
-    const req = http.expectOne('/api/haberes/core/control/periodo/2026/11/opcional');
+    const req = http.expectOne('/api/haberes/core/etec/control/2026/11/opcional');
     expect(req.request.method).toBe('GET');
     req.flush({ anho: 2026, mes: 11, valorPuntoEtec: 3000 });
     expect(resultado?.valorPuntoEtec).toBe(3000);
@@ -141,7 +141,7 @@ describe('AsignacionesEtecService', () => {
     let resultado: { valorPuntoEtec: number | null } | null | undefined;
     service.valorPunto(2026, 1).subscribe((r) => (resultado = r));
 
-    http.expectOne('/api/haberes/core/control/periodo/2026/1/opcional').flush(null);
+    http.expectOne('/api/haberes/core/etec/control/2026/1/opcional').flush(null);
     expect(resultado).toBeNull();
   });
 });
