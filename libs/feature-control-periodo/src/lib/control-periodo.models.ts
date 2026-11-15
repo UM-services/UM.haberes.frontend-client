@@ -60,8 +60,6 @@ export interface ControlPeriodo {
   estadoDocenteAdjunto: number | null;
   estadoDocenteAuxiliar: number | null;
   adicionalHoraCargoClase: number | null;
-  horaReferenciaEtec: number | null;
-  valorPuntoEtec: number | null;
   modoLiquidacionId: number | null;
   modoLiquidacion?: ModoLiquidacion | null;
 }
@@ -110,8 +108,6 @@ export const CAMPOS_IMPORTE = [
   'estadoDocenteAdjunto',
   'estadoDocenteAuxiliar',
   'adicionalHoraCargoClase',
-  'horaReferenciaEtec',
-  'valorPuntoEtec',
 ] as const;
 
 export type CampoImporte = (typeof CAMPOS_IMPORTE)[number];
@@ -195,16 +191,14 @@ export const SECCIONES_IMPORTES: SeccionImportes[] = [
     ],
   },
   {
-    id: 'etec',
-    titulo: 'Estados docentes y ETEC',
-    descripcion: 'Valores por estado docente y parámetros de referencia de ETEC.',
+    id: 'estados-docentes',
+    titulo: 'Estados docentes',
+    descripcion: 'Valores por estado docente y adicional por hora de cargo con clase.',
     campos: [
       { campo: 'estadoDocenteTitular', label: 'Estado docente titular' },
       { campo: 'estadoDocenteAdjunto', label: 'Estado docente adjunto' },
       { campo: 'estadoDocenteAuxiliar', label: 'Estado docente auxiliar' },
       { campo: 'adicionalHoraCargoClase', label: 'Adicional hora cargo clase' },
-      { campo: 'horaReferenciaEtec', label: 'Hora referencia ETEC' },
-      { campo: 'valorPuntoEtec', label: 'Valor punto ETEC' },
     ],
   },
 ];
@@ -240,3 +234,101 @@ export function mesSiguiente(anho: number, mes: number): { anho: number; mes: nu
 export function textoPeriodo(anho: number, mes: number): string {
   return `${String(mes).padStart(2, '0')}/${anho}`;
 }
+
+/** Parámetros del circuito ETEC por puntos (`control_etec` en haberes-core). */
+export interface ControlEtec {
+  controlEtecId: number | null;
+  anho: number;
+  mes: number;
+  valorPuntoEtec: number | null;
+  montoFijoCargo: number | null;
+  porcentajePresentismo: number | null;
+  porcentajeAdicionalCarrera: number | null;
+  garantia: number | null;
+  horasAdicionalCargaHoraria: number | null;
+  valorHoraAdicionalCargaHoraria: number | null;
+}
+
+/** Payload de `POST /etec/control/{anho}/{mes}` (período en la ruta). */
+export type ControlEtecRequest = Omit<ControlEtec, 'controlEtecId' | 'anho' | 'mes'>;
+
+export type TipoCampoEtec = 'importe' | 'porcentaje' | 'numero';
+
+export interface CampoControlEtec {
+  campo: keyof ControlEtecRequest;
+  label: string;
+  step: string;
+  decimales: number;
+  tipo: TipoCampoEtec;
+}
+
+export const CAMPOS_CONTROL_ETEC: CampoControlEtec[] = [
+  {
+    campo: 'valorPuntoEtec',
+    label: 'Valor del punto',
+    step: '0.0001',
+    decimales: 4,
+    tipo: 'numero',
+  },
+  {
+    campo: 'montoFijoCargo',
+    label: 'Monto fijo del cargo',
+    step: '0.01',
+    decimales: 2,
+    tipo: 'importe',
+  },
+  {
+    campo: 'porcentajePresentismo',
+    label: 'Presentismo',
+    step: '0.01',
+    decimales: 2,
+    tipo: 'porcentaje',
+  },
+  {
+    campo: 'porcentajeAdicionalCarrera',
+    label: 'Adicional carrera docente',
+    step: '0.01',
+    decimales: 2,
+    tipo: 'porcentaje',
+  },
+  { campo: 'garantia', label: 'Garantía', step: '0.01', decimales: 2, tipo: 'importe' },
+  {
+    campo: 'horasAdicionalCargaHoraria',
+    label: 'Horas adicionales de carga horaria',
+    step: '0.01',
+    decimales: 2,
+    tipo: 'numero',
+  },
+  {
+    campo: 'valorHoraAdicionalCargaHoraria',
+    label: 'Valor hora adicional',
+    step: '0.01',
+    decimales: 2,
+    tipo: 'importe',
+  },
+];
+
+export function controlEtecVacio(): ControlEtecRequest {
+  return {
+    valorPuntoEtec: 0,
+    montoFijoCargo: 0,
+    porcentajePresentismo: 20,
+    porcentajeAdicionalCarrera: 10,
+    garantia: 0,
+    horasAdicionalCargaHoraria: 0,
+    valorHoraAdicionalCargaHoraria: 0,
+  };
+}
+
+/**
+ * Escala global de arraigo ETEC: el porcentaje del valor del cargo se determina por los años de
+ * antigüedad docente. No depende del período; se edita completa y se reemplaza en el backend.
+ */
+export interface EscalaArraigoEtec {
+  escalaArraigoEtecId: number | null;
+  aniosMinimos: number | null;
+  porcentaje: number | null;
+}
+
+export type EscalaArraigoEtecRequest = Omit<EscalaArraigoEtec, 'escalaArraigoEtecId'>;
+

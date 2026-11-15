@@ -4,7 +4,12 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { API_URL } from '@haberes/shared-api';
 
 import { ControlPeriodoService } from './control-periodo.service';
-import { ControlPeriodo, ControlPeriodoRequest } from './control-periodo.models';
+import {
+  ControlEtec,
+  ControlEtecRequest,
+  ControlPeriodo,
+  ControlPeriodoRequest,
+} from './control-periodo.models';
 
 describe('ControlPeriodoService', () => {
   let service: ControlPeriodoService;
@@ -67,8 +72,6 @@ describe('ControlPeriodoService', () => {
     estadoDocenteAdjunto: 0,
     estadoDocenteAuxiliar: 0,
     adicionalHoraCargoClase: 0,
-    horaReferenciaEtec: 0,
-    valorPuntoEtec: 0,
     modoLiquidacionId: 2,
   };
 
@@ -136,6 +139,42 @@ describe('ControlPeriodoService', () => {
     req.flush(control);
   });
 
+  it('consulta el control ETEC por el endpoint opcional', () => {
+    service.getControlEtec(2026, 11).subscribe((resultado) => expect(resultado).toBeNull());
+
+    const req = http.expectOne('/api/haberes/core/etec/control/2026/11/opcional');
+    expect(req.request.method).toBe('GET');
+    req.flush(null);
+  });
+
+  it('guarda el control ETEC con POST al período', () => {
+    const request: ControlEtecRequest = {
+      valorPuntoEtec: 311.3633,
+      montoFijoCargo: 0,
+      porcentajePresentismo: 20,
+      porcentajeAdicionalCarrera: 10,
+      garantia: 844872.78,
+      horasAdicionalCargaHoraria: 15,
+      valorHoraAdicionalCargaHoraria: 8012.19,
+    };
+
+    service.guardarControlEtec(2026, 11, request).subscribe();
+
+    const post = http.expectOne('/api/haberes/core/etec/control/2026/11');
+    expect(post.request.method).toBe('POST');
+    expect(post.request.body).toEqual(request);
+    post.flush({ controlEtecId: 1, anho: 2026, mes: 11, ...request } as ControlEtec);
+  });
+
+  it('copia el control ETEC del período anterior sin body', () => {
+    service.copiarControlEtecAnterior(2026, 11).subscribe();
+
+    const req = http.expectOne('/api/haberes/core/etec/control/copiar/2026/11');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toBeNull();
+    req.flush(null);
+  });
+
   it('propaga el 409 del backend cuando el período ya tiene datos', () => {
     let estado: number | null = null;
     service.copiarAnterior(2026, 11).subscribe({
@@ -150,5 +189,26 @@ describe('ControlPeriodoService', () => {
       );
 
     expect(estado).toBe(409);
+  });
+
+  it('pide la escala global de arraigo ETEC', () => {
+    service.getEscalaArraigo().subscribe();
+
+    const req = http.expectOne('/api/haberes/core/etec/arraigo/escala');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+
+  it('reemplaza la escala de arraigo con PUT', () => {
+    const tramos = [
+      { aniosMinimos: 2, porcentaje: 20 },
+      { aniosMinimos: 10, porcentaje: 60 },
+    ];
+    service.guardarEscalaArraigo(tramos).subscribe();
+
+    const req = http.expectOne('/api/haberes/core/etec/arraigo/escala');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(tramos);
+    req.flush([]);
   });
 });

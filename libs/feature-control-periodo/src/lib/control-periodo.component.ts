@@ -1,16 +1,23 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { catchError, of, switchMap } from 'rxjs';
 import { fechaInput, fechaPayload, mensajeDeError } from '@haberes/shared-api';
 import { ImportePipe, InputFechaComponent, StickyFooterDirective } from '@haberes/ui-layout';
 
 import {
+  CAMPOS_CONTROL_ETEC,
   CAMPOS_IMPORTE,
+  CampoControlEtec,
+  ControlEtec,
+  ControlEtecRequest,
   ControlPeriodo,
   ControlPeriodoForm,
   ControlPeriodoRequest,
+  EscalaArraigoEtec,
   ImportesControl,
   ModoLiquidacion,
   SECCIONES_IMPORTES,
+  controlEtecVacio,
   importesVacios,
   mesAnterior,
   mesSiguiente,
@@ -36,6 +43,7 @@ export class ControlPeriodoComponent implements OnInit {
   private readonly service = inject(ControlPeriodoService);
 
   readonly secciones = SECCIONES_IMPORTES;
+  readonly camposEtec = CAMPOS_CONTROL_ETEC;
   readonly anho = signal(new Date().getFullYear());
   readonly mes = signal(new Date().getMonth() + 1);
   readonly modos = signal<ModoLiquidacion[]>([]);
@@ -46,8 +54,12 @@ export class ControlPeriodoComponent implements OnInit {
   readonly avisoFechas = signal(false);
   readonly error = signal('');
   readonly mensaje = signal('');
+  readonly controlEtec = signal<ControlEtec | null>(null);
+  readonly escalaArraigo = signal<EscalaArraigoEtec[]>([]);
+  readonly guardandoEscala = signal(false);
 
   form: ControlPeriodoForm = this.formVacio();
+  etecForm: ControlEtecRequest = controlEtecVacio();
 
   /** Respuesta cruda del backend: de ella se conservan horario y offset de cada fecha. */
   private original: ControlPeriodo | null = null;
@@ -77,6 +89,8 @@ export class ControlPeriodoComponent implements OnInit {
     const mes = this.mes();
     this.cargando.set(true);
     this.limpiarMensajes();
+    this.cargarControlEtec(anho, mes);
+    this.cargarEscalaArraigo();
 
     this.service.getPeriodo(anho, mes).subscribe({
       next: (control) => {
@@ -137,13 +151,21 @@ export class ControlPeriodoComponent implements OnInit {
       this.error.set(validacion);
       return;
     }
+    const validacionEtec = this.validarEtec();
+    if (validacionEtec) {
+      this.error.set(validacionEtec);
+      return;
+    }
 
     const payload = this.aPayload();
     const controlId = this.form.controlId;
+    const anho = this.anho();
+    const mes = this.mes();
     this.guardando.set(true);
 
-    const peticion =
-      controlId == null ? this.service.crear(payload) : this.service.actualizar(payload, controlId);
+    const peticion = (
+      controlId == null ? this.service.crear(payload) : this.service.actualizar(payload, controlId)
+    ).pipe(switchMap(() => this.service.guardarControlEtec(anho, mes, this.etecPayload())));
 
     peticion.subscribe({
       next: () => {
@@ -178,7 +200,16 @@ export class ControlPeriodoComponent implements OnInit {
     const origen = this.periodoAnteriorTexto;
     this.copiando.set(true);
 
-    this.service.copiarAnterior(anho, mes).subscribe({
+    this.service
+      .copiarAnterior(anho, mes)
+      .pipe(
+        switchMap(() =>
+          this.service
+            .copiarControlEtecAnterior(anho, mes)
+            .pipe(catchError(() => of(null))),
+        ),
+      )
+      .subscribe({
       next: () => {
         this.copiando.set(false);
         this.cargar();
@@ -194,6 +225,128 @@ export class ControlPeriodoComponent implements OnInit {
   importeNegativo(campo: keyof ImportesControl): boolean {
     const valor = this.form.importes[campo];
     return valor != null && valor < 0;
+  }
+
+  textoEtec(campo: CampoControlEtec): string {
+    const valor = this.numero(this.etecForm[campo.campo]);
+    const texto = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: campo.decimales,
+      maximumFractionDigits: campo.decimales,
+    }).format(valor);
+    if (campo.tipo === 'porcentaje') return `${texto} %`;
+    if (campo.tipo === 'importe') return `$ ${texto}`;
+    return texto;
+  }
+
+  private cargarControlEtec(anho: number, mes: number): void {
+    this.service.getControlEtec(anho, mes).subscribe({
+      next: (control) => {
+        this.controlEtec.set(control);
+        this.etecForm = control ? this.desdeControlEtec(control) : controlEtecVacio();
+      },
+      error: (err) =>
+        this.error.set(mensajeDeError(err, 'No se pudieron cargar los parámetros ETEC')),
+    });
+  }
+
+  private desdeControlEtec(control: ControlEtec): ControlEtecRequest {
+    return {
+      valorPuntoEtec: this.numero(control.valorPuntoEtec),
+      montoFijoCargo: this.numero(control.montoFijoCargo),
+      porcentajePresentismo: this.numero(control.porcentajePresentismo),
+      porcentajeAdicionalCarrera: this.numero(control.porcentajeAdicionalCarrera),
+      garantia: this.numero(control.garantia),
+      horasAdicionalCargaHoraria: this.numero(control.horasAdicionalCargaHoraria),
+      valorHoraAdicionalCargaHoraria: this.numero(control.valorHoraAdicionalCargaHoraria),
+    };
+  }
+
+  private etecPayload(): ControlEtecRequest {
+    const payload = controlEtecVacio();
+    for (const campo of CAMPOS_CONTROL_ETEC) {
+      payload[campo.campo] = this.numero(this.etecForm[campo.campo]);
+    }
+    return payload;
+  }
+
+  private validarEtec(): string | null {
+    if (CAMPOS_CONTROL_ETEC.some((campo) => this.numero(this.etecForm[campo.campo]) < 0)) {
+      return 'Los parámetros ETEC no pueden ser negativos.';
+    }
+    return null;
+  }
+
+  /** Agrega un tramo con la antigüedad mínima siguiente al último configurado. */
+  agregarTramo(): void {
+    const tramos = this.escalaArraigo();
+    const ultimo = tramos.reduce(
+      (maximo, tramo) => Math.max(maximo, this.numero(tramo.aniosMinimos)),
+      1,
+    );
+    this.escalaArraigo.set([
+      ...tramos,
+      { escalaArraigoEtecId: null, aniosMinimos: ultimo + 1, porcentaje: 0 },
+    ]);
+  }
+
+  quitarTramo(indice: number): void {
+    this.escalaArraigo.set(this.escalaArraigo().filter((_, posicion) => posicion !== indice));
+  }
+
+  guardarEscalaArraigo(): void {
+    const validacion = this.validarEscala();
+    if (validacion) {
+      this.error.set(validacion);
+      return;
+    }
+    this.limpiarMensajes();
+    this.guardandoEscala.set(true);
+    const payload = this.escalaArraigo().map((tramo) => ({
+      aniosMinimos: this.numero(tramo.aniosMinimos),
+      porcentaje: this.numero(tramo.porcentaje),
+    }));
+    this.service.guardarEscalaArraigo(payload).subscribe({
+      next: (tramos) => {
+        this.guardandoEscala.set(false);
+        this.escalaArraigo.set(tramos);
+        this.mensaje.set('Escala de arraigo guardada.');
+      },
+      error: (err) => {
+        this.guardandoEscala.set(false);
+        this.error.set(mensajeDeError(err, 'No se pudo guardar la escala de arraigo'));
+      },
+    });
+  }
+
+  private cargarEscalaArraigo(): void {
+    this.service.getEscalaArraigo().subscribe({
+      next: (tramos) => this.escalaArraigo.set(tramos),
+      error: (err) =>
+        this.error.set(mensajeDeError(err, 'No se pudo cargar la escala de arraigo')),
+    });
+  }
+
+  private validarEscala(): string | null {
+    const tramos = this.escalaArraigo();
+    if (tramos.length === 0) {
+      return 'La escala de arraigo debe tener al menos un tramo.';
+    }
+    const anios = new Set<number>();
+    for (const tramo of tramos) {
+      const valorAnios = this.numero(tramo.aniosMinimos);
+      const porcentaje = this.numero(tramo.porcentaje);
+      if (valorAnios < 1) {
+        return 'Cada tramo debe tener una antigüedad mínima de al menos 1 año.';
+      }
+      if (anios.has(valorAnios)) {
+        return `La antigüedad mínima ${valorAnios} está repetida.`;
+      }
+      if (porcentaje < 0 || porcentaje > 100) {
+        return 'Los porcentajes de arraigo deben estar entre 0 y 100.';
+      }
+      anios.add(valorAnios);
+    }
+    return null;
   }
 
   private cargarModos(): void {
