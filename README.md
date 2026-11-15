@@ -72,7 +72,7 @@ um.haberes.frontend-client/
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
 | `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): alta y baja con dependencia, fechas, observaciones, valor del punto del período e importe estimado (`/liquidacion/etec/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
-| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales |
+| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos) |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
 | `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
@@ -82,7 +82,7 @@ um.haberes.frontend-client/
 | `feature-cargos-clase` | `@haberes/feature-cargos-clase` | Cargos con clase y asignaciones por período |
 | `feature-adicionales` | `@haberes/feature-adicionales` | Rangos de adicional por carga horaria |
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
-| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP y modo de liquidación |
+| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria) y escala global de arraigo |
 | `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
 
 ## Sistema de Diseño Institucional (J2)
