@@ -60,4 +60,32 @@ describe('ReporteTablaComponent', () => {
     expect(texto).toContain('Consultando datos del período');
     expect(texto).not.toContain('Subtotal');
   });
+
+  it('formatea moneda, porcentaje y subtotal con el formato institucional', () => {
+    interface FilaMonto {
+      legajo: string;
+      bruto: string;
+      variacion: string;
+    }
+    const columnasMonto: ColumnaTabla<FilaMonto>[] = [
+      { titulo: 'Legajo', valor: (fila) => fila.legajo },
+      { titulo: 'Bruto', valor: (fila) => fila.bruto, tipo: 'moneda', alineacion: 'der' },
+      { titulo: 'Variación', valor: (fila) => fila.variacion, tipo: 'porcentaje', alineacion: 'der' }
+    ];
+    const fixture = TestBed.createComponent(ReporteTablaComponent<FilaMonto>);
+    fixture.componentInstance.columnas = columnasMonto;
+    fixture.componentInstance.secciones = [
+      {
+        titulo: 'Rectorado',
+        filas: [{ legajo: '1001', bruto: '1.400.000', variacion: '7,142%' }],
+        subtotal: '1.400.000'
+      }
+    ];
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('$ 1.400.000,00');
+    expect(texto).toContain('7,14%');
+    expect(texto).toContain('Subtotal Rectorado');
+  });
 });

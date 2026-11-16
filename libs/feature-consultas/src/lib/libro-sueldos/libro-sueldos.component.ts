@@ -38,10 +38,10 @@ export class LibroSueldosComponent {
     { titulo: 'Apellido y Nombre', valor: (fila) => fila.apellidoNombre },
     { titulo: 'CUIL', valor: (fila) => fila.cuil, tipo: 'entero' },
     { titulo: 'Dependencia', valor: (fila) => fila.dependencia },
-    { titulo: 'Remunerativo', valor: (fila) => fila.remunerativo, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'No remunerativo', valor: (fila) => fila.noRemunerativo, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Deducciones', valor: (fila) => fila.deducciones, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Neto', valor: (fila) => fila.neto, tipo: 'importe', alineacion: 'der' }
+    { titulo: 'Remunerativo', valor: (fila) => fila.remunerativo, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'No remunerativo', valor: (fila) => fila.noRemunerativo, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Deducciones', valor: (fila) => fila.deducciones, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Neto', valor: (fila) => fila.neto, tipo: 'moneda', alineacion: 'der' }
   ];
 
   readonly secciones = computed<readonly SeccionTabla<FilaLibroSueldos>[]>(() => {

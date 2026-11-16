@@ -41,7 +41,7 @@ export class CantidadCargosComponent {
     { titulo: 'Anuales', valor: (fila) => String(fila.anuales), tipo: 'entero', alineacion: 'der' },
     { titulo: 'Semestre 1', valor: (fila) => String(fila.semestre1), tipo: 'entero', alineacion: 'der' },
     { titulo: 'Semestre 2', valor: (fila) => String(fila.semestre2), tipo: 'entero', alineacion: 'der' },
-    { titulo: 'Bruto', valor: (fila) => fila.bruto, tipo: 'importe', alineacion: 'der' }
+    { titulo: 'Bruto', valor: (fila) => fila.bruto, tipo: 'moneda', alineacion: 'der' }
   ];
 
   readonly secciones = computed<readonly SeccionTabla<FilaCantidadCargos>[]>(() => {

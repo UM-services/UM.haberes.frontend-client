@@ -38,7 +38,7 @@ export class BasicosPeriodoComponent {
     { titulo: 'Dependencia', valor: (fila) => fila.dependencia },
     { titulo: 'Clase / Código', valor: (fila) => fila.claseCodigo },
     { titulo: 'Categoría / Cargo', valor: (fila) => fila.categoriaCargo },
-    { titulo: 'Básico / Valor hora', valor: (fila) => fila.basico, tipo: 'importe', alineacion: 'der' },
+    { titulo: 'Básico / Valor hora', valor: (fila) => fila.basico, tipo: 'moneda', alineacion: 'der' },
     { titulo: 'Horas jornada', valor: (fila) => fila.horasJornada, tipo: 'entero', alineacion: 'der' },
     { titulo: 'Jornada / Horas', valor: (fila) => fila.jornada, tipo: 'entero', alineacion: 'der' }
   ];
