@@ -21,6 +21,29 @@ const liquidacionIndividualRoute: Route = {
   data: DATOS_MODULO
 };
 
+const liquidacionGeneralRoute: Route = {
+  path: 'liquidacion/general',
+  loadComponent: () =>
+    import('@haberes/feature-liquidacion').then(m => m.LiquidacionGeneralComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const novedadesRoute: Route = {
+  path: 'liquidacion/novedades',
+  loadComponent: () => import('@haberes/feature-liquidacion').then(m => m.NovedadesComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const transferirNovedadesRoute: Route = {
+  path: 'liquidacion/transferir-novedades',
+  loadComponent: () =>
+    import('@haberes/feature-designaciones').then(m => m.TransferirNovedadesComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const asigCargosRoute: Route = {
   path: 'liquidacion/asig-cargos',
   loadComponent: () =>
@@ -268,6 +291,9 @@ export const appRoutes: Routes = [
   },
   bonoIndividualRoute,
   liquidacionIndividualRoute,
+  liquidacionGeneralRoute,
+  novedadesRoute,
+  transferirNovedadesRoute,
   asigCargosRoute,
   etecAsigCargosRoute,
   totalesGeneralesRoute,
