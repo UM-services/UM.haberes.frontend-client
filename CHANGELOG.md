@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.21.0] - 2026-11-16
+
+### Added
+
+- **feat(`feature-liquidacion`):** nueva pantalla **Liquidación General** (`/liquidacion/general`) con el padrón agregado de todo el universo liquidable del período: legajo, apellido y nombre, estado/liquida, marcas `nd`/`dc`/`nv`/`lq`/`bl`, remunerativo, no remunerativo, deducciones y neto (negativo en rojo, cero en verde). Consume `GET /api/haberes/core/liquidacion-general/{anho}/{mes}`.
+- **feat(`feature-liquidacion`):** procesos masivos asíncronos **Generar cargos del período**, **Liquidar período** y **Eliminar liquidaciones del período**, con confirmación en las operaciones destructivas y switch **Forzar liquidaciones bloqueadas** (la generación de cargos nunca fuerza). Cada inicio devuelve el proceso y la pantalla sigue su avance cada 1,5 s.
+- **feat(`feature-liquidacion`):** panel de proceso con barra de progreso, contadores de exitosos/omitidos/fallidos y listas de legajos omitidos y fallidos con su motivo y detalle, más descargas XLSX de **Datos personales** y **Salida del período**.
+- **feat(`feature-liquidacion`):** filtros locales del padrón por texto (legajo o apellido), sólo bloqueados y sólo neto negativo, con el contador de filas visibles.
+- **feat(`feature-liquidacion`):** nueva pantalla **Novedades** (`/liquidacion/novedades`) con el circuito operativo completo por código y período: búsqueda de concepto por código o nombre, alta y actualización por clave única (legajo + período + código + dependencia), bajas individuales y baja total del período con confirmación `MM/AAAA`, e importe que acepta `S`/`N` además de un número. La persona se elige con el buscador estándar (`ui-persona-search`) o por legajo/DNI con ENTER y blur, y el total de las novedades listadas se muestra al pie. El período acreditado (`acreditado = 1`) deja la pantalla en modo consulta y, si el estado del período no se puede verificar, las escrituras también quedan deshabilitadas; además se avisa cuando el plazo de carga ya venció pero el período sigue abierto.
+- **feat(`feature-liquidacion`):** carga masiva de novedades desde planilla `.xlsx` con el flujo subir → revisar pendientes → importar → desimportar, opción de procesamiento paso a paso, avisos del backend y listado de legajos inexistentes agrupados; la transferencia de las novedades del mes anterior también se inicia desde la misma pantalla.
+- **feat(`feature-designaciones`):** nueva pantalla **Transferir Novedades** (`/liquidacion/transferir-novedades`) que mueve al período seleccionado las anotaciones de facultades del mes anterior (`PUT` con `transferido = 1`, conservando el estado pendiente) y clona los cargos pendientes (`POST`) salteando las claves que ya existen en el destino. Cada proceso se confirma antes de ejecutarse, muestra progreso procesados/total y un resumen de exitosos, salteados y errores con su detalle, sin abortar el lote ante un fallo individual. El destino acreditado bloquea las acciones; el origen acreditado sólo se advierte porque mover registros altera un período ya cerrado.
+- **feat(`feature-limite-novedades`):** nueva librería y pantalla **Límite de Novedades** (`/limite-novedades` del módulo Administrador) que fija hasta qué día se pueden cargar novedades del período y muestra en sólo lectura el estado del registro de acreditación. Alta del período con `POST /api/haberes/core/acreditacion/` y edición con `PATCH /api/haberes/core/acreditacion/{acreditacionId}` enviando sólo `limiteNovedades`, para no pisar los datos contables. El límite se persiste como fin del día elegido en hora de Argentina y la lectura reconoce los registros heredados guardados a medianoche UTC; el panel indica si la carga está abierta, cerrada, acreditada o sin límite. La navegación de período pide confirmación cuando hay cambios sin guardar.
+
+### Changed
+
+- **feat(`feature-consultas`):** los importes de las consultas se muestran con el formato institucional (`$ 1.234.567,89`, negativos `-$`): dos decimales fijos y separador de miles, sin depender de cuántos decimales entregue el backend. La tabla compartida `ReporteTablaComponent` suma los tipos de columna `moneda` y `porcentaje`, se aplican a Comparación entre Meses Consecutivos (incluida la columna `%`, a dos decimales), Totales Generales, Libro de Sueldos, Totales por Código, Detalle de Código, Básicos, Cursos y Fusión Docente, y el subtotal de Totales Generales hereda ese formato. Las columnas de horas conservan su presentación numérica sin símbolo.
+- **feat(`liquidacion`):** las entradas de menú **Liquidación General**, **Novedades** y **Transferir Novedades** quedan marcadas como migradas (`RUTAS_MIGRADAS`) y sus rutas se registran con `authGuard`, `moduloGuard` y `DATOS_MODULO`; la descripción de Liquidación General pasa a «Liquidación y recálculo masivo del período».
+- **feat(`administrador`):** la configuración del límite de novedades deja el menú de Liquidación y se muda al módulo Administrador como **Límite de Novedades**, con su ruta protegida por `authGuard` y `administradorGuard` y su tarjeta en el panel de opciones.
+
+### Tests
+
+- `liquidacion-general.service.spec.ts`: `GET` del padrón, `POST` de liquidar con `forzar` y `X-Legajo-Solicitante`, generación de cargos sin `forzar`, proceso y detalle, y descarga de la salida como `Blob`.
+- `liquidacion-general.component.spec.ts`: carga inicial del padrón, filtros locales, inicio rechazado por falta de control y navegación de período con wrap de año.
+- `importe-reporte.spec.ts`: formato de importes de reporte (`$` y dos decimales, negativos con `-$`), porcentajes a dos decimales y lectura de los valores ya formateados en es-AR que entrega `haberes-report` (`1.400.000`, `1.234,56`).
+- `reporte-tabla.component.spec.ts`: render de columnas `moneda` y `porcentaje` y del subtotal con el formato institucional.
+- `novedades.service.spec.ts`: consulta por código, clave única con `dependencia` nula y 400 traducido a `null`, altas y actualizaciones con `X-Legajo-Solicitante`, `DELETE` individual y del período, importadas y pendientes, subida de planilla como texto plano, importar/transferir, acreditación con 404 y búsqueda de códigos con el término codificado.
+- `novedades.component.spec.ts`: alta cuando la clave única no existe, actualización preservando `importado` y `novedadUploadId`, interpretación de `S`/`N`, subida de planilla con paso a paso, 409 por clave duplicada, desimportación del período, baja total con confirmación exacta, transferencia del mes anterior y bloqueo de escrituras con período acreditado o acreditación no verificable.
+- `transferir-novedades.service.spec.ts`: lecturas de anotaciones y cargos, `PUT` de la anotación con período destino y `transferido`, `POST` del cargo sin id ni objetos embebidos, y traducción del 404 de acreditación a `null`.
+- `transferir-novedades.component.spec.ts`: origen en el mes anterior con cruce de año, bloqueo por destino acreditado, advertencia por origen acreditado, continuación del lote ante un error y clonado sólo de las claves faltantes.
+- `limite-novedades.models.spec.ts`: fecha visible de registros heredados y de valores nuevos en hora de Argentina, payload de fin de día, cálculo del cierre y estado `acreditado`/`cerrada`/`abierta`/`sin-limite`.
+- `limite-novedades.component.spec.ts`: `POST` de alta y `PATCH` de edición parcial, rechazo sin llamada HTTP sin fecha, error del backend y confirmación al cambiar de período con cambios sin guardar.
+
 ## [0.20.0] - 2026-11-15
 
 ### Added
