@@ -48,13 +48,13 @@ export class ComparacionMesesComponent {
   readonly columnas: readonly ColumnaTabla<FilaComparacionRemuneraciones>[] = [
     { titulo: 'Legajo', valor: (fila) => fila.legajoId },
     { titulo: 'Apellido y Nombre', valor: (fila) => fila.apellidoNombre },
-    { titulo: 'Bruto anterior', valor: (fila) => fila.brutoAnterior, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Bruto actual', valor: (fila) => fila.brutoActual, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Diferencia', valor: (fila) => fila.brutoDiferencia, tipo: 'importe', alineacion: 'der' },
-    { titulo: '%', valor: (fila) => fila.brutoPorcentaje, tipo: 'entero', alineacion: 'der' },
-    { titulo: 'Neto anterior', valor: (fila) => fila.netoAnterior, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Neto actual', valor: (fila) => fila.netoActual, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Diferencia neto', valor: (fila) => fila.netoDiferencia, tipo: 'importe', alineacion: 'der' }
+    { titulo: 'Bruto anterior', valor: (fila) => fila.brutoAnterior, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Bruto actual', valor: (fila) => fila.brutoActual, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Diferencia', valor: (fila) => fila.brutoDiferencia, tipo: 'moneda', alineacion: 'der' },
+    { titulo: '%', valor: (fila) => fila.brutoPorcentaje, tipo: 'porcentaje', alineacion: 'der' },
+    { titulo: 'Neto anterior', valor: (fila) => fila.netoAnterior, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Neto actual', valor: (fila) => fila.netoActual, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Diferencia neto', valor: (fila) => fila.netoDiferencia, tipo: 'moneda', alineacion: 'der' }
   ];
 
   readonly secciones = computed<readonly SeccionTabla<FilaComparacionRemuneraciones>[]>(() =>

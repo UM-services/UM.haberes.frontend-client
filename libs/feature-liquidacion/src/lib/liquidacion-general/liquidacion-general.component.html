@@ -1,0 +1,315 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Operaciones de Liquidación</span>
+      <h1 class="um-page-title">Liquidación General</h1>
+      <p class="um-page-desc max-w-2xl">
+        Liquidación y recálculo masivo del período para todo el universo liquidable: padrón de
+        legajos, generación de cargos, liquidación y eliminación por período.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" class="um-btn-secondary" (click)="salir()">Salir</button>
+    </div>
+  </div>
+
+  <!-- Período -->
+  <div class="um-card">
+    <div class="flex flex-wrap items-end gap-4">
+      <div>
+        <label for="lg-mes" class="um-label">Mes</label>
+        <input id="lg-mes" type="number" min="1" max="12"
+               [ngModel]="mes()"
+               (change)="mes.set(+$any($event.target).value); cargarPadron(true)"
+               (keydown.enter)="cargarPadron(true)"
+               class="um-input w-20 text-center font-mono tabular-nums" />
+      </div>
+      <div>
+        <label for="lg-anho" class="um-label">Año</label>
+        <input id="lg-anho" type="number" min="2000" max="2100"
+               [ngModel]="anho()"
+               (change)="anho.set(+$any($event.target).value); cargarPadron(true)"
+               (keydown.enter)="cargarPadron(true)"
+               class="um-input w-24 text-center font-mono tabular-nums" />
+      </div>
+      <div class="flex gap-1">
+        <button type="button" class="um-btn-secondary" aria-label="Mes anterior" (click)="cambiarMes(-1)">‹</button>
+        <button type="button" class="um-btn-secondary" aria-label="Mes siguiente" (click)="cambiarMes(1)">›</button>
+      </div>
+      <button type="button" class="um-btn-secondary" (click)="refrescarPeriodo()" [disabled]="cargando()">
+        {{ cargando() ? 'Actualizando...' : 'Actualizar padrón' }}
+      </button>
+      <span class="text-xs text-um-muted ml-auto">
+        El padrón incluye únicamente legajos con <span class="font-mono">liquida = S</span>.
+      </span>
+    </div>
+  </div>
+
+  <!-- Avisos -->
+  @if (error()) {
+    <div class="rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div>
+  }
+  @if (exito()) {
+    <div class="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ exito() }}</div>
+  }
+
+  @if (padron(); as padronActual) {
+
+    <!-- Resumen -->
+    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+      <div class="um-card py-3">
+        <span class="um-eyebrow">Legajos</span>
+        <p class="text-lg font-bold font-mono tabular-nums">{{ padronActual.resumen.total }}</p>
+      </div>
+      <div class="um-card py-3">
+        <span class="um-eyebrow">Docentes</span>
+        <p class="text-lg font-bold font-mono tabular-nums">{{ padronActual.resumen.docentes }}</p>
+      </div>
+      <div class="um-card py-3">
+        <span class="um-eyebrow">No docentes</span>
+        <p class="text-lg font-bold font-mono tabular-nums">{{ padronActual.resumen.noDocentes }}</p>
+      </div>
+      <div class="um-card py-3">
+        <span class="um-eyebrow">Con novedades</span>
+        <p class="text-lg font-bold font-mono tabular-nums">{{ padronActual.resumen.conNovedades }}</p>
+      </div>
+      <div class="um-card py-3">
+        <span class="um-eyebrow">Liquidados</span>
+        <p class="text-lg font-bold font-mono tabular-nums text-emerald-700">{{ padronActual.resumen.liquidados }}</p>
+      </div>
+      <div class="um-card py-3">
+        <span class="um-eyebrow">Bloqueados</span>
+        <p class="text-lg font-bold font-mono tabular-nums text-amber-700">{{ padronActual.resumen.bloqueados }}</p>
+      </div>
+      <div class="um-card py-3">
+        <span class="um-eyebrow">Neto negativo</span>
+        <p class="text-lg font-bold font-mono tabular-nums text-rose-700">{{ padronActual.resumen.netoNegativo }}</p>
+      </div>
+      <div class="um-card py-3">
+        <span class="um-eyebrow">Total neto</span>
+        <p class="text-lg font-bold font-mono tabular-nums">{{ padronActual.resumen.totalNeto | number:'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="um-card">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" class="um-btn-secondary"
+                  [disabled]="!padronActual.acciones.puedeGenerarCargos || !puedeOperar()"
+                  (click)="generarCargos()">
+            Generar cargos del período
+          </button>
+          <button type="button" class="um-btn-primary"
+                  [disabled]="!padronActual.acciones.puedeLiquidar || !puedeOperar()"
+                  (click)="liquidarPeriodo()">
+            Liquidar período
+          </button>
+          <button type="button" class="um-btn-secondary !text-rose-700 !border-rose-200"
+                  [disabled]="!padronActual.acciones.puedeEliminar || !puedeOperar()"
+                  (click)="eliminarPeriodo()">
+            Eliminar liquidaciones del período
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" class="um-btn-secondary" (click)="descargarPersonales()">
+            Datos personales (XLSX)
+          </button>
+          <button type="button" class="um-btn-secondary" (click)="descargarSalida()">
+            Salida del período (XLSX)
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-um-border pt-3">
+        <label class="flex items-center gap-2 text-sm text-um-text">
+          <input type="checkbox" [ngModel]="forzar()" (ngModelChange)="forzar.set($event)" />
+          Forzar liquidaciones bloqueadas
+        </label>
+        <span class="text-xs text-um-muted">
+          Sin «Forzar», los legajos con liquidación bloqueada se omiten y se informan.
+          La generación de cargos nunca fuerza: los bloqueados siempre se omiten.
+        </span>
+        @if (!padronActual.acciones.hayControl) {
+          <span class="text-xs font-semibold text-amber-700">
+            Faltan datos de control del período: no se puede liquidar ni generar cargos.
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- Proceso en curso o último proceso -->
+    @if (proceso(); as procesoActual) {
+      <div class="um-card">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="um-eyebrow">Proceso · {{ tipoTexto() }}</span>
+            <p class="text-sm font-semibold text-um-ink">
+              {{ procesoActual.estado === 'EN_CURSO' ? 'En curso' : procesoActual.estado === 'COMPLETADO' ? 'Completado' : 'Fallido' }}
+              · {{ procesoActual.procesados }} de {{ procesoActual.total }} legajo(s)
+            </p>
+          </div>
+          <div class="flex items-center gap-3 text-xs font-mono tabular-nums">
+            <span class="text-emerald-700">{{ procesoActual.exitosos }} con éxito</span>
+            <span class="text-amber-700">{{ procesoActual.omitidos }} omitido(s)</span>
+            <span class="text-rose-700">{{ procesoActual.fallidos }} fallido(s)</span>
+            <span class="text-um-muted">{{ procesoActual.progreso }}%</span>
+          </div>
+        </div>
+        <div class="mt-3 h-2 overflow-hidden rounded border border-um-border bg-um-surface">
+          <div class="h-full bg-um-primary transition-all" [style.width.%]="procesoActual.progreso"></div>
+        </div>
+        @if (procesoActual.mensaje) {
+          <p class="mt-2 text-xs text-um-muted">{{ procesoActual.mensaje }}</p>
+        }
+
+        @if (omitidos().length > 0) {
+          <div class="mt-4">
+            <div class="um-eyebrow mb-2">Legajos omitidos</div>
+            <div class="overflow-x-auto max-h-60">
+              <table class="um-table w-full">
+                <thead>
+                  <tr><th>Legajo</th><th>Apellido y Nombre</th><th>Motivo</th></tr>
+                </thead>
+                <tbody>
+                  @for (resultado of omitidos(); track resultado.detalleId) {
+                    <tr>
+                      <td class="font-mono tabular-nums">{{ resultado.legajoId }}</td>
+                      <td>{{ resultado.apellido ?? '—' }}, {{ resultado.nombre ?? '—' }}</td>
+                      <td class="text-amber-700">{{ resultado.detalle ?? resultado.motivo ?? '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        @if (fallidos().length > 0) {
+          <div class="mt-4">
+            <div class="um-eyebrow mb-2">Legajos fallidos</div>
+            <div class="overflow-x-auto max-h-60">
+              <table class="um-table w-full">
+                <thead>
+                  <tr><th>Legajo</th><th>Apellido y Nombre</th><th>Detalle</th></tr>
+                </thead>
+                <tbody>
+                  @for (resultado of fallidos(); track resultado.detalleId) {
+                    <tr>
+                      <td class="font-mono tabular-nums">{{ resultado.legajoId }}</td>
+                      <td>{{ resultado.apellido ?? '—' }}, {{ resultado.nombre ?? '—' }}</td>
+                      <td class="text-rose-700">{{ resultado.detalle ?? resultado.motivo ?? '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Filtros y padrón -->
+    <div class="um-card overflow-hidden">
+      <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div class="flex flex-wrap items-end gap-3">
+          <div>
+            <label for="lg-filtro" class="um-label">Buscar</label>
+            <input id="lg-filtro" type="text" placeholder="Legajo o apellido..."
+                   [ngModel]="filtroTexto()" (ngModelChange)="filtroTexto.set($event)"
+                   class="um-input w-64" />
+          </div>
+          <label class="flex items-center gap-2 pb-2 text-sm text-um-text">
+            <input type="checkbox" [ngModel]="soloBloqueados()"
+                   (ngModelChange)="soloBloqueados.set($event)" />
+            Sólo bloqueados
+          </label>
+          <label class="flex items-center gap-2 pb-2 text-sm text-um-text">
+            <input type="checkbox" [ngModel]="soloNegativos()"
+                   (ngModelChange)="soloNegativos.set($event)" />
+            Sólo neto negativo
+          </label>
+        </div>
+        <span class="text-xs text-um-muted">
+          {{ filasFiltradas().length }} de {{ padronActual.resumen.total }} legajo(s)
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="um-table w-full">
+          <thead>
+            <tr>
+              <th class="text-right w-12">#</th>
+              <th class="text-right">Legajo</th>
+              <th>Apellido y Nombre</th>
+              <th>Estado</th>
+              <th class="text-center">Marcas</th>
+              <th class="text-right">Remunerativo</th>
+              <th class="text-right">No remunerativo</th>
+              <th class="text-right">Deducciones</th>
+              <th class="text-right">Neto</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fila of filasFiltradas(); track fila.legajoId) {
+              <tr>
+                <td class="text-right font-mono tabular-nums text-um-muted">{{ fila.orden }}</td>
+                <td class="text-right font-mono tabular-nums">{{ fila.legajoId }}</td>
+                <td>{{ fila.apellido ?? '—' }}, {{ fila.nombre ?? '—' }}</td>
+                <td class="font-mono tabular-nums">{{ fila.estado ?? '—' }} / {{ fila.liquida ?? '—' }}</td>
+                <td class="text-center">
+                  <span class="inline-flex items-center gap-1">
+                    @if (fila.esNoDocente) {
+                      <span class="rounded border border-um-border bg-um-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-um-text">nd</span>
+                    }
+                    @if (fila.esDocente) {
+                      <span class="rounded border border-um-border bg-um-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-um-primary">dc</span>
+                    }
+                    @if (fila.tieneNovedades) {
+                      <span class="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">nv</span>
+                    }
+                    @if (fila.liquidado) {
+                      <span class="rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">lq</span>
+                    }
+                    @if (fila.bloqueado) {
+                      <span class="rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700">bl</span>
+                    }
+                  </span>
+                </td>
+                <td class="text-right font-mono tabular-nums">{{ fila.totalRemunerativo | number:'1.2-2' }}</td>
+                <td class="text-right font-mono tabular-nums">{{ fila.totalNoRemunerativo | number:'1.2-2' }}</td>
+                <td class="text-right font-mono tabular-nums">{{ fila.totalDeduccion | number:'1.2-2' }}</td>
+                <td class="text-right font-mono tabular-nums font-semibold" [ngClass]="netoClase(fila)">
+                  {{ fila.totalNeto | number:'1.2-2' }}
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="py-6 text-center text-um-muted">
+                  @if (cargando()) {
+                    Cargando el padrón del período...
+                  } @else {
+                    No hay legajos que coincidan con los filtros.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  } @else {
+    <div class="um-card py-10 text-center">
+      <p class="text-sm text-um-muted">
+        @if (cargando()) {
+          Cargando el padrón del período...
+        } @else {
+          No se pudo cargar el padrón del período seleccionado.
+        }
+      </p>
+    </div>
+  }
+
+</div>

@@ -13,3 +13,6 @@ export * from './lib/autorizar-novedades/autorizar-novedades.component';
 export * from './lib/autorizar-novedades/autorizar-novedades.service';
 export * from './lib/autorizar-novedades/autorizar-novedades.models';
 export * from './lib/asig-cursos/asig-cursos.component';
+export * from './lib/transferir-novedades/transferir-novedades.models';
+export * from './lib/transferir-novedades/transferir-novedades.service';
+export * from './lib/transferir-novedades/transferir-novedades.component';

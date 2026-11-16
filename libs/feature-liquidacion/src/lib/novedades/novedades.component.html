@@ -1,0 +1,374 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Operaciones de Liquidación</span>
+      <h1 class="um-page-title">Novedades</h1>
+      <p class="um-page-desc max-w-3xl">
+        Carga y consulta de novedades mensuales por concepto: alta individual, planilla Excel,
+        transferencia del mes anterior y cierre del período por acreditación.
+      </p>
+    </div>
+  </div>
+
+  <!-- Período -->
+  <div class="um-card">
+    <div class="um-eyebrow mb-3">Período</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+      <div class="md:col-span-2">
+        <div class="flex items-end gap-2">
+          <div class="flex-1">
+            <label for="nv-mes" class="um-label">Mes</label>
+            <input id="nv-mes" type="number" min="1" max="12"
+                   [ngModel]="mes()" (ngModelChange)="mes.set(+$event)"
+                   (change)="aplicarPeriodo()" (keydown.enter)="aplicarPeriodo()"
+                   class="um-input w-20 text-center font-mono tabular-nums" />
+          </div>
+          <div class="flex-1">
+            <label for="nv-anho" class="um-label">Año</label>
+            <input id="nv-anho" type="number" min="2000" max="2100"
+                   [ngModel]="anho()" (ngModelChange)="anho.set(+$event)"
+                   (change)="aplicarPeriodo()" (keydown.enter)="aplicarPeriodo()"
+                   class="um-input w-24 text-center font-mono tabular-nums" />
+          </div>
+        </div>
+        <div class="flex gap-1 mt-2">
+          <button type="button" class="um-btn-secondary flex-1 py-1" aria-label="Mes anterior"
+                  (click)="cambiarMes(-1)">‹</button>
+          <button type="button" class="um-btn-secondary flex-1 py-1" aria-label="Mes siguiente"
+                  (click)="cambiarMes(1)">›</button>
+        </div>
+      </div>
+
+      <div class="md:col-span-10 flex flex-wrap gap-3">
+        <div class="px-3 py-2 bg-um-surface rounded border border-um-border">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-um-muted">Estado</span>
+          <p class="text-xs font-semibold text-um-ink">
+            @if (!acreditacionVerificada()) {
+              Verificando…
+            } @else if (acreditacionError()) {
+              Sin verificar
+            } @else if (periodoCerrado()) {
+              Acreditado · sólo consulta
+            } @else {
+              Abierto
+            }
+          </p>
+        </div>
+        @if (acreditacion()?.limiteNovedades; as limite) {
+          <div class="px-3 py-2 bg-um-surface rounded border border-um-border">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-um-muted">Plazo de novedades</span>
+            <p class="text-xs font-mono tabular-nums text-um-ink">{{ fechaLegible(limite) }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Avisos -->
+  @if (motivoCierre(); as motivo) {
+    @if (periodoCerrado()) {
+      <div class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{{ motivo }}</div>
+    } @else {
+      <div class="rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ motivo }}</div>
+    }
+  }
+  @if (avisoPlazo(); as aviso) {
+    <div class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      {{ aviso }}
+    </div>
+  }
+  @if (error()) {
+    <div class="rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div>
+  }
+  @if (exito()) {
+    <div class="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ exito() }}</div>
+  }
+  @if (avisos().length > 0) {
+    <div class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      <p class="font-semibold mb-1">Avisos de la planilla</p>
+      <ul class="list-disc pl-5 space-y-1">
+        @for (aviso of avisos(); track $index) {
+          <li>{{ aviso }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- Concepto -->
+  <div class="um-card">
+    <div class="um-eyebrow mb-3">Concepto</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-6 relative">
+        <label for="nv-codigo" class="um-label">Código</label>
+        <input id="nv-codigo" type="text" class="um-input"
+               [ngModel]="codigoTexto()" (ngModelChange)="codigoTexto.set($event); buscarCodigos()"
+               placeholder="Código o nombre del concepto" autocomplete="off" />
+        @if (codigos().length > 0) {
+          <ul class="absolute z-50 mt-1 w-full max-h-56 overflow-y-auto rounded border border-um-border bg-white shadow">
+            @for (codigo of codigos(); track codigo.codigoId) {
+              <li>
+                <button type="button" class="w-full text-left px-3 py-2 text-xs hover:bg-um-selected"
+                        (click)="seleccionarCodigo(codigo)">
+                  <span class="font-mono font-bold tabular-nums">{{ codigo.codigoId }}</span> · {{ codigo.nombre }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+      <div class="md:col-span-6 flex flex-wrap items-center gap-2 md:justify-end">
+        @if (codigoSeleccionado(); as codigo) {
+          <span class="text-xs text-um-muted">
+            <span class="font-mono font-semibold tabular-nums text-um-ink">{{ codigo.codigoId }}</span>
+            · {{ codigo.nombre }}
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (!codigoSeleccionado()) {
+    <div class="um-card text-center py-10">
+      <p class="text-sm text-um-muted">Seleccione un código para ver y cargar sus novedades del período.</p>
+    </div>
+  } @else {
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+
+      <!-- Grilla principal -->
+      <div class="um-card overflow-hidden xl:col-span-8">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="um-eyebrow">Novedades del código</div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="um-btn-secondary px-2 py-1 text-xs"
+                    [disabled]="!puedeEscribir() || procesando() || !novedadSeleccionada()"
+                    (click)="eliminarSeleccionada()">Eliminar seleccionada</button>
+            <button type="button" class="um-btn-secondary px-2 py-1 text-xs text-rose-700"
+                    [disabled]="!puedeEscribir() || procesando()"
+                    (click)="eliminarTodas()">Eliminar todas del período</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="um-table w-full">
+            <thead>
+              <tr>
+                <th>Legajo</th><th>Apellido, Nombre</th><th>Observaciones</th>
+                <th>Código</th><th>Nombre</th><th class="text-right">Importe</th>
+                <th class="text-center">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (novedad of novedades(); track novedad.novedadId) {
+                <tr class="cursor-pointer"
+                    [class.bg-um-selected]="novedadSeleccionada()?.novedadId === novedad.novedadId"
+                    (click)="seleccionarNovedad(novedad)">
+                  <td class="font-mono tabular-nums">{{ novedad.legajoId }}</td>
+                  <td>{{ nombrePersona(novedad.persona, novedad.legajoId) }}</td>
+                  <td>{{ novedad.observaciones || '—' }}</td>
+                  <td class="font-mono tabular-nums">{{ novedad.codigoId }}</td>
+                  <td>{{ nombreCodigo(novedad, novedad.codigoId) }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ novedad.importe | number:'1.2-2' }}</td>
+                  <td class="text-center font-mono">{{ novedad.value || '—' }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="text-center text-um-muted py-4">
+                    @if (cargando()) {
+                      Cargando novedades…
+                    } @else {
+                      Sin novedades para el código y período.
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="border-t-2 border-um-border-strong">
+                <td colspan="5" class="font-bold">Total</td>
+                <td class="text-right font-mono tabular-nums font-bold">{{ total() | number:'1.2-2' }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="um-card xl:col-span-4">
+        <div class="um-eyebrow mb-3">Carga de novedad</div>
+
+        <div class="flex flex-col gap-3">
+          <ui-persona-search
+            label="Apellido, Nombre o legajo"
+            placeholder="Escriba apellido, nombre o legajo…"
+            buscandoLabel="Buscando legajo…"
+            [persona]="persona()"
+            (seleccionada)="onPersonaSeleccionada($event)"
+          />
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="nv-legajo" class="um-label">Legajo</label>
+              <input id="nv-legajo" type="text" inputmode="numeric" class="um-input font-mono tabular-nums"
+                     [ngModel]="legajoInput()" (ngModelChange)="legajoInput.set($event)"
+                     (keyup.enter)="buscarPorLegajo()" (blur)="buscarPorLegajo()"
+                     placeholder="Legajo + ENTER" />
+            </div>
+            <div>
+              <label for="nv-documento" class="um-label">Documento</label>
+              <input id="nv-documento" type="text" inputmode="numeric" class="um-input font-mono tabular-nums"
+                     [ngModel]="documentoInput()" (ngModelChange)="documentoInput.set($event)"
+                     (keyup.enter)="buscarPorDocumento()" (blur)="buscarPorDocumento()"
+                     placeholder="DNI + ENTER" />
+            </div>
+          </div>
+
+          <div>
+            <label for="nv-importe" class="um-label">Importe / (S/N)</label>
+            <input id="nv-importe" type="text" class="um-input font-mono tabular-nums"
+                   [ngModel]="importeTexto()" (ngModelChange)="importeTexto.set($event)"
+                   placeholder="0.00 / S / N" />
+          </div>
+
+          <div>
+            <label for="nv-observaciones" class="um-label">Observaciones</label>
+            <input id="nv-observaciones" type="text" class="um-input"
+                   [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)" />
+          </div>
+
+          @if (novedadSeleccionada(); as seleccionada) {
+            <p class="text-xs text-um-muted">
+              Editando la novedad del legajo
+              <span class="font-mono tabular-nums">{{ seleccionada.legajoId }}</span>.
+              @if (seleccionada.dependenciaId !== null) {
+                Esta fila pertenece a una dependencia
+                <span class="font-mono tabular-nums">{{ seleccionada.dependenciaId }}</span>: el alta manual
+                mantiene la dependencia y sólo actualiza sus propios valores.
+              }
+            </p>
+          }
+
+          <button type="button" class="um-btn-primary w-full"
+                  [disabled]="!puedeEscribir() || procesando() || !persona()"
+                  (click)="agregarNovedad()">Agregar o actualizar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Planilla y procesos -->
+  <div class="um-card">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div class="um-eyebrow">Planilla Excel y procesos</div>
+      <button type="button" class="um-btn-secondary px-2 py-1 text-xs"
+              [disabled]="procesando()"
+              (click)="revisarPendientes()">Revisar pendientes</button>
+    </div>
+
+    <p class="text-xs text-um-muted mb-3">
+      La planilla debe tener encabezados <span class="font-mono">legajoId</span>,
+      <span class="font-mono">codigoId</span>, <span class="font-mono">importe</span> y, opcionalmente,
+      <span class="font-mono">dependenciaId</span>. Subir una planilla reemplaza los pendientes de
+      importación anteriores.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-5">
+        <label for="nv-archivo" class="um-label">Planilla (.xlsx)</label>
+        <input id="nv-archivo" type="file" accept=".xlsx"
+               class="um-input py-1 text-xs"
+               [disabled]="!puedeEscribir() || procesando()"
+               (change)="onArchivoSeleccionado($event)" />
+        @if (archivoNombre(); as nombre) {
+          <p class="mt-1 text-[11px] text-um-muted font-mono truncate">{{ nombre }}</p>
+        }
+      </div>
+      <div class="md:col-span-2">
+        <label class="flex items-center gap-2 text-xs text-um-text">
+          <input type="checkbox" [ngModel]="stepByStep()" (ngModelChange)="stepByStep.set($event)"
+                 [disabled]="!puedeEscribir() || procesando()" />
+          Paso a paso
+        </label>
+      </div>
+      <div class="md:col-span-5 flex flex-wrap gap-2 md:justify-end">
+        <button type="button" class="um-btn-primary px-3 py-1 text-xs"
+                [disabled]="!puedeEscribir() || procesando() || !archivo()"
+                (click)="subirArchivo()">Subir planilla</button>
+        <button type="button" class="um-btn-secondary px-3 py-1 text-xs"
+                [disabled]="!puedeEscribir() || procesando()"
+                (click)="importar()">Importar</button>
+        <button type="button" class="um-btn-secondary px-3 py-1 text-xs"
+                [disabled]="!puedeEscribir() || procesando()"
+                (click)="desimportar()">Desimportar</button>
+        <button type="button" class="um-btn-secondary px-3 py-1 text-xs"
+                [disabled]="!puedeEscribir() || procesando()"
+                (click)="transferirAnterior()">Transferir anterior</button>
+      </div>
+    </div>
+
+    @if (progreso(); as avance) {
+      <p class="mt-3 text-xs text-um-muted">Desimportando: <span class="font-mono tabular-nums">{{ avance }}</span></p>
+    }
+
+    <div class="mt-4 border-t border-um-border pt-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="um-eyebrow">Pendientes de importar</span>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-um-muted font-mono tabular-nums">{{ pendientes().length }}</span>
+          @if (legajosInexistentes().length > 0) {
+            <span class="text-xs text-amber-700">
+              Legajos inexistentes:
+              <span class="font-mono tabular-nums">{{ legajosInexistentes().join(', ') }}</span>
+            </span>
+          }
+          <button type="button" class="um-btn-secondary px-2 py-1 text-xs"
+                  (click)="pendientesVisibles.set(!pendientesVisibles())">
+            {{ pendientesVisibles() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+      </div>
+
+      @if (pendientesVisibles()) {
+        <div class="overflow-x-auto mt-3">
+          <table class="um-table w-full">
+            <thead>
+              <tr>
+                <th>Legajo</th><th>Apellido, Nombre</th><th>Dependencia</th>
+                <th>Código</th><th>Nombre</th><th class="text-right">Importe</th>
+                <th class="text-center">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pendiente of pendientes(); track pendiente.novedadUploadId) {
+                <tr>
+                  <td class="font-mono tabular-nums">{{ pendiente.legajoId }}</td>
+                  <td>
+                    @if (pendiente.persona) {
+                      {{ nombrePersona(pendiente.persona, pendiente.legajoId) }}
+                    } @else {
+                      <span class="text-amber-700">Legajo inexistente</span>
+                    }
+                  </td>
+                  <td class="font-mono">{{ nombreDependencia(pendiente) }}</td>
+                  <td class="font-mono tabular-nums">{{ pendiente.codigoId }}</td>
+                  <td>{{ nombreCodigo(pendiente, pendiente.codigoId) }}</td>
+                  <td class="text-right font-mono tabular-nums">{{ pendiente.importe | number:'1.2-2' }}</td>
+                  <td class="text-center font-mono">{{ pendiente.value || '—' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="text-center text-um-muted py-4">Sin pendientes de importar</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="mt-2 text-xs text-um-muted">
+          Use «Revisar pendientes» para ver el contenido de la planilla subida.
+        </p>
+      }
+    </div>
+  </div>
+</div>

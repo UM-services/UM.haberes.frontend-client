@@ -57,7 +57,14 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('@haberes/feature-control-periodo').then((m) => m.ControlPeriodoComponent),
     canActivate: [authGuard, administradorGuard],
-  },  {
+  },
+  {
+    path: 'limite-novedades',
+    loadComponent: () =>
+      import('@haberes/feature-limite-novedades').then((m) => m.LimiteNovedadesComponent),
+    canActivate: [authGuard, administradorGuard],
+  },
+  {
     path: 'sedes',
     loadComponent: () => import('@haberes/feature-sedes').then((m) => m.SedesComponent),
     canActivate: [authGuard, administradorGuard],

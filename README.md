@@ -30,11 +30,11 @@ um.haberes.frontend-client/
 │   ├── ui-auth/              # @haberes/ui-auth — Login y cambio de clave J2
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards, env
 │   ├── novedades-menu/       # @haberes/novedades-menu — Menú y directorio compartidos de Novedades
-│   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
+│   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones, asignación de cursos y transferencia de novedades
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Cargos del legajo, docentes sede y asignación de cargos
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
-│   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual por legajo
+│   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual, general y novedades del período
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
 │   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable y asientos individuales
 │   ├── feature-personas/     # @haberes/feature-personas — Datos personales y CBU
@@ -45,6 +45,7 @@ um.haberes.frontend-client/
 │   ├── feature-adicionales/  # @haberes/feature-adicionales — Adicional carga horaria
 │   ├── feature-sedes/       # @haberes/feature-sedes — Sedes y desarraigo
 │   ├── feature-control-periodo/ # @haberes/feature-control-periodo — Control del período
+│   ├── feature-limite-novedades/ # @haberes/feature-limite-novedades — Límite de carga de novedades del período
 │   └── feature-usuarios/     # @haberes/feature-usuarios — Usuarios y flag administrador
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
@@ -67,12 +68,12 @@ um.haberes.frontend-client/
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo bajo diseño J2 (marca sólo texto) y modal de cambio de clave (`lib-cambio-clave-modal`) |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
 | `novedades-menu` | `@haberes/novedades-menu` | Menú lateral y directorio del panel principal de Novedades, compartidos entre `novedades` y `simulador-novedades` |
-| `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
+| `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) y transferencia de novedades entre períodos (`/liquidacion/transferir-novedades`) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
 | `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): alta y baja con dependencia, fechas, observaciones, valor del punto del período e importe estimado (`/liquidacion/etec/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
-| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos) |
+| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos); liquidación general del universo liquidable con procesos masivos; y novedades mensuales por concepto con carga individual y por planilla (`.xlsx`) |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
 | `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
@@ -84,6 +85,7 @@ um.haberes.frontend-client/
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
 | `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos y escala global de arraigo |
 | `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
+| `feature-limite-novedades` | `@haberes/feature-limite-novedades` | Límite de carga de novedades del período (`/limite-novedades` del módulo Administrador) con alta y edición parcial del registro de acreditación y estado de la carga en sólo lectura |
 
 ## Sistema de Diseño Institucional (J2)
 

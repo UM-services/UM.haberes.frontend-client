@@ -57,16 +57,8 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/liquidacion/general',
         grupo: 'Liquidación',
         origenVb6: 'frmLiqGeneral.frm',
-        descripcion: 'Proceso masivo de liquidación mensual de haberes para toda la universidad',
+        descripcion: 'Liquidación y recálculo masivo del período',
         iconSvg: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
-      },
-      {
-        label: 'Límite Novedades',
-        path: '/liquidacion/limite-novedades',
-        grupo: 'Liquidación',
-        origenVb6: 'frmLimiteNovedades.frm',
-        descripcion: 'Configuración de fechas de cierre y topes de carga de novedades',
-        iconSvg: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
       },
       {
         label: 'Transferir Novedades',
@@ -472,6 +464,9 @@ export const TODAS_LAS_OPCIONES: OpcionSistema[] = MENU_GROUPS.flatMap(g => g.it
  */
 export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/liquidacion/individual',
+  '/liquidacion/general',
+  '/liquidacion/novedades',
+  '/liquidacion/transferir-novedades',
   '/liquidacion/asig-cargos',
   '/liquidacion/etec/asig-cargos',
   '/consultas/bono-individual',

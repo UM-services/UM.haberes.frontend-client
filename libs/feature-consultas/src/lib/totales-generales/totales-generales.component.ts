@@ -35,7 +35,7 @@ export class TotalesGeneralesComponent {
   readonly columnas: readonly ColumnaTabla<FilaTotales>[] = [
     { titulo: 'Código', valor: (fila) => fila.codigoId },
     { titulo: 'Descripción', valor: (fila) => fila.nombre },
-    { titulo: 'Total', valor: (fila) => fila.total, tipo: 'importe', alineacion: 'der' }
+    { titulo: 'Total', valor: (fila) => fila.total, tipo: 'moneda', alineacion: 'der' }
   ];
 
   readonly secciones = computed<readonly SeccionTabla<FilaTotales>[]>(() =>
