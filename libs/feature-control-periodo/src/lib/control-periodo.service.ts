@@ -10,6 +10,8 @@ import {
   ControlPeriodoRequest,
   EscalaArraigoEtec,
   EscalaArraigoEtecRequest,
+  EscalaHoraEtec,
+  EscalaHoraEtecRequest,
   ModoLiquidacion,
 } from './control-periodo.models';
 
@@ -39,6 +41,10 @@ export class ControlPeriodoService {
 
   private get urlArraigo(): string {
     return `${this.apiBase}/core/etec/arraigo/escala`;
+  }
+
+  private get urlHora(): string {
+    return `${this.apiBase}/core/etec/hora/escala`;
   }
 
   getPeriodo(anho: number, mes: number): Observable<ControlPeriodo | null> {
@@ -83,5 +89,17 @@ export class ControlPeriodoService {
 
   guardarEscalaArraigo(tramos: EscalaArraigoEtecRequest[]): Observable<EscalaArraigoEtec[]> {
     return this.http.put<EscalaArraigoEtec[]>(this.urlArraigo, tramos);
+  }
+
+  getEscalaHora(anho: number, mes: number): Observable<EscalaHoraEtec[]> {
+    return this.http.get<EscalaHoraEtec[]>(`${this.urlHora}/${anho}/${mes}`);
+  }
+
+  guardarEscalaHora(
+    anho: number,
+    mes: number,
+    tramos: EscalaHoraEtecRequest[],
+  ): Observable<EscalaHoraEtec[]> {
+    return this.http.put<EscalaHoraEtec[]>(`${this.urlHora}/${anho}/${mes}`, tramos);
   }
 }

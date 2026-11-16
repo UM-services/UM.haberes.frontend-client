@@ -82,7 +82,7 @@ um.haberes.frontend-client/
 | `feature-cargos-clase` | `@haberes/feature-cargos-clase` | Cargos con clase y asignaciones por período |
 | `feature-adicionales` | `@haberes/feature-adicionales` | Rangos de adicional por carga horaria |
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
-| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria) y escala global de arraigo |
+| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos y escala global de arraigo |
 | `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
 
 ## Sistema de Diseño Institucional (J2)

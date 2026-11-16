@@ -294,14 +294,14 @@ export const CAMPOS_CONTROL_ETEC: CampoControlEtec[] = [
   { campo: 'garantia', label: 'Garantía', step: '0.01', decimales: 2, tipo: 'importe' },
   {
     campo: 'horasAdicionalCargaHoraria',
-    label: 'Horas adicionales de carga horaria',
+    label: 'Horas adicionales del cargo por puntos',
     step: '0.01',
     decimales: 2,
     tipo: 'numero',
   },
   {
     campo: 'valorHoraAdicionalCargaHoraria',
-    label: 'Valor hora adicional',
+    label: 'Valor hora del adicional de carga horaria',
     step: '0.01',
     decimales: 2,
     tipo: 'importe',
@@ -331,4 +331,35 @@ export interface EscalaArraigoEtec {
 }
 
 export type EscalaArraigoEtecRequest = Omit<EscalaArraigoEtec, 'escalaArraigoEtecId'>;
+
+/**
+ * Escala de horas ETEC del período (`etec_hora_escala` en haberes-core).
+ *
+ * Cada tramo define un rango de horas semanales con un monto fijo y un valor por hora:
+ * `importe = monto fijo + horas × valor hora`. Las horas se suman por sede de la facultad
+ * ETEC (15) y el tramo resultante genera un cargo con la categoría «Docente ETEC Horas».
+ * La escala cuelga de `control_etec`, así que se configura y se copia por período.
+ */
+export interface EscalaHoraEtec {
+  escalaHoraEtecId: number | null;
+  controlEtecId: number | null;
+  horasDesde: number | null;
+  horasHasta: number | null;
+  montoFijo: number | null;
+  valorHora: number | null;
+}
+
+/** Payload de `PUT /etec/hora/escala/{anho}/{mes}` (el período va en la ruta). */
+export type EscalaHoraEtecRequest = Omit<EscalaHoraEtec, 'escalaHoraEtecId' | 'controlEtecId'>;
+
+export function tramoHoraVacio(): EscalaHoraEtec {
+  return {
+    escalaHoraEtecId: null,
+    controlEtecId: null,
+    horasDesde: null,
+    horasHasta: null,
+    montoFijo: 0,
+    valorHora: 0,
+  };
+}
 

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.20.0] - 2026-11-15
+
+### Added
+
+- **feat(`feature-control-periodo`):** la tarjeta ETEC suma la **escala de horas de clase** del período (`etec_hora_escala`): tramos de `horas desde` / `horas hasta` con `monto fijo` y `valor hora`, donde cada tramo paga `monto fijo + horas × valor hora` y la tabla muestra ese importe calculado al tope del rango. `Agregar tramo` arranca en el `hasta` del tramo anterior y cada fila se puede quitar. La escala se lee y se reemplaza con `GET`/`PUT /api/haberes/core/etec/hora/escala/{anho}/{mes}`.
+- **feat(`feature-control-periodo`):** la escala de horas valida que cada tramo tenga desde y hasta, que las horas no sean negativas, que el hasta no sea menor que el desde, que `monto fijo` y `valor hora` no sean negativos y que los tramos no se superpongan; además exige los parámetros ETEC del período ya guardados antes de enviarla, porque la escala cuelga de `control_etec`.
+- **feat(`feature-control-periodo`):** `EscalaHoraEtec` / `EscalaHoraEtecRequest` y el helper `tramoHoraVacio()` en los modelos; `ControlPeriodoService.getEscalaHora()` y `guardarEscalaHora()`.
+
+### Changed
+
+- **feat(`feature-control-periodo`):** la sección pasa a llamarse **ETEC (cargos por puntos y horas)** y se documenta en pantalla que las horas semanales de los cursos ETEC se suman por sede para generar el cargo «Docente ETEC Horas», que un legajo fuera de todos los tramos hace fallar la generación con el detalle y que la escala se copia junto con el control ETEC.
+- **feat(`feature-control-periodo`):** los parámetros de carga horaria se rotulan con su alcance real: **Horas adicionales del cargo por puntos** y **Valor hora del adicional de carga horaria**.
+
+### Tests
+
+- `control-periodo.component.spec.ts`: carga inicial de la escala de horas del período, importe al tope, `agregarTramoHora` continuando desde el `hasta` anterior, `PUT` con el payload de tramos y rechazo sin llamada HTTP cuando los tramos se superponen o falta el control ETEC.
+- `control-periodo.service.spec.ts`: `GET` y `PUT` de `/api/haberes/core/etec/hora/escala/{anho}/{mes}`.
+
 ## [0.19.0] - 2026-11-15
 
 ### Added
