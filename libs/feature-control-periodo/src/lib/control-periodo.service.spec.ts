@@ -211,4 +211,22 @@ describe('ControlPeriodoService', () => {
     expect(req.request.body).toEqual(tramos);
     req.flush([]);
   });
+
+  it('pide la escala de horas ETEC del período', () => {
+    service.getEscalaHora(2026, 11).subscribe();
+
+    const req = http.expectOne('/api/haberes/core/etec/hora/escala/2026/11');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+
+  it('reemplaza la escala de horas del período con PUT', () => {
+    const tramos = [{ horasDesde: 0, horasHasta: 6, montoFijo: 100000, valorHora: 5000 }];
+    service.guardarEscalaHora(2026, 11, tramos).subscribe();
+
+    const req = http.expectOne('/api/haberes/core/etec/hora/escala/2026/11');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(tramos);
+    req.flush([]);
+  });
 });

@@ -4,7 +4,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { API_URL } from '@haberes/shared-api';
 
 import { ControlPeriodoComponent } from './control-periodo.component';
-import { ControlEtec, ControlPeriodo, ModoLiquidacion, mesSiguiente } from './control-periodo.models';
+import {
+  ControlEtec,
+  ControlPeriodo,
+  ModoLiquidacion,
+  mesSiguiente,
+  tramoHoraVacio,
+} from './control-periodo.models';
 
 describe('ControlPeriodoComponent', () => {
   let fixture: ComponentFixture<ControlPeriodoComponent>;
@@ -99,10 +105,15 @@ describe('ControlPeriodoComponent', () => {
     return '/api/haberes/core/etec/arraigo/escala';
   }
 
+  function urlHora(anho = anhoInicial, mes = mesInicial): string {
+    return `/api/haberes/core/etec/hora/escala/${anho}/${mes}`;
+  }
+
   function flushPeriodoNuevo(): void {
     http.expectOne('/api/haberes/core/modoLiquidacion/').flush(modos);
     http.expectOne(urlEtecOpcional()).flush(null);
     http.expectOne(urlEscala()).flush([]);
+    http.expectOne(urlHora()).flush([]);
     http.expectOne(urlPeriodo()).flush(null);
   }
 
@@ -110,6 +121,7 @@ describe('ControlPeriodoComponent', () => {
     http.expectOne('/api/haberes/core/modoLiquidacion/').flush(modos);
     http.expectOne(urlEtecOpcional()).flush(null);
     http.expectOne(urlEscala()).flush([]);
+    http.expectOne(urlHora()).flush([]);
     http.expectOne(urlPeriodo()).flush(control);
   }
 
@@ -117,6 +129,7 @@ describe('ControlPeriodoComponent', () => {
                         etec: ControlEtec | null = null): void {
     http.expectOne(urlEtecOpcional()).flush(etec);
     http.expectOne(urlEscala()).flush([]);
+    http.expectOne(urlHora()).flush([]);
     http.expectOne(urlPeriodo()).flush(control);
   }
 
@@ -201,6 +214,7 @@ describe('ControlPeriodoComponent', () => {
     component.irSiguiente();
     http.expectOne(urlEtecOpcional(siguiente.anho, siguiente.mes)).flush(null);
     http.expectOne(urlEscala()).flush([]);
+    http.expectOne(urlHora(siguiente.anho, siguiente.mes)).flush([]);
     http.expectOne(urlPeriodo(siguiente.anho, siguiente.mes)).flush(null);
 
     expect(confirmar).not.toHaveBeenCalled();
@@ -302,6 +316,7 @@ describe('ControlPeriodoComponent', () => {
 
     http.expectOne(urlEtecOpcional(anhoInicial + 1, mesInicial)).flush(null);
     http.expectOne(urlEscala()).flush([]);
+    http.expectOne(urlHora(anhoInicial + 1, mesInicial)).flush([]);
     http.expectOne(urlPeriodo(anhoInicial + 1, mesInicial)).flush(null);
     http.expectNone('/api/haberes/core/control/');
     confirmar.mockRestore();
@@ -355,6 +370,7 @@ describe('ControlPeriodoComponent', () => {
       { escalaArraigoEtecId: 1, aniosMinimos: 2, porcentaje: 20 },
       { escalaArraigoEtecId: 2, aniosMinimos: 10, porcentaje: 60 },
     ]);
+    http.expectOne(urlHora()).flush([]);
     http.expectOne(urlPeriodo()).flush(null);
 
     expect(component.escalaArraigo().length).toBe(2);
@@ -381,5 +397,85 @@ describe('ControlPeriodoComponent', () => {
 
     http.expectNone(urlEscala());
     expect(component.error()).toContain('repetida');
+  });
+
+  it('carga y guarda la escala de horas del período', () => {
+    http.expectOne('/api/haberes/core/modoLiquidacion/').flush(modos);
+    http.expectOne(urlEtecOpcional()).flush({
+      controlEtecId: 5,
+      anho: anhoInicial,
+      mes: mesInicial,
+      valorPuntoEtec: 311.3633,
+      montoFijoCargo: 0,
+      porcentajePresentismo: 20,
+      porcentajeAdicionalCarrera: 10,
+      garantia: 0,
+      horasAdicionalCargaHoraria: 0,
+      valorHoraAdicionalCargaHoraria: 0,
+    });
+    http.expectOne(urlEscala()).flush([]);
+    http.expectOne(urlHora()).flush([
+      {
+        escalaHoraEtecId: 1,
+        controlEtecId: 5,
+        horasDesde: 0,
+        horasHasta: 6,
+        montoFijo: 100000,
+        valorHora: 5000,
+      },
+    ]);
+    http.expectOne(urlPeriodo()).flush(null);
+
+    expect(component.escalaHora().length).toBe(1);
+    expect(component.importeHora(component.escalaHora()[0])).toBe('130.000,00');
+
+    component.agregarTramoHora();
+    expect(component.escalaHora()[1].horasDesde).toBe(6);
+
+    component.escalaHora.set([
+      { ...tramoHoraVacio(), horasDesde: 0, horasHasta: 6, montoFijo: 100000, valorHora: 5000 },
+    ]);
+    component.guardarEscalaHora();
+    const put = http.expectOne(urlHora());
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual([
+      { horasDesde: 0, horasHasta: 6, montoFijo: 100000, valorHora: 5000 },
+    ]);
+    put.flush([
+      {
+        escalaHoraEtecId: 9,
+        controlEtecId: 5,
+        horasDesde: 0,
+        horasHasta: 6,
+        montoFijo: 100000,
+        valorHora: 5000,
+      },
+    ]);
+
+    expect(component.escalaHora()[0].escalaHoraEtecId).toBe(9);
+    expect(component.mensaje()).toContain('Escala de horas guardada');
+  });
+
+  it('no envía la escala de horas si los tramos se superponen', () => {
+    flushPeriodoNuevo();
+    component.escalaHora.set([
+      { ...tramoHoraVacio(), horasDesde: 0, horasHasta: 9 },
+      { ...tramoHoraVacio(), horasDesde: 6, horasHasta: 12 },
+    ]);
+
+    component.guardarEscalaHora();
+
+    http.expectNone(urlHora());
+    expect(component.error()).toContain('superponen');
+  });
+
+  it('no envía la escala de horas si falta el control ETEC del período', () => {
+    flushPeriodoNuevo();
+    component.escalaHora.set([{ ...tramoHoraVacio(), horasDesde: 0, horasHasta: 6 }]);
+
+    component.guardarEscalaHora();
+
+    http.expectNone(urlHora());
+    expect(component.error()).toContain('parámetros ETEC');
   });
 });

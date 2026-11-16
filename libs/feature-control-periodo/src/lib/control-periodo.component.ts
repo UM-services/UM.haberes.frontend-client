@@ -14,6 +14,7 @@ import {
   ControlPeriodoForm,
   ControlPeriodoRequest,
   EscalaArraigoEtec,
+  EscalaHoraEtec,
   ImportesControl,
   ModoLiquidacion,
   SECCIONES_IMPORTES,
@@ -22,6 +23,7 @@ import {
   mesAnterior,
   mesSiguiente,
   textoPeriodo,
+  tramoHoraVacio,
 } from './control-periodo.models';
 import { ControlPeriodoService } from './control-periodo.service';
 
@@ -57,6 +59,8 @@ export class ControlPeriodoComponent implements OnInit {
   readonly controlEtec = signal<ControlEtec | null>(null);
   readonly escalaArraigo = signal<EscalaArraigoEtec[]>([]);
   readonly guardandoEscala = signal(false);
+  readonly escalaHora = signal<EscalaHoraEtec[]>([]);
+  readonly guardandoEscalaHora = signal(false);
 
   form: ControlPeriodoForm = this.formVacio();
   etecForm: ControlEtecRequest = controlEtecVacio();
@@ -91,6 +95,7 @@ export class ControlPeriodoComponent implements OnInit {
     this.limpiarMensajes();
     this.cargarControlEtec(anho, mes);
     this.cargarEscalaArraigo();
+    this.cargarEscalaHora(anho, mes);
 
     this.service.getPeriodo(anho, mes).subscribe({
       next: (control) => {
@@ -345,6 +350,101 @@ export class ControlPeriodoComponent implements OnInit {
         return 'Los porcentajes de arraigo deben estar entre 0 y 100.';
       }
       anios.add(valorAnios);
+    }
+    return null;
+  }
+
+  /** Agrega un tramo de horas que arranca donde termina el anterior. */
+  agregarTramoHora(): void {
+    const tramos = this.escalaHora();
+    const ultimo = tramos[tramos.length - 1];
+    this.escalaHora.set([
+      ...tramos,
+      { ...tramoHoraVacio(), horasDesde: ultimo?.horasHasta ?? null },
+    ]);
+  }
+
+  quitarTramoHora(indice: number): void {
+    this.escalaHora.set(this.escalaHora().filter((_, posicion) => posicion !== indice));
+  }
+
+  guardarEscalaHora(): void {
+    const validacion = this.validarEscalaHora();
+    if (validacion) {
+      this.error.set(validacion);
+      return;
+    }
+    if (!this.controlEtec()) {
+      this.error.set(
+        'Guarde primero los parámetros ETEC del período: la escala de horas depende de ellos.',
+      );
+      return;
+    }
+    this.limpiarMensajes();
+    this.guardandoEscalaHora.set(true);
+    const payload = this.escalaHora().map((tramo) => ({
+      horasDesde: this.numero(tramo.horasDesde),
+      horasHasta: this.numero(tramo.horasHasta),
+      montoFijo: this.numero(tramo.montoFijo),
+      valorHora: this.numero(tramo.valorHora),
+    }));
+    this.service.guardarEscalaHora(this.anho(), this.mes(), payload).subscribe({
+      next: (tramos) => {
+        this.guardandoEscalaHora.set(false);
+        this.escalaHora.set(tramos);
+        this.mensaje.set('Escala de horas guardada.');
+      },
+      error: (err) => {
+        this.guardandoEscalaHora.set(false);
+        this.error.set(mensajeDeError(err, 'No se pudo guardar la escala de horas ETEC'));
+      },
+    });
+  }
+
+  /** Importe de referencia del tramo si el docente tuviera las horas hasta. */
+  importeHora(tramo: EscalaHoraEtec): string {
+    const importe = this.numero(tramo.montoFijo) + this.numero(tramo.horasHasta) * this.numero(tramo.valorHora);
+    return new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(importe);
+  }
+
+  private cargarEscalaHora(anho: number, mes: number): void {
+    this.service.getEscalaHora(anho, mes).subscribe({
+      next: (tramos) => this.escalaHora.set(tramos),
+      error: (err) =>
+        this.error.set(mensajeDeError(err, 'No se pudo cargar la escala de horas ETEC')),
+    });
+  }
+
+  private validarEscalaHora(): string | null {
+    const ordenados = [...this.escalaHora()].sort(
+      (a, b) => this.numero(a.horasDesde) - this.numero(b.horasDesde),
+    );
+    for (const tramo of ordenados) {
+      if (tramo.horasDesde == null || tramo.horasHasta == null) {
+        return 'Cada tramo de horas debe indicar el desde y el hasta.';
+      }
+      const desde = this.numero(tramo.horasDesde);
+      const hasta = this.numero(tramo.horasHasta);
+      if (desde < 0) {
+        return 'Las horas desde no pueden ser negativas.';
+      }
+      if (hasta < desde) {
+        return `El tramo que arranca en ${desde} hora(s) termina antes de empezar.`;
+      }
+      if (this.numero(tramo.montoFijo) < 0 || this.numero(tramo.valorHora) < 0) {
+        return 'El monto fijo y el valor hora no pueden ser negativos.';
+      }
+    }
+    for (let posicion = 1; posicion < ordenados.length; posicion += 1) {
+      const anterior = ordenados[posicion - 1];
+      if (this.numero(ordenados[posicion].horasDesde) <= this.numero(anterior.horasHasta)) {
+        return `Los tramos de horas se superponen: el que arranca en ${this.numero(
+          ordenados[posicion].horasDesde,
+        )} pisa al anterior.`;
+      }
     }
     return null;
   }
