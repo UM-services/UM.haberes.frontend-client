@@ -5,7 +5,7 @@
 - This is an Nx 23.3.0 monorepo using Angular 22, TypeScript 6.0, Vitest 4, and npm 11.6.2; use Node.js 20+.
 - Install from the lockfile with `npm ci`; do not use another package manager.
 - Applications live under `apps/`: `novedades` (port 4208), `liquidacion` (port 4209), `administrador` (port 4211, restricted to users without an assigned faculty **and** with the `administrador` flag enabled) and `simulador-novedades` (port 4212, the Novedades screens with a faculty selector, for the same administrators). Apps are thin shells: root component with `<ui-shell>`, `app.config.ts`, and `app.routes.ts` only; feature views never live inside `apps/<app>/src/app/`.
-- Shared libraries live under `libs/`: `shared-api`, `ui-auth`, `ui-layout`, `novedades-menu`, `feature-designaciones`, `feature-anotador`, `feature-cargos`, `feature-bonos`, `feature-liquidacion`, `feature-etec-asignaciones`, `feature-consultas`, `feature-contabilidad`, and the `administrador` feature set (`feature-personas`, `feature-categorias`, `feature-codigos`, `feature-clases`, `feature-cargos-clase`, `feature-adicionales`, `feature-sedes`, `feature-control-periodo`, `feature-usuarios`). Each feature library owns its screens and services and is consumed by the app whose scope tag it carries.
+- Shared libraries live under `libs/`: `shared-api`, `ui-auth`, `ui-layout`, `novedades-menu`, `feature-designaciones`, `feature-anotador`, `feature-cargos`, `feature-bonos`, `feature-liquidacion`, `feature-etec-asignaciones`, `feature-consultas`, `feature-contabilidad`, and the `administrador` feature set (`feature-personas`, `feature-categorias`, `feature-codigos`, `feature-clases`, `feature-cargos-clase`, `feature-adicionales`, `feature-sedes`, `feature-control-periodo`, `feature-limite-novedades`, `feature-usuarios`). Each feature library owns its screens and services and is consumed by the app whose scope tag it carries.
 - `apps/novedades-e2e` and `apps/simulador-novedades-e2e` are Playwright projects (chromium); their generated `e2e` targets start the matching dev server on 4208 / 4212. Set `BASE_URL` to test an already deployed app.
 - Use the configured `@haberes/*` path aliases for shared libraries and import public symbols through each library's `src/index.ts`. Nx ESLint enforces module boundaries using project tags (`type:*` and `scope:*`) and dependency direction rules.
 
@@ -47,6 +47,10 @@
   - Design for enterprise workflows: use the semantic `.um-table` (compact `text-sm`, uppercase micro-headers in `text-um-muted`, hairline `border-um-border` row dividers); for bespoke tables keep sticky `thead`, compact cell padding (`py-2 px-3`) and subtle hover feedback.
 - **Form Controls & Inputs**:
   - Use `.um-input` (`.um-input-invalid` for error state), `.um-label`, `.um-btn-primary` and `.um-btn-secondary` instead of per-field class strings; compact height and subdued focus rings come from the theme.
+- **Period Selectors (Mes / Año)**:
+  - Every period selector uses two numeric inputs, never a dropdown of month names: mes `type="number" min="1" max="12"` with `um-input w-20 text-center font-mono tabular-nums`, año `type="number" min="2000" max="2100"` with `um-input w-24 text-center font-mono tabular-nums`; reload on `(change)` and `(keydown.enter)`.
+  - Month names appear only in descriptive text (headers, footers, messages), never as the input control. Reference implementation: `libs/feature-control-periodo`.
+- **Conventions Before Novelty**: When a screen needs an interaction that does not exist yet, or an existing convention seems improvable, present the options to the user and wait for an answer before implementing. Do not introduce a new pattern (a select instead of a numeric input, a new endpoint shape, a different date format) on your own judgement.
 
 ## Standard Person Search (Buscador de Personas Estándar)
 

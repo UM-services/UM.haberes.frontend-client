@@ -14,7 +14,8 @@ graph TD
   Liquidacion---Auth1["ui-auth - Login"]
   Liquidacion---API1["shared-api - Auth/Persona/Env/Errores/moduloGuard"]
   Liquidacion---Bonos["feature-bonos - BonoIndividual"]
-  Liquidacion---LiqInd["feature-liquidacion - LiquidacionIndividual"]
+  Liquidacion---LiqInd["feature-liquidacion - LiquidacionIndividual / LiquidacionGeneral / Novedades"]
+  Liquidacion---Transferir["feature-designaciones - TransferirNovedades"]
   Liquidacion---Consultas["feature-consultas - Consultas y Reportes"]
   Liquidacion---Conta["feature-contabilidad - ImputacionIndividual"]
   Liquidacion---DesigLiq["feature-designaciones - Designaciones / CargosClase / FusionTodos"]
@@ -41,6 +42,7 @@ graph TD
   Administrador---Adicionales["feature-adicionales - Adicionales"]
   Administrador---Sedes["feature-sedes - Sedes"]
   Administrador---ControlPeriodo["feature-control-periodo - Control del periodo"]
+  Administrador---LimiteNovedades["feature-limite-novedades - Limite de Novedades"]
   Administrador---Usuarios["feature-usuarios - Usuarios"]
 
   Simulador---Layout4["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
