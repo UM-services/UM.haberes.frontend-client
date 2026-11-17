@@ -489,6 +489,7 @@ export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/consultas/historico-cargos',
   '/consultas/bonos-dependencia',
   '/contabilidad/imputacion-individual',
+  '/contabilidad/formulario-931',
   '/designaciones/general',
   '/designaciones/actualizar-cargos-clase',
   '/designaciones/anotador',

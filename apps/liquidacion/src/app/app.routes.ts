@@ -193,6 +193,13 @@ const imputacionIndividualRoute: Route = {
   data: DATOS_MODULO
 };
 
+const formulario931Route: Route = {
+  path: 'contabilidad/formulario-931',
+  loadComponent: () => import('@haberes/feature-contabilidad').then(m => m.Formulario931Component),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const designacionesGeneralRoute: Route = {
   path: 'designaciones/general',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.DesignacionesComponent),
@@ -352,6 +359,7 @@ export const appRoutes: Routes = [
   historicoCargosRoute,
   bonosDependenciaRoute,
   imputacionIndividualRoute,
+  formulario931Route,
   designacionesGeneralRoute,
   actualizarCargosClaseRoute,
   anotadorRoute,
