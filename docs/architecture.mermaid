@@ -17,7 +17,8 @@ graph TD
   Liquidacion---LiqInd["feature-liquidacion - LiquidacionIndividual / LiquidacionGeneral / Novedades"]
   Liquidacion---Transferir["feature-designaciones - TransferirNovedades"]
   Liquidacion---Consultas["feature-consultas - Consultas y Reportes"]
-  Liquidacion---Conta["feature-contabilidad - ImputacionIndividual"]
+  Liquidacion---Conta["feature-contabilidad - ImputacionIndividual / Formulario931"]
+  Liquidacion---Mov["feature-movimientos - ArchivoSantander / ArchivoOtrosBancos / Individuales / Excluidos"]
   Liquidacion---DesigLiq["feature-designaciones - Designaciones / CargosClase / FusionTodos"]
   Liquidacion---AnotLiq["feature-anotador - Anotaciones / Visado"]
   Liquidacion---CargLiq["feature-cargos - AsignacionCargos"]
@@ -33,7 +34,7 @@ graph TD
 
   Administrador---Layout3["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Administrador---Auth3["ui-auth - Login"]
-  Administrador---API3["shared-api - Auth/Persona/Env/Errores/administradorGuard"]
+  Administrador---API3["shared-api - Auth/Persona/Env/Errores/administradorGuard/confirmarSalida"]
   Administrador---Personas["feature-personas - DatosPersonales"]
   Administrador---Categorias["feature-categorias - Categorias"]
   Administrador---Codigos["feature-codigos - Codigos"]
