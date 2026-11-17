@@ -488,6 +488,14 @@ export class ControlPeriodoComponent implements OnInit {
     );
   }
 
+  /**
+   * `canDeactivate` de la pantalla: indica si el formulario tiene cambios sin guardar
+   * para que el usuario confirme antes de abandonar (incluido el botón atrás).
+   */
+  hayCambiosSinGuardar(): boolean {
+    return this.hayCambios();
+  }
+
   private hayCambios(): boolean {
     return this.serializar() !== this.snapshot;
   }

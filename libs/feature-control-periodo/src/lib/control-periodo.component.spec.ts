@@ -184,6 +184,15 @@ describe('ControlPeriodoComponent', () => {
     expect(component.avisoFechas()).toBe(false);
   });
 
+  it('avisa al salir cuando el período tiene cambios sin guardar', () => {
+    flushPeriodoExistente();
+    expect(component.hayCambiosSinGuardar()).toBe(false);
+
+    component.form.depositoBanco = 'OTRO';
+
+    expect(component.hayCambiosSinGuardar()).toBe(true);
+  });
+
   it('avisa cuando las fechas de liquidación no son del período', () => {
     flushPeriodoExistente({
       ...controlPeriodo(),
