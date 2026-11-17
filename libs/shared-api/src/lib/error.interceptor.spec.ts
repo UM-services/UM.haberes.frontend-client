@@ -41,6 +41,7 @@ describe('errorInterceptor (haberes)', () => {
     expect(authService.clearSession).toHaveBeenCalledOnce();
     expect(router.navigate).toHaveBeenCalledWith(['/login'], {
       queryParams: { returnUrl: '/novedades/anotador', motivo: 'sesion-expirada' },
+      replaceUrl: true,
     });
   });
 
