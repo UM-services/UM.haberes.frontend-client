@@ -1,6 +1,7 @@
 export * from './lib/auth/auth.service';
 export * from './lib/auth/auth.models';
 export * from './lib/auth/auth.guard';
+export * from './lib/confirmar-salida.guard';
 export * from './lib/auth/unauth.guard';
 export * from './lib/auth/administrador.guard';
 export * from './lib/auth/modulo.guard';

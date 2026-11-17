@@ -3,6 +3,7 @@ import {
   SIN_ACCESO_RUTA,
   administradorGuard,
   authGuard,
+  confirmarSalida,
   unauthGuard,
 } from '@haberes/shared-api';
 import { NoAccesoComponent } from '@haberes/ui-layout';
@@ -57,6 +58,7 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('@haberes/feature-control-periodo').then((m) => m.ControlPeriodoComponent),
     canActivate: [authGuard, administradorGuard],
+    canDeactivate: [confirmarSalida('Hay cambios sin guardar en este período. ¿Salir igual?')],
   },
   {
     path: 'limite-novedades',

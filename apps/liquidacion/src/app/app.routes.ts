@@ -193,6 +193,13 @@ const imputacionIndividualRoute: Route = {
   data: DATOS_MODULO
 };
 
+const formulario931Route: Route = {
+  path: 'contabilidad/formulario-931',
+  loadComponent: () => import('@haberes/feature-contabilidad').then(m => m.Formulario931Component),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const designacionesGeneralRoute: Route = {
   path: 'designaciones/general',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.DesignacionesComponent),
@@ -256,6 +263,43 @@ const cursosConsultaRoute: Route = {
   data: DATOS_MODULO
 };
 
+const santanderMasivoRoute: Route = {
+  path: 'movimientos/santander',
+  loadComponent: () => import('@haberes/feature-movimientos').then(m => m.SantanderMasivoComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const otrosBancosMasivoRoute: Route = {
+  path: 'movimientos/otros-bancos',
+  loadComponent: () => import('@haberes/feature-movimientos').then(m => m.OtrosBancosMasivoComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const santanderIndividualRoute: Route = {
+  path: 'movimientos/santander-individual',
+  loadComponent: () =>
+    import('@haberes/feature-movimientos').then(m => m.SantanderIndividualComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const otrosBancosIndividualRoute: Route = {
+  path: 'movimientos/otros-bancos-individual',
+  loadComponent: () =>
+    import('@haberes/feature-movimientos').then(m => m.OtrosBancosIndividualComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const excluidosRoute: Route = {
+  path: 'movimientos/excluidos',
+  loadComponent: () => import('@haberes/feature-movimientos').then(m => m.ExcluidosComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const opcionesRoutes: Routes = TODAS_LAS_OPCIONES
   .filter(opcion => !RUTAS_MIGRADAS.has(opcion.path))
   .map(opcion => ({
@@ -315,6 +359,7 @@ export const appRoutes: Routes = [
   historicoCargosRoute,
   bonosDependenciaRoute,
   imputacionIndividualRoute,
+  formulario931Route,
   designacionesGeneralRoute,
   actualizarCargosClaseRoute,
   anotadorRoute,
@@ -324,6 +369,11 @@ export const appRoutes: Routes = [
   cargosClaseDuplicarRoute,
   fusionTodosRoute,
   cursosConsultaRoute,
+  santanderMasivoRoute,
+  otrosBancosMasivoRoute,
+  santanderIndividualRoute,
+  otrosBancosIndividualRoute,
+  excluidosRoute,
   ...opcionesRoutes,
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },
   { path: '**', redirectTo: 'inicio' }

@@ -122,7 +122,7 @@ export class LoginComponent {
             this.errorMessage.set('Módulo ADMINISTRADOR. Usuario NO habilitado.');
             return;
           }
-          this.router.navigate(['/']);
+          this.router.navigate(['/'], { replaceUrl: true });
         } else {
           this.errorMessage.set(response.error || 'Error desconocido');
         }

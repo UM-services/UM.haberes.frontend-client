@@ -36,7 +36,8 @@ um.haberes.frontend-client/
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
 │   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual, general y novedades del período
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
-│   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable y asientos individuales
+│   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable, asientos individuales y totales del F.931
+│   ├── feature-movimientos/  # @haberes/feature-movimientos — Archivos bancarios, emisión individual y excluidos
 │   ├── feature-personas/     # @haberes/feature-personas — Datos personales y CBU
 │   ├── feature-categorias/   # @haberes/feature-categorias — Categorías y básicos
 │   ├── feature-codigos/      # @haberes/feature-codigos — Códigos de concepto y grupos
@@ -75,7 +76,8 @@ um.haberes.frontend-client/
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
 | `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos); liquidación general del universo liquidable con procesos masivos; y novedades mensuales por concepto con carga individual y por planilla (`.xlsx`) |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
-| `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
+| `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales; totales del Formulario 931 por período (`/contabilidad/formulario-931`) |
+| `feature-movimientos` | `@haberes/feature-movimientos` | Archivos bancarios del período: generación masiva Santander y Otros Bancos (`.txt` bancario desde Base64), emisión individual por legajo o documento con ajuste de importe no persistido, y ABM de excluidos con reportes PDF/XLSX (`/movimientos/...`) |
 | `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
 | `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, puntos ETEC, flags y vigencia mensual |
 | `feature-codigos` | `@haberes/feature-codigos` | Códigos de concepto, grupo contable y conceptos AFIP |

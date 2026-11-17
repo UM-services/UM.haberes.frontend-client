@@ -489,6 +489,7 @@ export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/consultas/historico-cargos',
   '/consultas/bonos-dependencia',
   '/contabilidad/imputacion-individual',
+  '/contabilidad/formulario-931',
   '/designaciones/general',
   '/designaciones/actualizar-cargos-clase',
   '/designaciones/anotador',
@@ -497,5 +498,10 @@ export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/designaciones/cargos-clase',
   '/designaciones/duplicar-cargos-clase',
   '/designaciones/fusionar-todos',
-  '/designaciones/cursos'
+  '/designaciones/cursos',
+  '/movimientos/santander',
+  '/movimientos/otros-bancos',
+  '/movimientos/santander-individual',
+  '/movimientos/otros-bancos-individual',
+  '/movimientos/excluidos'
 ]);
