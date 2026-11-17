@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.24.0] - 2026-11-17
+
+### Added
+
+- **feat(`shared-api`):** guard reutilizable **`confirmarSalida(pregunta)`** (`canDeactivate`) para pantallas con cambios sin guardar; cubre enlaces y el botón atrás del navegador porque ambos pasan por el Router. Aplicado a **Control del Período** (`/control-periodo` del app Administrador), que ahora avisa antes de abandonar el formulario con cambios pendientes (`hayCambiosSinGuardar()`).
+- **test(`shared-api`):** `confirmar-salida.guard.spec.ts` (sin método, sin cambios, acepta y rechaza la confirmación) y caso de `hayCambiosSinGuardar()` en `control-periodo.component.spec.ts`.
+
+### Fixed
+
+- **fix(`ui-layout`, `shared-api`, `ui-auth`):** el **botón atrás del navegador** ya no vuelve a pantallas privadas cerradas. El logout del shell navega a `/login` con `replaceUrl: true`, el 401 del interceptor hace lo mismo con el motivo de sesión expirada, y el login también reemplaza la entrada del historial al entrar.
+
+## [0.23.0] - 2026-11-16
+
+### Added
+
+- **feat(`feature-contabilidad`):** nueva pantalla **Totales Formulario 931** (`/contabilidad/formulario-931`) con el registro único por período de los seis totales informados en el F.931 (códigos 351, 301, 352, 302, 312 y 028), navegación `<` / `>` por mes con rollover de año, año y mes numéricos con recarga por Enter o al salir del campo, y guardado contra `POST /api/haberes/core/seguridadSocial/` o `PUT .../{seguridadSocialId}` según el período ya exista. La pantalla conserva el orden visual del formulario legado (351/301/352 y 302/312/028) y las etiquetas «Código NNN», sin inventar la semántica AFIP de cada código.
+- **feat(`feature-contabilidad`):** el período sin datos se lee con `GET /api/haberes/core/seguridadSocial/unique/{anho}/{mes}/opcional` (200 con cuerpo vacío) y se muestra como **Período nuevo** con aviso y ceros, en lugar del silencio del legacy. Un período existente muestra su `seguridadSocialId` y el badge **Período existente**.
+- **feat(`feature-contabilidad`):** tarjeta de **totales de control** calculados en pantalla y no persistidos, con las fórmulas de la imputación masiva: **Aportes** = 351 + 352 + 312 + 028 y **Leyes sociales** = 028 + 301 + 302 + 312 + 351 + 352.
+- **feat(`feature-contabilidad`):** los importes negativos se permiten (rectificativas y ajustes) con aviso ámbar y confirmación al guardar; al navegar o cambiar de período se pide confirmación si hay cambios sin guardar. Los errores del backend se muestran con `mensajeDeError` y, tras guardar, la pantalla relee el período.
+- **feat(`liquidacion`):** la ruta `contabilidad/formulario-931` se registra con `authGuard`, `moduloGuard` y `DATOS_MODULO`, y la opción se suma a `RUTAS_MIGRADAS`, por lo que deja de abrir el placeholder y figura como disponible en el panel de inicio.
+
+### Tests
+
+- `formulario-931.service.spec.ts`: consulta por el endpoint opcional, cuerpo vacío traducido a `null`, `POST` del payload completo y `PUT` con el id en la ruta y sin id en el cuerpo.
+- `formulario-931.component.spec.ts`: período nuevo y existente, totales de aportes y leyes sociales, navegación con rollover de año, recarga por año/mes, período escrito inválido, confirmación por cambios sin guardar, alta contra `POST`, modificación contra `PUT`, rechazo de negativos sin confirmación, bloqueo cuando el período escrito no es el cargado y error de carga del backend.
+
+## [0.22.0] - 2026-11-16
+
+### Added
+
+- **feat(`feature-movimientos`):** nueva librería con las cinco pantallas del grupo **Movimientos y Bancos** del módulo Liquidación, que reemplazan los formularios de `bonos.vb6` y salen del placeholder de opciones no migradas: **Archivo Santander** (`/movimientos/santander`), **Archivo Otros Bancos** (`/movimientos/otros-bancos`), **Santander Individual** (`/movimientos/santander-individual`), **Otros Bancos Individual** (`/movimientos/otros-bancos-individual`) y **Excluidos** (`/movimientos/excluidos`), todas con `authGuard`, `moduloGuard` y `DATOS_MODULO`.
+- **feat(`feature-movimientos`):** generación masiva con período, fecha de pago, número de envío, filtro de salida (administrativos/docentes; ambos o ninguno incluyen todo), dependencia, universo por novedades de un código y CCI para Otros Bancos. Descarga el `.txt` bancario desde el Base64 del backend preservando los bytes (CP1252 y CRLF) y muestra cantidad, total, si el período quedó acreditado y la grilla de rechazos con los motivos del circuito.
+- **feat(`feature-movimientos`):** emisión individual con el buscador estándar de personas (`ui-persona-search`) o legajo/documento exactos, CBUs del período filtrados por banco, importe editable que no se persiste (ajuste de la emisión), colección en memoria con alta sin duplicados y baja por la fila seleccionada, y generación sin marcar el período.
+- **feat(`feature-movimientos`):** pantalla **Excluidos** con período, alta y actualización por legajo (observaciones y fecha), baja por legajo con confirmación, grilla con el importe del código 99 y descargas PDF/XLSX del reporte de `haberes-report`.
+- **feat(`feature-movimientos`):** componentes compartidos `periodo-nav` (mes/año numérico con rollover), `rechazos-grid` con exportación CSV —reemplazo del inexistente `rptNoAsignado`— y helpers de descarga Base64/Blob/CSV.
+- **feat(`liquidacion`):** las cinco rutas se registran en `RUTAS_MIGRADAS`, por lo que dejan de abrir el placeholder; los nombres `.frm` del legacy quedan sólo en `origenVb6` como dato interno.
+
 ## [0.21.0] - 2026-11-16
 
 ### Added
