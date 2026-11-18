@@ -4,3 +4,7 @@ export * from './lib/persona-search/persona-search.component';
 export * from './lib/no-acceso/no-acceso';
 export * from './lib/solicitar-acceso/solicitar-acceso';
 export * from './lib/inactividad/inactividad';
+export * from './lib/fecha/fecha.pipe';
+export * from './lib/importe/importe.pipe';
+export * from './lib/input-fecha/input-fecha';
+export * from './lib/sticky-footer/sticky-footer.directive';

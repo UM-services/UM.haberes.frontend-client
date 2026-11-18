@@ -45,7 +45,7 @@
               <td class="font-mono tabular-nums">{{ clase.claseId }}</td>
               <td>{{ clase.nombre }}</td>
               <td class="text-right font-mono tabular-nums">
-                {{ clase.valorHora | number: '1.2-2' }}
+                {{ clase.valorHora | umImporte }}
               </td>
               <td class="text-right">
                 <button
@@ -87,6 +87,9 @@
             [(ngModel)]="form.valorHora"
             name="valorHora"
           />
+          <p class="mt-1 text-right font-mono text-[11px] tabular-nums text-um-muted">
+            {{ form.valorHora | umImporte: 'simbolo' }}
+          </p>
         </div>
 
         <div class="flex flex-wrap gap-2 pt-2">

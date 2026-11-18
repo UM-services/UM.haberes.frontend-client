@@ -37,7 +37,7 @@ export class CursosDocenteComponent {
     { titulo: 'Espacio', valor: (fila) => fila.espacio },
     { titulo: 'Horas', valor: (fila) => fila.horas, tipo: 'entero', alineacion: 'der' },
     { titulo: 'Cargo', valor: (fila) => fila.cargo },
-    { titulo: 'Básico', valor: (fila) => fila.basico, tipo: 'importe', alineacion: 'der' },
+    { titulo: 'Básico', valor: (fila) => fila.basico, tipo: 'moneda', alineacion: 'der' },
     { titulo: 'Anual', valor: (fila) => fila.anual, alineacion: 'centro' },
     { titulo: 'Semestre 1', valor: (fila) => fila.semestre1, alineacion: 'centro' },
     { titulo: 'Semestre 2', valor: (fila) => fila.semestre2, alineacion: 'centro' }

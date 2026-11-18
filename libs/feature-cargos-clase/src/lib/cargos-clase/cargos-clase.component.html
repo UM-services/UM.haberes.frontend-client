@@ -82,7 +82,7 @@
             <option [ngValue]="null">Seleccione una clase…</option>
             @for (clase of clases(); track clase.claseId) {
               <option [ngValue]="clase.claseId">
-                {{ clase.nombre }} ({{ clase.valorHora | number: '1.2-2' }})
+                {{ clase.nombre }} ({{ clase.valorHora | umImporte }})
               </option>
             }
           </select>

@@ -3,6 +3,7 @@ import {
   SIN_ACCESO_RUTA,
   administradorGuard,
   authGuard,
+  confirmarSalida,
   unauthGuard,
 } from '@haberes/shared-api';
 import { NoAccesoComponent } from '@haberes/ui-layout';
@@ -13,7 +14,8 @@ export const appRoutes: Route[] = [
     loadComponent: () => import('@haberes/ui-auth').then((m) => m.LoginComponent),
     canActivate: [unauthGuard],
     // false = el módulo es global: rechaza usuarios con facultad asignada.
-    data: { requireFacultadId: false },
+    // requireAdministrador = además exige usuario.administrador == 1 (regla aditiva).
+    data: { requireFacultadId: false, requireAdministrador: true },
   },
   {
     // Ruta pública de las guards: explica la denegación sin cerrar la sesión.
@@ -52,8 +54,26 @@ export const appRoutes: Route[] = [
     canActivate: [authGuard, administradorGuard],
   },
   {
+    path: 'control-periodo',
+    loadComponent: () =>
+      import('@haberes/feature-control-periodo').then((m) => m.ControlPeriodoComponent),
+    canActivate: [authGuard, administradorGuard],
+    canDeactivate: [confirmarSalida('Hay cambios sin guardar en este período. ¿Salir igual?')],
+  },
+  {
+    path: 'limite-novedades',
+    loadComponent: () =>
+      import('@haberes/feature-limite-novedades').then((m) => m.LimiteNovedadesComponent),
+    canActivate: [authGuard, administradorGuard],
+  },
+  {
     path: 'sedes',
     loadComponent: () => import('@haberes/feature-sedes').then((m) => m.SedesComponent),
+    canActivate: [authGuard, administradorGuard],
+  },
+  {
+    path: 'usuarios',
+    loadComponent: () => import('@haberes/feature-usuarios').then((m) => m.UsuariosComponent),
     canActivate: [authGuard, administradorGuard],
   },
   {

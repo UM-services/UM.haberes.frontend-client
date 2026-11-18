@@ -22,25 +22,32 @@ um.haberes.frontend-client/
 │   ├── administrador/        # App de Administración de parámetros de Haberes
 │   ├── liquidacion/          # App de Liquidación de Haberes
 │   ├── novedades/            # App de Gestión de Novedades, Designaciones, Anotaciones y Cargos
-│   └── novedades-e2e/        # Tests E2E (Playwright) de novedades
+│   ├── simulador-novedades/  # Réplica de Novedades con selector de facultad (administradores)
+│   ├── novedades-e2e/        # Tests E2E (Playwright) de novedades
+│   └── simulador-novedades-e2e/ # Tests E2E (Playwright) del simulador
 ├── libs/
 │   ├── ui-layout/            # @haberes/ui-layout — Shell institucional J2 unificado (ui-shell, ui-opciones-panel)
 │   ├── ui-auth/              # @haberes/ui-auth — Login y cambio de clave J2
 │   ├── shared-api/           # @haberes/shared-api — AuthService, guards, env
-│   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones y asignación de cursos
+│   ├── novedades-menu/       # @haberes/novedades-menu — Menú y directorio compartidos de Novedades
+│   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones, asignación de cursos y transferencia de novedades
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Cargos del legajo, docentes sede y asignación de cargos
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
-│   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual por legajo
+│   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual, general y novedades del período
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
-│   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable y asientos individuales
+│   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable, asientos individuales y totales del F.931
+│   ├── feature-movimientos/  # @haberes/feature-movimientos — Archivos bancarios, emisión individual y excluidos
 │   ├── feature-personas/     # @haberes/feature-personas — Datos personales y CBU
 │   ├── feature-categorias/   # @haberes/feature-categorias — Categorías y básicos
 │   ├── feature-codigos/      # @haberes/feature-codigos — Códigos de concepto y grupos
 │   ├── feature-clases/       # @haberes/feature-clases — Clases y valor hora
 │   ├── feature-cargos-clase/ # @haberes/feature-cargos-clase — Cargos con clase
 │   ├── feature-adicionales/  # @haberes/feature-adicionales — Adicional carga horaria
-│   └── feature-sedes/        # @haberes/feature-sedes — Sedes y desarraigo
+│   ├── feature-sedes/       # @haberes/feature-sedes — Sedes y desarraigo
+│   ├── feature-control-periodo/ # @haberes/feature-control-periodo — Control del período
+│   ├── feature-limite-novedades/ # @haberes/feature-limite-novedades — Límite de carga de novedades del período
+│   └── feature-usuarios/     # @haberes/feature-usuarios — Usuarios y flag administrador
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -51,29 +58,36 @@ um.haberes.frontend-client/
 |---|---|---|
 | `novedades` | 4208 | Módulo de novedades, designaciones, anotaciones y reportes de cargos docentes |
 | `liquidacion` | 4209 | Módulo de liquidación de haberes y catálogo central de operaciones |
-| `administrador` | 4211 | Módulo de administración de parámetros, restringido a usuarios sin facultad asignada |
+| `administrador` | 4211 | Módulo de administración de parámetros, restringido a usuarios sin facultad asignada y con el flag `administrador` de Haberes habilitado |
+| `simulador-novedades` | 4212 | Réplica del módulo Novedades para administradores: mismas pantallas con un selector de facultad, para soporte y diagnóstico |
 
 ## Librerías
 
 | Librería | Alias | Propósito |
 |---|---|---|
-| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`), panel de opciones (`ui-opciones-panel`), pantalla de acceso restringido (`ui-no-acceso`), aviso de inactividad (`ui-inactividad`) y botón de solicitud de acceso (`ui-solicitar-acceso`) |
+| `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`), panel de opciones (`ui-opciones-panel`), pantalla de acceso restringido (`ui-no-acceso`), aviso de inactividad (`ui-inactividad`), botón de solicitud de acceso (`ui-solicitar-acceso`), pipes `umImporte`/`umFecha`, input de fecha `ui-input-fecha` y directiva `[uiStickyFooter]` |
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo bajo diseño J2 (marca sólo texto) y modal de cambio de clave (`lib-cambio-clave-modal`) |
 | `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
-| `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) |
+| `novedades-menu` | `@haberes/novedades-menu` | Menú lateral y directorio del panel principal de Novedades, compartidos entre `novedades` y `simulador-novedades` |
+| `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) y transferencia de novedades entre períodos (`/liquidacion/transferir-novedades`) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
-| `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
+| `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
+| `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): alta y baja con dependencia, fechas, observaciones, valor del punto del período e importe estimado (`/liquidacion/etec/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
-| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales |
+| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos); liquidación general del universo liquidable con procesos masivos; y novedades mensuales por concepto con carga individual y por planilla (`.xlsx`) |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
-| `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales |
+| `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales; totales del Formulario 931 por período (`/contabilidad/formulario-931`) |
+| `feature-movimientos` | `@haberes/feature-movimientos` | Archivos bancarios del período: generación masiva Santander y Otros Bancos (`.txt` bancario desde Base64), emisión individual por legajo o documento con ajuste de importe no persistido, y ABM de excluidos con reportes PDF/XLSX (`/movimientos/...`) |
 | `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
-| `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, flags y vigencia mensual |
+| `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, puntos ETEC, flags y vigencia mensual |
 | `feature-codigos` | `@haberes/feature-codigos` | Códigos de concepto, grupo contable y conceptos AFIP |
 | `feature-clases` | `@haberes/feature-clases` | Clases de hora cátedra y valor hora |
 | `feature-cargos-clase` | `@haberes/feature-cargos-clase` | Cargos con clase y asignaciones por período |
 | `feature-adicionales` | `@haberes/feature-adicionales` | Rangos de adicional por carga horaria |
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
+| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos y escala global de arraigo |
+| `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
+| `feature-limite-novedades` | `@haberes/feature-limite-novedades` | Límite de carga de novedades del período (`/limite-novedades` del módulo Administrador) con alta y edición parcial del registro de acreditación y estado de la carga en sólo lectura |
 
 ## Sistema de Diseño Institucional (J2)
 
@@ -82,7 +96,8 @@ Todas las aplicaciones comparten el tema visual **J2** institucional de 4 capas,
 - **Tokens (`@theme static`)**: Paleta `um-*` (`bg-um-sidebar`, `text-um-ink`, `border-um-border`, `bg-um-surface`, `text-um-primary`), tipografía Inter institucional, espaciados y radios. Es la única fuente de colores corporativos.
 - **Base y Densidad (`@layer base`)**: Escala global del `87.5%` (~14px base) para maximizar la densidad visual en escritorio, normalización de spinners numéricos y cifras tabulares (`tabular-nums`) para alineación contable precisa.
 - **Shell Estructural (`<ui-shell>`)**: Shell J2 (`@haberes/ui-layout`) con sidebar oscuro institucional, badge de ambiente coloreado según entorno (`APP_ENV_INFO`), usuario, sede, cambio de clave, logout y menú polimórfico (lineal para `novedades` y agrupado para `liquidacion`).
-- **Utilidades de Componentes (`@layer components`)**: Clases semánticas `.um-*`: `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`.um-input-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`) y `.um-table`.
+- **Utilidades de Componentes (`@layer components`)**: Clases semánticas `.um-*`: `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`.um-input-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`), `.um-table` y `.um-sticky-footer`.
+- **Pipes y controles compartidos**: `umImporte` (importes en `1.234.567,89`, con modo `'simbolo'`), `umFecha` (`dd/MM/yyyy` con hora opcional), `ui-input-fecha` (fecha `dd/mm/aaaa` estable, valor ISO) y `[uiStickyFooter]` (barra de acciones fija al pie) viven en `@haberes/ui-layout`; no se reimplementan por pantalla.
 - **Marca institucional**: La marca del shell y del login es siempre texto (`UM · Haberes` + nombre del módulo en el sidebar; `um-eyebrow`/`um-page-title` en login), espejo de tesoreria-frontend; no se usan logos ni imágenes de marca.
 - **Nomenclatura limpia**: Prohibición de términos o referencias a Visual Basic 6 (`.frm`, `.vbp`, etc.) en cualquier título, badge o etiqueta visible al usuario. Ver detalle completo en [AGENTS.md](AGENTS.md).
 
@@ -93,19 +108,23 @@ Todas las aplicaciones comparten el tema visual **J2** institucional de 4 capas,
 nx serve liquidacion
 nx serve novedades
 nx serve administrador
+nx serve simulador-novedades
 
 # Build producción
 nx build liquidacion --configuration=production
 nx build novedades --configuration=production
 nx build administrador --configuration=production
+nx build simulador-novedades --configuration=production
 
 # Tests
 nx test liquidacion
 nx test novedades
 nx test administrador
+nx test simulador-novedades
 
-# Tests E2E (levanta novedades en 4208; BASE_URL apunta a una app desplegada)
+# Tests E2E (levantan la app en 4208 / 4212; BASE_URL apunta a una app desplegada)
 nx e2e novedades-e2e
+nx e2e simulador-novedades-e2e
 
 # Linting
 nx lint liquidacion
@@ -135,6 +154,7 @@ docker build -f docker/app.Dockerfile --build-arg APP=novedades -t um-haberes-no
 npm run docker:app -- novedades        # build + up -d
 npm run docker:app -- liquidacion --no-up
 npm run docker:app -- administrador    # módulo administrador (4211)
+npm run docker:app -- simulador-novedades  # simulador de Novedades (4212)
 
 # Ejecutar con backend personalizado + entorno/version
 docker run -e BACKEND_URL=http://backend:8091 -e ENV_NAME=develop -e APP_VERSION=abc123 -p 443:443 um-haberes-novedades-client

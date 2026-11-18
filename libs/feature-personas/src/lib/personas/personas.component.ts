@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Persona, mensajeDeError } from '@haberes/shared-api';
-import { PersonaSearchComponent } from '@haberes/ui-layout';
+import { PersonaSearchComponent, ImportePipe, InputFechaComponent } from '@haberes/ui-layout';
 import {
   AntiguedadPeriodo,
   Contacto,
@@ -40,7 +40,6 @@ interface PersonaForm {
   estadoAfip: number;
   reemplazoDesarraigo: boolean;
   mitadDesarraigo: boolean;
-  directivoEtec: boolean;
 }
 
 interface ContactoForm {
@@ -54,7 +53,7 @@ interface ContactoForm {
   selector: 'lib-personas',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, PersonaSearchComponent],
+  imports: [CommonModule, FormsModule, PersonaSearchComponent, ImportePipe, InputFechaComponent],
   templateUrl: './personas.component.html',
 })
 export class PersonasComponent implements OnInit {
@@ -477,9 +476,6 @@ export class PersonasComponent implements OnInit {
     if (this.form.mitadDesarraigo !== (original.mitadDesarraigo === 1)) {
       patch.mitadDesarraigo = this.form.mitadDesarraigo ? 1 : 0;
     }
-    if (this.form.directivoEtec !== (original.directivoEtec === 1)) {
-      patch.directivoEtec = this.form.directivoEtec ? 1 : 0;
-    }
 
     return patch;
   }
@@ -530,7 +526,6 @@ export class PersonasComponent implements OnInit {
       estadoAfip: Number(persona.estadoAfip ?? 0),
       reemplazoDesarraigo: persona.reemplazoDesarraigo === 1,
       mitadDesarraigo: persona.mitadDesarraigo === 1,
-      directivoEtec: persona.directivoEtec === 1,
     };
   }
 
@@ -560,7 +555,6 @@ export class PersonasComponent implements OnInit {
       estadoAfip: 0,
       reemplazoDesarraigo: false,
       mitadDesarraigo: false,
-      directivoEtec: false,
     };
   }
 

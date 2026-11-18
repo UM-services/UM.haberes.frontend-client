@@ -9,13 +9,14 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { mensajeDeError } from '@haberes/shared-api';
+import { ImportePipe } from '@haberes/ui-layout';
 import { Sede, SedesService } from './sedes.service';
 
 @Component({
   selector: 'lib-sedes',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImportePipe],
   templateUrl: './sedes.component.html',
 })
 export class SedesComponent implements OnInit {

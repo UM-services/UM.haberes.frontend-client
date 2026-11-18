@@ -51,7 +51,7 @@
               <td>{{ sede.nombre }}</td>
               <td class="font-mono">{{ sede.reducido || '—' }}</td>
               <td class="text-right font-mono tabular-nums">
-                {{ sede.desarraigo ?? 0 | number: '1.2-2' }}
+                {{ sede.desarraigo ?? 0 | umImporte }}
               </td>
               <td class="text-um-muted">{{ nombreSede(sede.geograficaIdReemplazo) }}</td>
             </tr>
@@ -96,6 +96,9 @@
               [(ngModel)]="form.desarraigo"
               name="desarraigo"
             />
+            <p class="mt-1 text-right font-mono text-[11px] tabular-nums text-um-muted">
+              {{ form.desarraigo | umImporte: 'simbolo' }}
+            </p>
           </div>
 
           <div>

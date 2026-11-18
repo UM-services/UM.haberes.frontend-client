@@ -1,5 +1,199 @@
 # Changelog
 
+## [0.24.0] - 2026-11-17
+
+### Added
+
+- **feat(`shared-api`):** guard reutilizable **`confirmarSalida(pregunta)`** (`canDeactivate`) para pantallas con cambios sin guardar; cubre enlaces y el botón atrás del navegador porque ambos pasan por el Router. Aplicado a **Control del Período** (`/control-periodo` del app Administrador), que ahora avisa antes de abandonar el formulario con cambios pendientes (`hayCambiosSinGuardar()`).
+- **test(`shared-api`):** `confirmar-salida.guard.spec.ts` (sin método, sin cambios, acepta y rechaza la confirmación) y caso de `hayCambiosSinGuardar()` en `control-periodo.component.spec.ts`.
+
+### Fixed
+
+- **fix(`ui-layout`, `shared-api`, `ui-auth`):** el **botón atrás del navegador** ya no vuelve a pantallas privadas cerradas. El logout del shell navega a `/login` con `replaceUrl: true`, el 401 del interceptor hace lo mismo con el motivo de sesión expirada, y el login también reemplaza la entrada del historial al entrar.
+
+## [0.23.0] - 2026-11-16
+
+### Added
+
+- **feat(`feature-contabilidad`):** nueva pantalla **Totales Formulario 931** (`/contabilidad/formulario-931`) con el registro único por período de los seis totales informados en el F.931 (códigos 351, 301, 352, 302, 312 y 028), navegación `<` / `>` por mes con rollover de año, año y mes numéricos con recarga por Enter o al salir del campo, y guardado contra `POST /api/haberes/core/seguridadSocial/` o `PUT .../{seguridadSocialId}` según el período ya exista. La pantalla conserva el orden visual del formulario legado (351/301/352 y 302/312/028) y las etiquetas «Código NNN», sin inventar la semántica AFIP de cada código.
+- **feat(`feature-contabilidad`):** el período sin datos se lee con `GET /api/haberes/core/seguridadSocial/unique/{anho}/{mes}/opcional` (200 con cuerpo vacío) y se muestra como **Período nuevo** con aviso y ceros, en lugar del silencio del legacy. Un período existente muestra su `seguridadSocialId` y el badge **Período existente**.
+- **feat(`feature-contabilidad`):** tarjeta de **totales de control** calculados en pantalla y no persistidos, con las fórmulas de la imputación masiva: **Aportes** = 351 + 352 + 312 + 028 y **Leyes sociales** = 028 + 301 + 302 + 312 + 351 + 352.
+- **feat(`feature-contabilidad`):** los importes negativos se permiten (rectificativas y ajustes) con aviso ámbar y confirmación al guardar; al navegar o cambiar de período se pide confirmación si hay cambios sin guardar. Los errores del backend se muestran con `mensajeDeError` y, tras guardar, la pantalla relee el período.
+- **feat(`liquidacion`):** la ruta `contabilidad/formulario-931` se registra con `authGuard`, `moduloGuard` y `DATOS_MODULO`, y la opción se suma a `RUTAS_MIGRADAS`, por lo que deja de abrir el placeholder y figura como disponible en el panel de inicio.
+
+### Tests
+
+- `formulario-931.service.spec.ts`: consulta por el endpoint opcional, cuerpo vacío traducido a `null`, `POST` del payload completo y `PUT` con el id en la ruta y sin id en el cuerpo.
+- `formulario-931.component.spec.ts`: período nuevo y existente, totales de aportes y leyes sociales, navegación con rollover de año, recarga por año/mes, período escrito inválido, confirmación por cambios sin guardar, alta contra `POST`, modificación contra `PUT`, rechazo de negativos sin confirmación, bloqueo cuando el período escrito no es el cargado y error de carga del backend.
+
+## [0.22.0] - 2026-11-16
+
+### Added
+
+- **feat(`feature-movimientos`):** nueva librería con las cinco pantallas del grupo **Movimientos y Bancos** del módulo Liquidación, que reemplazan los formularios de `bonos.vb6` y salen del placeholder de opciones no migradas: **Archivo Santander** (`/movimientos/santander`), **Archivo Otros Bancos** (`/movimientos/otros-bancos`), **Santander Individual** (`/movimientos/santander-individual`), **Otros Bancos Individual** (`/movimientos/otros-bancos-individual`) y **Excluidos** (`/movimientos/excluidos`), todas con `authGuard`, `moduloGuard` y `DATOS_MODULO`.
+- **feat(`feature-movimientos`):** generación masiva con período, fecha de pago, número de envío, filtro de salida (administrativos/docentes; ambos o ninguno incluyen todo), dependencia, universo por novedades de un código y CCI para Otros Bancos. Descarga el `.txt` bancario desde el Base64 del backend preservando los bytes (CP1252 y CRLF) y muestra cantidad, total, si el período quedó acreditado y la grilla de rechazos con los motivos del circuito.
+- **feat(`feature-movimientos`):** emisión individual con el buscador estándar de personas (`ui-persona-search`) o legajo/documento exactos, CBUs del período filtrados por banco, importe editable que no se persiste (ajuste de la emisión), colección en memoria con alta sin duplicados y baja por la fila seleccionada, y generación sin marcar el período.
+- **feat(`feature-movimientos`):** pantalla **Excluidos** con período, alta y actualización por legajo (observaciones y fecha), baja por legajo con confirmación, grilla con el importe del código 99 y descargas PDF/XLSX del reporte de `haberes-report`.
+- **feat(`feature-movimientos`):** componentes compartidos `periodo-nav` (mes/año numérico con rollover), `rechazos-grid` con exportación CSV —reemplazo del inexistente `rptNoAsignado`— y helpers de descarga Base64/Blob/CSV.
+- **feat(`liquidacion`):** las cinco rutas se registran en `RUTAS_MIGRADAS`, por lo que dejan de abrir el placeholder; los nombres `.frm` del legacy quedan sólo en `origenVb6` como dato interno.
+
+## [0.21.0] - 2026-11-16
+
+### Added
+
+- **feat(`feature-liquidacion`):** nueva pantalla **Liquidación General** (`/liquidacion/general`) con el padrón agregado de todo el universo liquidable del período: legajo, apellido y nombre, estado/liquida, marcas `nd`/`dc`/`nv`/`lq`/`bl`, remunerativo, no remunerativo, deducciones y neto (negativo en rojo, cero en verde). Consume `GET /api/haberes/core/liquidacion-general/{anho}/{mes}`.
+- **feat(`feature-liquidacion`):** procesos masivos asíncronos **Generar cargos del período**, **Liquidar período** y **Eliminar liquidaciones del período**, con confirmación en las operaciones destructivas y switch **Forzar liquidaciones bloqueadas** (la generación de cargos nunca fuerza). Cada inicio devuelve el proceso y la pantalla sigue su avance cada 1,5 s.
+- **feat(`feature-liquidacion`):** panel de proceso con barra de progreso, contadores de exitosos/omitidos/fallidos y listas de legajos omitidos y fallidos con su motivo y detalle, más descargas XLSX de **Datos personales** y **Salida del período**.
+- **feat(`feature-liquidacion`):** filtros locales del padrón por texto (legajo o apellido), sólo bloqueados y sólo neto negativo, con el contador de filas visibles.
+- **feat(`feature-liquidacion`):** nueva pantalla **Novedades** (`/liquidacion/novedades`) con el circuito operativo completo por código y período: búsqueda de concepto por código o nombre, alta y actualización por clave única (legajo + período + código + dependencia), bajas individuales y baja total del período con confirmación `MM/AAAA`, e importe que acepta `S`/`N` además de un número. La persona se elige con el buscador estándar (`ui-persona-search`) o por legajo/DNI con ENTER y blur, y el total de las novedades listadas se muestra al pie. El período acreditado (`acreditado = 1`) deja la pantalla en modo consulta y, si el estado del período no se puede verificar, las escrituras también quedan deshabilitadas; además se avisa cuando el plazo de carga ya venció pero el período sigue abierto.
+- **feat(`feature-liquidacion`):** carga masiva de novedades desde planilla `.xlsx` con el flujo subir → revisar pendientes → importar → desimportar, opción de procesamiento paso a paso, avisos del backend y listado de legajos inexistentes agrupados; la transferencia de las novedades del mes anterior también se inicia desde la misma pantalla.
+- **feat(`feature-designaciones`):** nueva pantalla **Transferir Novedades** (`/liquidacion/transferir-novedades`) que mueve al período seleccionado las anotaciones de facultades del mes anterior (`PUT` con `transferido = 1`, conservando el estado pendiente) y clona los cargos pendientes (`POST`) salteando las claves que ya existen en el destino. Cada proceso se confirma antes de ejecutarse, muestra progreso procesados/total y un resumen de exitosos, salteados y errores con su detalle, sin abortar el lote ante un fallo individual. El destino acreditado bloquea las acciones; el origen acreditado sólo se advierte porque mover registros altera un período ya cerrado.
+- **feat(`feature-limite-novedades`):** nueva librería y pantalla **Límite de Novedades** (`/limite-novedades` del módulo Administrador) que fija hasta qué día se pueden cargar novedades del período y muestra en sólo lectura el estado del registro de acreditación. Alta del período con `POST /api/haberes/core/acreditacion/` y edición con `PATCH /api/haberes/core/acreditacion/{acreditacionId}` enviando sólo `limiteNovedades`, para no pisar los datos contables. El límite se persiste como fin del día elegido en hora de Argentina y la lectura reconoce los registros heredados guardados a medianoche UTC; el panel indica si la carga está abierta, cerrada, acreditada o sin límite. La navegación de período pide confirmación cuando hay cambios sin guardar.
+
+### Changed
+
+- **feat(`feature-consultas`):** los importes de las consultas se muestran con el formato institucional (`$ 1.234.567,89`, negativos `-$`): dos decimales fijos y separador de miles, sin depender de cuántos decimales entregue el backend. La tabla compartida `ReporteTablaComponent` suma los tipos de columna `moneda` y `porcentaje`, se aplican a Comparación entre Meses Consecutivos (incluida la columna `%`, a dos decimales), Totales Generales, Libro de Sueldos, Totales por Código, Detalle de Código, Básicos, Cursos y Fusión Docente, y el subtotal de Totales Generales hereda ese formato. Las columnas de horas conservan su presentación numérica sin símbolo.
+- **feat(`liquidacion`):** las entradas de menú **Liquidación General**, **Novedades** y **Transferir Novedades** quedan marcadas como migradas (`RUTAS_MIGRADAS`) y sus rutas se registran con `authGuard`, `moduloGuard` y `DATOS_MODULO`; la descripción de Liquidación General pasa a «Liquidación y recálculo masivo del período».
+- **feat(`administrador`):** la configuración del límite de novedades deja el menú de Liquidación y se muda al módulo Administrador como **Límite de Novedades**, con su ruta protegida por `authGuard` y `administradorGuard` y su tarjeta en el panel de opciones.
+
+### Tests
+
+- `liquidacion-general.service.spec.ts`: `GET` del padrón, `POST` de liquidar con `forzar` y `X-Legajo-Solicitante`, generación de cargos sin `forzar`, proceso y detalle, y descarga de la salida como `Blob`.
+- `liquidacion-general.component.spec.ts`: carga inicial del padrón, filtros locales, inicio rechazado por falta de control y navegación de período con wrap de año.
+- `importe-reporte.spec.ts`: formato de importes de reporte (`$` y dos decimales, negativos con `-$`), porcentajes a dos decimales y lectura de los valores ya formateados en es-AR que entrega `haberes-report` (`1.400.000`, `1.234,56`).
+- `reporte-tabla.component.spec.ts`: render de columnas `moneda` y `porcentaje` y del subtotal con el formato institucional.
+- `novedades.service.spec.ts`: consulta por código, clave única con `dependencia` nula y 400 traducido a `null`, altas y actualizaciones con `X-Legajo-Solicitante`, `DELETE` individual y del período, importadas y pendientes, subida de planilla como texto plano, importar/transferir, acreditación con 404 y búsqueda de códigos con el término codificado.
+- `novedades.component.spec.ts`: alta cuando la clave única no existe, actualización preservando `importado` y `novedadUploadId`, interpretación de `S`/`N`, subida de planilla con paso a paso, 409 por clave duplicada, desimportación del período, baja total con confirmación exacta, transferencia del mes anterior y bloqueo de escrituras con período acreditado o acreditación no verificable.
+- `transferir-novedades.service.spec.ts`: lecturas de anotaciones y cargos, `PUT` de la anotación con período destino y `transferido`, `POST` del cargo sin id ni objetos embebidos, y traducción del 404 de acreditación a `null`.
+- `transferir-novedades.component.spec.ts`: origen en el mes anterior con cruce de año, bloqueo por destino acreditado, advertencia por origen acreditado, continuación del lote ante un error y clonado sólo de las claves faltantes.
+- `limite-novedades.models.spec.ts`: fecha visible de registros heredados y de valores nuevos en hora de Argentina, payload de fin de día, cálculo del cierre y estado `acreditado`/`cerrada`/`abierta`/`sin-limite`.
+- `limite-novedades.component.spec.ts`: `POST` de alta y `PATCH` de edición parcial, rechazo sin llamada HTTP sin fecha, error del backend y confirmación al cambiar de período con cambios sin guardar.
+
+## [0.20.0] - 2026-11-15
+
+### Added
+
+- **feat(`feature-control-periodo`):** la tarjeta ETEC suma la **escala de horas de clase** del período (`etec_hora_escala`): tramos de `horas desde` / `horas hasta` con `monto fijo` y `valor hora`, donde cada tramo paga `monto fijo + horas × valor hora` y la tabla muestra ese importe calculado al tope del rango. `Agregar tramo` arranca en el `hasta` del tramo anterior y cada fila se puede quitar. La escala se lee y se reemplaza con `GET`/`PUT /api/haberes/core/etec/hora/escala/{anho}/{mes}`.
+- **feat(`feature-control-periodo`):** la escala de horas valida que cada tramo tenga desde y hasta, que las horas no sean negativas, que el hasta no sea menor que el desde, que `monto fijo` y `valor hora` no sean negativos y que los tramos no se superpongan; además exige los parámetros ETEC del período ya guardados antes de enviarla, porque la escala cuelga de `control_etec`.
+- **feat(`feature-control-periodo`):** `EscalaHoraEtec` / `EscalaHoraEtecRequest` y el helper `tramoHoraVacio()` en los modelos; `ControlPeriodoService.getEscalaHora()` y `guardarEscalaHora()`.
+
+### Changed
+
+- **feat(`feature-control-periodo`):** la sección pasa a llamarse **ETEC (cargos por puntos y horas)** y se documenta en pantalla que las horas semanales de los cursos ETEC se suman por sede para generar el cargo «Docente ETEC Horas», que un legajo fuera de todos los tramos hace fallar la generación con el detalle y que la escala se copia junto con el control ETEC.
+- **feat(`feature-control-periodo`):** los parámetros de carga horaria se rotulan con su alcance real: **Horas adicionales del cargo por puntos** y **Valor hora del adicional de carga horaria**.
+
+### Tests
+
+- `control-periodo.component.spec.ts`: carga inicial de la escala de horas del período, importe al tope, `agregarTramoHora` continuando desde el `hasta` anterior, `PUT` con el payload de tramos y rechazo sin llamada HTTP cuando los tramos se superponen o falta el control ETEC.
+- `control-periodo.service.spec.ts`: `GET` y `PUT` de `/api/haberes/core/etec/hora/escala/{anho}/{mes}`.
+
+## [0.19.0] - 2026-11-15
+
+### Added
+
+- **feat(`feature-liquidacion`):** el detalle de **Liquidación del período** separa los conceptos en bloques **Remunerativos**, **No remunerativos**, **Descuentos** y **Otros**, cada uno con su total, y deja el **Neto** al pie. Los códigos de total (96–99) dejan de listarse como conceptos y el catálogo `codigo_grupo` se refresca con cada ficha, de modo que un código nuevo se clasifica sin recargar la página; si el catálogo no está disponible, la pantalla mantiene la tabla plana anterior.
+- **feat(`feature-control-periodo`):** nueva sección **ETEC (cargos por puntos)** dentro de Control del período, con los siete parámetros de `control_etec` (valor del punto con cuatro decimales, monto fijo del cargo, presentismo, adicional carrera docente, garantía, horas adicionales y valor hora adicional). Se guarda junto con el período (`POST /api/haberes/core/etec/control/{anho}/{mes}`), se copia al copiar el período anterior y muestra un badge **Configurado / Sin configurar**. El campo **Valor punto ETEC** sale del control general porque el valor ahora vive en `control_etec`.
+- **feat(`feature-control-periodo`):** la misma tarjeta ETEC incluye el editor de la **escala global de arraigo** (tramos de antigüedad mínima → porcentaje, con agregar/quitar y guardado contra `PUT /api/haberes/core/etec/arraigo/escala`). Valida años mayores o iguales a 1, antigüedades repetidas y porcentajes entre 0 y 100, y no depende del período seleccionado.
+
+### Changed
+
+- **refactor(`feature-control-periodo`, `feature-personas`):** se retiran los datos de ETEC que sólo alimentaban el desglose del bono: desaparece **Hora referencia ETEC** del control de período y el checkbox **Directivo ETEC** del formulario de personas, junto con sus modelos, requests y specs.
+- **feat(`feature-etec-asignaciones`):** el encabezado de la pantalla lee el valor del punto de `GET /api/haberes/core/etec/control/{anho}/{mes}/opcional` en lugar de `control/periodo`.
+
+### Fixed
+
+- **fix(`feature-etec-asignaciones`, `feature-cargos`):** Las fechas de **Alta** y **Baja** de las pantallas *Asignación de Cargos ETEC* y *Asignación de Cargos No Docentes* usan `<ui-input-fecha>` en vez de `<input type="date">`, así que se ven siempre `dd/mm/aaaa` sin depender del locale del navegador; las grillas pasan a `| umFecha` y se elimina el helper `textoFecha` duplicado en cada librería. El valor del formulario sigue siendo ISO `yyyy-MM-dd`.
+
+### Tests
+
+- `control-periodo.component.spec.ts`: el guardado encadena el control del período con el ETEC, la copia incluye el control ETEC anterior, la escala de arraigo se carga y se reemplaza con `PUT`, y no se envía con antigüedades repetidas o años menores a 1.
+- `control-periodo.service.spec.ts`: lectura opcional del control ETEC, guardado con `POST /etec/control/{anho}/{mes}`, copia sin body y `GET`/`PUT` de la escala de arraigo.
+- `liquidacion-individual.component.spec.ts`: agrupación por catálogo, total por bloque, exclusión de los códigos de total, tabla plana cuando falta el catálogo y refresco del catálogo al recargar la ficha.
+- `liquidacion-individual.service.spec.ts`: `grupos()` consulta `GET /api/haberes/core/codigogrupo/`.
+- `asignaciones-etec.service.spec.ts` y `asignaciones-etec.component.spec.ts`: el valor del punto se lee de `/api/haberes/core/etec/control/{anho}/{mes}/opcional`.
+
+## [0.18.0] - 2026-11-13
+
+### Added
+
+- **feat(`simulador-novedades`):** Nueva app (`:4212`) que replica las pantallas del módulo Novedades para administradores globales. Su login declara `requireFacultadId: false` + `requireAdministrador: true`; todas las rutas usan `[authGuard, moduloGuard, administradorGuard]`, las pantallas suman `facultadSimuladaGuard` y `/inicio` queda fuera de esa guard porque es donde se elige la facultad.
+- **feat(`simulador-novedades`):** Barra `app-facultad-bar` proyectada dentro de `<ui-shell>`, visible en todas las pantallas: selector con el catálogo de haberes-core (`GET /api/haberes/core/facultad/`, cacheado con `shareReplay(1)` por `FacultadesSimuladorService`), aviso ámbar «Simulando como *facultad*» con la advertencia de que los cambios impactan datos reales, y estado de error con `mensajeDeError` si el catálogo no carga. Al cambiar de facultad se re-monta la pantalla activa (`onSameUrlNavigation: 'reload'`) y se limpia el aviso de acceso denegado.
+- **feat(`simulador-novedades`):** Panel `/inicio` explica el paso pendiente mientras no hay facultad elegida y habilita el directorio de operaciones en cuanto se selecciona una.
+- **feat(`shared-api`):** `AuthService.simularFacultad()`, `facultadSimuladaNombre` y `simulandoFacultad`; `facultadId` devuelve la facultad simulada mientras la simulación está activa. Sólo un usuario con `administrador === 1` puede fijarla (en otra sesión es no-op), vive en memoria, nunca se persiste en `localStorage` y `clearSession()` la descarta. Los guards siguen leyendo `user.facultadId` de `ensureSession()`, así que la simulación no otorga acceso a otro módulo.
+- **feat(`shared-api`):** `facultadSimuladaGuard`: exige una facultad simulada activa y, si falta, vuelve a `/inicio` sin cerrar la sesión; sin sesión redirige a `/login`.
+- **feat(`novedades-menu`):** Nueva librería `@haberes/novedades-menu` (`type:ui`, `scope:shared`) con `NOVEDADES_MENU_ITEMS` y `NOVEDADES_GRUPOS`, el menú lateral y el directorio del panel principal de Novedades.
+- **feat(`ui-layout`):** `<ui-shell>` proyecta el contenido de la app (`<ng-content>`) al inicio del área principal; las apps que no proyectan nada no cambian.
+- **feat(`simulador-novedades-e2e`):** Proyecto Playwright (chromium) con `BASE_URL` sobre `http://localhost:4212`: rechazo de usuarios con facultad y de usuarios sin el flag, ingreso del administrador con el pedido de facultad, habilitación del directorio y del aviso al seleccionar, y retorno al directorio cuando falta la selección.
+- **feat(CI):** `simulador-novedades` se suma a las matrices `apps` de `deploy-develop.yml`, `deploy-staging.yml` y `docker-publish.yml`; `npm run serve:all` lo levanta en `4212`.
+
+### Changed
+
+- **feat(`novedades`):** El menú lateral y el directorio del panel dejan de vivir en la app (`menu-options.data.ts` se elimina) y pasan a `@haberes/novedades-menu`, para que `novedades` y `simulador-novedades` muestren exactamente las mismas opciones y en el mismo orden.
+- **chore(build):** Nuevo alias `@haberes/novedades-menu` en `tsconfig.base.json`.
+- **docs:** `README.md` documenta la app, la librería compartida, el puerto `4212` y los comandos de desarrollo; `libs/ui-layout/README.md` documenta la proyección de contenido de `<ui-shell>` y el uso de una librería compartida para los grupos del panel; `docs/architecture.mermaid` suma `simulador-novedades` y `novedades-menu`.
+
+### Tests
+
+- `facultad-simulada.guard.spec.ts`: acceso con facultad activa, retorno a `/inicio` sin cerrar la sesión y redirección a `/login` sin sesión.
+- `auth.service.spec.ts`: un administrador simula otra facultad sin alterar la sesión ni `localStorage`, un usuario con facultad no puede simular, y `logout()` descarta la simulación.
+- `ui-shell.spec.ts`: el contenido proyectado por la app aparece en la vista autenticada.
+- `novedades-menu.data.spec.ts`: el menú cubre todas las pantallas, cada opción tiene label e ícono, el directorio replica el menú sin el panel y todas sus opciones están disponibles.
+- `app.routes.spec.ts` (simulador): login con `requireFacultadId: false` + `requireAdministrador: true`, ruta pública de acceso restringido, guards en todas las rutas, `facultadSimuladaGuard` en cada pantalla, `/inicio` sin esa guard y pantallas idénticas a `NOVEDADES_MENU_ITEMS`.
+- `app.spec.ts` (simulador): la app se crea y reutiliza el menú del módulo Novedades.
+- `simulador.spec.ts` (E2E): usuario con facultad y usuario sin flag terminan en `/sin-acceso` conservando la sesión, el administrador entra y ve el pedido de facultad, la selección habilita el directorio y una pantalla sin facultad vuelve a `/inicio`.
+
+## [0.17.0] - 2026-11-12
+
+### Added
+
+- **feat(`feature-control-periodo`):** Nueva librería y pantalla **Control del período** (`/control-periodo`): registro único por mes con los parámetros que consume la liquidación (fechas de liquidación, pago y depósito, alícuotas, topes SIJP, adicionales, estados docentes y modo de liquidación). Navegación `<`/`>` con rollover de año, recarga al cambiar año/mes, aviso de «período nuevo», badge de estado, `controlId` visible y confirmación cuando se descartan cambios sin guardar.
+- **feat(`feature-control-periodo`):** **Copiar período anterior** con confirmación previa, aviso ámbar cuando las fechas copiadas no pertenecen al período destino y mensajes de negocio ante `409` (el período ya tiene datos) y `404` (el mes anterior está vacío).
+- **feat(`feature-control-periodo`):** Validaciones de guardado: modo de liquidación y las cuatro fechas obligatorias, `desde ≤ hasta` e importes no negativos. El formulario envía siempre el registro completo y recarga desde el backend después de guardar.
+- **feat(`feature-usuarios`):** Nueva librería y pantalla **Usuarios** (`/usuarios`, grupo **Seguridad** del módulo Administrador): listado de usuarios de Haberes (`GET /api/haberes/core/usuario/`) con legajo, apellido y nombre (resueltos con `POST /api/haberes/core/persona/legajos`), alcance (facultad o **Global**) y filtro en vivo por legajo, apellido o nombre. Cada fila habilita o revoca el flag `administrador` con `PUT /api/haberes/core/usuario/{legajoId}/administrador/{valor}`; la sesión actual queda marcada y no puede revocarse el flag a sí misma.
+- **feat(`feature-usuarios`):** Sólo los usuarios sin facultad asignada pueden recibir el flag: el botón queda deshabilitado para el resto, el backend rechaza la habilitación y el sistema conserva siempre al menos un administrador. `UsuariosService` es el único cliente de los endpoints de usuarios y de personas por legajo.
+- **feat(`shared-api`):** `Persona.administrador` (flag que viene de `usuario`, no de la persona) y `AuthService.esAdministrador`; la sesión revalida el flag contra haberes-core en cada arranque y **no** lo persiste en `localStorage`, igual que `facultadId`.
+- **feat(`ui-layout`):** Pipes del design system `umImporte` (formato argentino fijo `1.234.567,89`, modo `'simbolo'` para anteponer `$` y `—` para valores vacíos) y `umFecha` (`dd/MM/yyyy`, con `HH:mm` cuando el dato trae hora real y modos `auto`/`siempre`/`nunca`), independientes de `LOCALE_ID`.
+- **feat(`ui-layout`):** Componente `ui-input-fecha`, `ControlValueAccessor` que muestra siempre `dd/mm/aaaa` sin depender del locale del navegador, conserva el valor ISO `yyyy-MM-dd` y mantiene el calendario nativo opcional.
+- **feat(`ui-layout`):** Directiva `[uiStickyFooter]` (clase de tema `.um-sticky-footer`) para barras de acciones fijas al pie con `position: sticky`: quedan visibles durante el scroll y no tapan el final del contenido.
+- **feat(`feature-categorias`):** Soporte de **puntos ETEC** en el catálogo: columna en la grilla y campo en el formulario. Una categoría con `puntos > 0` se marca como docente, sin básico y sin liquidación por hora, porque se liquida como `puntos × valor del punto`.
+- **feat(`feature-etec-asignaciones`):** Nueva pantalla **Asignación de Cargos ETEC** (`/liquidacion/etec/asig-cargos`): búsqueda estándar de persona (`<ui-persona-search>` + legajo/DNI exactos), alta, actualización y baja de asignaciones en `etec_asignacion_cargo` a través de `haberes-etec`. El select de cargos usa `GET /api/haberes/etec/cargo/` filtrado a `puntos > 0 && docente = 1`, la dependencia es obligatoria, y la lista muestra cargo, puntos, dependencia, alta, baja, estado, observaciones e importe del período.
+- **feat(`feature-etec-asignaciones`):** Selector de período (año/mes con `<`/`>`) que consulta `GET /api/haberes/core/control/periodo/{anho}/{mes}/opcional` y calcula el importe de referencia como `puntos × valorPuntoEtec`, con aviso cuando el período no tiene valor de punto cargado.
+- **feat(`liquidacion`):** Ruta lazy `liquidacion/etec/asig-cargos` con `authGuard` + `moduloGuard` y `DATOS_MODULO`; nueva opción **Asignación de Cargos ETEC** en el menú y en `RUTAS_MIGRADAS`.
+- **feat(`administrador`):** Ruta lazy `control-periodo` con `canActivate: [authGuard, administradorGuard]`, ítem **Control del Período** al frente del grupo **Parámetros de cálculo**, y ruta lazy `usuarios` (`feature-usuarios`) con el grupo **Seguridad**; ambas con tarjeta en el panel de inicio.
+- **feat(`shared-api`):** `lib/util/fecha.ts` expone `fechaInput` y `fechaPayload` para reconstruir el horario y el offset que devuelve el backend (`yyyy-MM-dd'T'HH:mm:ssXX`) sin correr el día; `fechaPayload` devuelve cadena vacía sin fecha.
+- **feat(`haberes-core`):** `GET /api/haberes/core/control/periodo/{anho}/{mes}/opcional` devuelve `200` con el registro o con cuerpo vacío cuando el período es nuevo, sin el `400` del endpoint existente.
+- **feat(`haberes-core`):** `POST /api/haberes/core/control/copiar/{anho}/{mes}` crea el período copiando literalmente el mes anterior (incluidas sus fechas); responde `409` si el período destino ya tiene datos y `404` si el anterior no existe. Nuevas excepciones `ControlYaExisteException` y `ControlOrigenException`.
+- **feat(`haberes-etec`):** `FeignAuditActorConfig` propaga `X-Usuario-Legajo` / `X-Legajo-Solicitante` de la request entrante a las llamadas Feign hacia `haberes-core`, para que las escrituras ETEC queden auditadas con actor.
+
+### Changed
+
+- **feat(`administrador`):** El acceso al módulo deja de depender sólo de `facultadId == null`: `administradorGuard` exige `facultadId == null` **y** `usuario.administrador === 1`, y el login declara `requireAdministrador: true` para rechazar el ingreso de usuarios sin el flag. La regla es aditiva e implementa `PLANIFICACION_CAMPO_ADMINISTRADOR_USUARIO_HABERES.md` (D1); quienes ya usaban el módulo sin el flag necesitan habilitarlo desde **Usuarios**.
+- **feat(`feature-categorias`):** El alta sugiere el siguiente `categoriaId` (máximo de la grilla y `getLast`) en un campo editable, con control de ID duplicado; en edición el ID queda fijo. El período deja de elegirse en pantalla y usa el año/mes del sistema, igual que el cliente anterior. Básico y estado docente muestran vista previa con `umImporte` y el panel de edición queda `sticky` en pantallas anchas.
+- **feat(`feature-personas`, `feature-clases`, `feature-sedes`, `feature-cargos-clase`):** Los importes de grilla y formularios pasan a `umImporte` y las fechas de **Personas** a `ui-input-fecha`, en lugar de `number: '1.2-2'` y `<input type="date">`.
+- **feat(`liquidacion`):** La opción y la pantalla existentes pasan a llamarse **Asignación de Cargos No Docentes** (`/liquidacion/asig-cargos`); la ruta, el circuito de `cargo` y la grilla (todos los cargos con badge Docente/No docente) no cambian.
+- **feat(`liquidacion`):** `OpcionSistema.origenVb6` pasa a ser opcional: la opción ETEC no tiene formulario legacy de origen.
+- **feat(`liquidacion`):** se elimina la opción placeholder **Control de Liquidación** (`/liquidacion/control`), que apuntaba al mismo formulario ya migrado al módulo Administrador y no tenía ruta implementada.
+- **fix(`feature-control-periodo`):** el campo **Jubilación patronal** se guarda en `jubilpat`; el cliente anterior lo escribía en `osocipat` y lo pisaba, por lo que nunca se persistía.
+- **docs:** `README.md` y `AGENTS.md` suman `feature-control-periodo`, `feature-usuarios` y `feature-etec-asignaciones`, y documentan la regla del flag `administrador`; `libs/ui-layout/README.md` documenta las pipes, `ui-input-fecha` y `[uiStickyFooter]`; `docs/architecture.mermaid` agrega las dependencias `administrador → feature-control-periodo`, `administrador → feature-usuarios` y `liquidacion → feature-etec-asignaciones`.
+
+### Tests
+
+- `ControlControllerTest`: período opcional con y sin datos, copia exitosa, `409` cuando el destino existe y `404` cuando falta el mes anterior.
+- `ControlServiceTest`: copia campo por campo de los 40 importes, las fechas, los textos y el modo; período destino ocupado sin `save`; origen ausente sin `save`; rollover enero → diciembre.
+- `control-periodo.service.spec.ts`: endpoint opcional y `null` para cuerpo vacío, catálogo de modos, `POST`/`PUT` con payload completo, copia sin body y propagación del `409`.
+- `control-periodo.component.spec.ts`: período nuevo y existente, aviso de fechas fuera del período, navegación `<`/`>`, descarte cancelado, copia exitosa y bloqueada, mensaje de `409`, validaciones, guarda bloqueada cuando el año escrito no coincide con el período cargado y `POST` vs `PUT` conservando el offset de las fechas.
+- `usuarios.component.spec.ts`: listado con nombres y alcance, filtro por legajo, apellido y nombre, y bloqueo de edición de la sesión actual y de los usuarios con facultad.
+- `usuarios.service.spec.ts`: listado de usuarios, personas por legajo y `PUT` del flag con el valor en la ruta.
+- `administrador.guard.spec.ts`: acceso con `facultadId == null` y `administrador == 1`, denegación sin el flag, denegación con facultad y sin sesión, siempre sin `clearSession()`.
+- `auth.service.spec.ts`: el flag se expone desde la sesión revalidada, queda en `false` sin el flag y no se persiste en `localStorage`.
+- `fecha.spec.ts`: recorte a `yyyy-MM-dd`, conservación de horario/offset (incluido `Z`), medianoche UTC en altas y cadena vacía.
+- `importe.pipe.spec.ts`, `fecha.pipe.spec.ts`, `fecha-input.util.spec.ts`, `input-fecha.spec.ts` y `sticky-footer.directive.spec.ts`: formato argentino de importes y fechas, parseo/emisión ISO del input y clase de tema de la barra fija.
+- `categorias.component.spec.ts`: sugerencia del siguiente `categoriaId` al crear.
+- `asignaciones-etec.service.spec.ts`: catálogos en paralelo con filtro de cargos ETEC, listado por legajo, `POST` con barra final y `X-Legajo-Solicitante`, `PUT`/`DELETE` por id y valor del punto opcional (con y sin control).
+- `asignaciones-etec.component.spec.ts`: catálogos y valor inicial, carga de asignaciones por persona, selector de período con recálculo de importe, aviso sin valor de punto, edición, dependencia obligatoria, `POST`/`PUT` con offset de fechas, baja cancelada y `409` de solape.
+- `acceso-facultad.spec.ts` (E2E): el usuario simulado declara `administrador: 0`, acorde a la sesión que valida el `administradorGuard`.
+- `FeignAuditActorConfigTest`: copia de headers con request asociada, sin request y respetando un header ya presente.
+
 ## [0.16.0] - 2026-11-10
 
 ### Added

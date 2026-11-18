@@ -90,4 +90,22 @@ describe('ComparacionMesesComponent', () => {
     expect(component.mes()).toBe(10);
     expect(component.datos()).toBeNull();
   });
+
+  it('muestra los importes con signo, miles y dos decimales', () => {
+    const fixture = TestBed.createComponent(ComparacionMesesComponent);
+    const pantalla = fixture.componentInstance;
+    pantalla.anho.set(2026);
+    pantalla.mes.set(9);
+    pantalla.verDatos();
+
+    const req = http.expectOne('/api/haberes/report/ui/comparacionRemuneraciones/data/2026/9/2026/8');
+    req.flush(datos);
+    fixture.detectChanges();
+
+    const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(texto).toContain('$ 1.400.000,00');
+    expect(texto).toContain('$ 1.500.000,00');
+    expect(texto).toContain('$ 100.000,00');
+    expect(texto).toContain('7,14%');
+  });
 });

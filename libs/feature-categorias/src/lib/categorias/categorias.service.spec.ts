@@ -18,6 +18,7 @@ describe('CategoriasService', () => {
     noDocente: 0,
     liquidaPorHora: 0,
     estadoDocente: 25,
+    puntos: 0,
   };
 
   beforeEach(() => {
