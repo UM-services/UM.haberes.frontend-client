@@ -7,3 +7,6 @@ export * from './lib/liquidacion-general/liquidacion-general.component';
 export * from './lib/novedades/novedades.models';
 export * from './lib/novedades/novedades.service';
 export * from './lib/novedades/novedades.component';
+export * from './lib/sijp/sijp.models';
+export * from './lib/sijp/sijp.service';
+export * from './lib/sijp/sijp.component';

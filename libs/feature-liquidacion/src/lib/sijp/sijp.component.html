@@ -1,0 +1,170 @@
+<div class="w-full pb-4">
+  <header class="um-page-header">
+    <div>
+      <p class="um-eyebrow">Módulo Liquidación</p>
+      <h1 class="um-page-title">Generar SIJP</h1>
+      <p class="um-page-desc max-w-2xl">
+        Exportación de datos previsionales del período para el Sistema Integrado de Jubilaciones
+        y Pensiones. Se genera un registro por legajo liquidado, en un archivo de ancho fijo.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-2">
+      <button
+        type="button"
+        class="um-btn-secondary h-9 w-9 justify-center px-0 font-mono text-base"
+        title="Mes anterior"
+        aria-label="Mes anterior"
+        (click)="irAnterior()"
+        [disabled]="generando()"
+      >
+        &lt;
+      </button>
+      <div>
+        <label class="um-label" for="sijp-mes">Mes</label>
+        <input
+          id="sijp-mes"
+          name="mes"
+          type="number"
+          min="1"
+          max="12"
+          class="um-input w-20 text-center font-mono tabular-nums"
+          [ngModel]="mes()"
+          (ngModelChange)="mes.set(+$event); periodoCambiado()"
+        />
+      </div>
+      <div>
+        <label class="um-label" for="sijp-anho">Año</label>
+        <input
+          id="sijp-anho"
+          name="anho"
+          type="number"
+          min="2000"
+          max="2100"
+          class="um-input w-24 text-center font-mono tabular-nums"
+          [ngModel]="anho()"
+          (ngModelChange)="anho.set(+$event); periodoCambiado()"
+        />
+      </div>
+      <button
+        type="button"
+        class="um-btn-secondary h-9 w-9 justify-center px-0 font-mono text-base"
+        title="Mes siguiente"
+        aria-label="Mes siguiente"
+        (click)="irSiguiente()"
+        [disabled]="generando()"
+      >
+        &gt;
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="um-alert um-alert-error mt-4" role="alert">{{ error() }}</div>
+  }
+
+  <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <section class="um-card p-4">
+      <h2 class="text-sm font-semibold text-um-ink">Variante del archivo</h2>
+      <p class="mt-1 text-xs text-um-muted">
+        El archivo incluye todos los legajos liquidados de {{ periodoTexto() }}, sin filtros por
+        dependencia ni por tipo de liquidación.
+      </p>
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        @for (opcion of variantes; track opcion.valor) {
+          <label
+            class="flex cursor-pointer items-start gap-3 rounded border p-3 transition-colors"
+            [class.border-um-primary]="variante() === opcion.valor"
+            [class.border-um-border]="variante() !== opcion.valor"
+          >
+            <input
+              type="radio"
+              name="variante-sijp"
+              class="mt-1"
+              [value]="opcion.valor"
+              [checked]="variante() === opcion.valor"
+              (change)="seleccionarVariante(opcion.valor)"
+            />
+            <span>
+              <span class="block text-sm font-semibold text-um-ink">{{ opcion.etiqueta }}</span>
+              <span class="block text-xs text-um-muted">{{ opcion.descripcion }}</span>
+            </span>
+          </label>
+        }
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          class="um-btn-primary"
+          (click)="generar()"
+          [disabled]="!puedeGenerar()"
+        >
+          {{ generando() ? 'Generando…' : 'Generar archivo' }}
+        </button>
+        <span class="text-xs text-um-muted">
+          Período <span class="font-mono tabular-nums">{{ periodoTexto() }}</span>
+        </span>
+      </div>
+    </section>
+
+    <aside class="um-card h-fit p-4">
+      <h2 class="text-sm font-semibold text-um-ink">Resultado</h2>
+
+      @if (resultado(); as archivo) {
+        <dl class="mt-4 grid gap-3">
+          <div>
+            <dt class="text-[11px] font-semibold uppercase tracking-wider text-um-muted">
+              Archivo
+            </dt>
+            <dd class="mt-1 break-all font-mono text-xs text-um-ink">{{ archivo.nombreArchivo }}</dd>
+          </div>
+          <div class="border-t border-um-border pt-3">
+            <dt class="text-[11px] font-semibold uppercase tracking-wider text-um-muted">
+              Registros
+            </dt>
+            <dd class="mt-1 font-mono text-lg tabular-nums text-um-ink">
+              {{ archivo.cantidadRegistros }}
+            </dd>
+          </div>
+          <div class="border-t border-um-border pt-3">
+            <dt class="text-[11px] font-semibold uppercase tracking-wider text-um-muted">
+              Variante
+            </dt>
+            <dd class="mt-1 font-mono text-sm text-um-ink">{{ archivo.variante }}</dd>
+          </div>
+        </dl>
+
+        @if (archivo.advertencias.length > 0) {
+          <div class="um-alert um-alert-warn mt-4">
+            <ul class="list-disc pl-4 text-xs">
+              @for (advertencia of archivo.advertencias; track advertencia) {
+                <li>{{ advertencia }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (archivo.omitidos.length > 0) {
+          <div class="um-alert mt-4">
+            <p class="text-xs font-semibold">Legajos omitidos</p>
+            <ul class="mt-1 list-disc pl-4 text-xs">
+              @for (omitido of archivo.omitidos; track omitido.legajoId) {
+                <li>{{ omitido.legajoId }} · {{ omitido.apellidoNombre }} · {{ omitido.motivo }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <button type="button" class="um-btn-secondary mt-4 w-full" (click)="descargarDeNuevo()">
+          Descargar de nuevo
+        </button>
+      } @else {
+        <p class="mt-2 text-xs text-um-muted">
+          Todavía no se generó ningún archivo para {{ periodoTexto() }}.
+        </p>
+      }
+    </aside>
+  </div>
+</div>
