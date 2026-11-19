@@ -34,7 +34,7 @@ um.haberes.frontend-client/
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Cargos del legajo, docentes sede y asignación de cargos
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
-│   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual, general y novedades del período
+│   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual, general, novedades y SIJP del período
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
 │   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable, asientos individuales y totales del F.931
 │   ├── feature-movimientos/  # @haberes/feature-movimientos — Archivos bancarios, emisión individual y excluidos
@@ -74,7 +74,7 @@ um.haberes.frontend-client/
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
 | `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): alta y baja con dependencia, fechas, observaciones, valor del punto del período e importe estimado (`/liquidacion/etec/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
-| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos); liquidación general del universo liquidable con procesos masivos; y novedades mensuales por concepto con carga individual y por planilla (`.xlsx`) |
+| `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos); liquidación general del universo liquidable con procesos masivos; novedades mensuales por concepto con carga individual y por planilla (`.xlsx`); y generación del archivo SIJP del período (variantes normal y ETEC) |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales; totales del Formulario 931 por período (`/contabilidad/formulario-931`) |
 | `feature-movimientos` | `@haberes/feature-movimientos` | Archivos bancarios del período: generación masiva Santander y Otros Bancos (`.txt` bancario desde Base64), emisión individual por legajo o documento con ajuste de importe no persistido, y ABM de excluidos con reportes PDF/XLSX (`/movimientos/...`) |
