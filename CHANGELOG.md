@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0] - 2026-11-19
+
+### Added
+
+- **feat(`feature-liquidacion`):** nueva pantalla **Generar SIJP** (`/liquidacion/sijp`) que reemplaza el placeholder del menú y migra `frmGenSIJP.frm`. Permite elegir período (`<`/`>` con rollover de año) y variante (`Normal`/`ETEC`), genera el archivo contra `GET /api/haberes/core/sijp/{anho}/{mes}/{variante}` y lo descarga como `.txt`; muestra cantidad de registros, omitidos y advertencias, y permite volver a descargar el último archivo. `SijpService` + `SijpComponent` con 3 casos de servicio y 10 de componente.
+- **feat(`liquidacion`):** ruta lazy `liquidacion/sijp` protegida con `authGuard` + `moduloGuard` y `requireFacultadId: false`; `/liquidacion/sijp` se incorpora a `RUTAS_MIGRADAS` para que el inicio lo marque como disponible.
+
 ## [0.24.0] - 2026-11-17
 
 ### Added
