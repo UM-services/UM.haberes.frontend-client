@@ -1,6 +1,8 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
+import { Observable, map } from 'rxjs';
+import { AccesoDenegadoService } from '../acceso-denegado.service';
+import { SIN_ACCESO_RUTA } from '../acceso.constants';
 import { AuthService } from './auth.service';
 
 /**
@@ -13,20 +15,19 @@ import { AuthService } from './auth.service';
  *   caso de los módulos globales Liquidación y Administrador.
  * - ausente → no agrega restricción; sólo exige sesión (igual que `authGuard`).
  *
- * La facultad se toma de `AuthService.ensureSession()`, que revalida contra
- * haberes-core una vez por arranque y cachea el resultado. Al aplicarse junto a
- * `authGuard` no genera llamadas HTTP adicionales ni toca los servicios de las
- * pantallas.
+ * Denegar ya NO destruye la sesión: se explica la regla en `sin-acceso` y el
+ * usuario puede volver o cerrar sesión por decisión propia.
  */
 export const moduloGuard: CanActivateFn = (route) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const accesoDenegado = inject(AccesoDenegadoService);
   const requireFacultadId = route.data['requireFacultadId'] as unknown;
 
   return authService.ensureSession().pipe(
-    map((user) => {
+    map((user): boolean | UrlTree => {
       if (!user) {
-        router.navigate(['/login']);
+        void router.navigate(['/login']);
         return false;
       }
 
@@ -35,11 +36,13 @@ export const moduloGuard: CanActivateFn = (route) => {
       const tieneFacultad = user.facultadId != null;
       if (tieneFacultad === requireFacultadId) return true;
 
-      // Misma salida que el guard del módulo Administrador: se descarta la
-      // sesión para que el login vuelva a evaluar la regla del módulo.
-      authService.clearSession();
-      router.navigate(['/login']);
-      return false;
+      accesoDenegado.reportar({
+        tipo: 'modulo',
+        mensaje: requireFacultadId
+          ? 'Este módulo requiere un usuario con facultad asignada.'
+          : 'Este módulo es global y no está disponible para usuarios con facultad asignada.',
+      });
+      return router.parseUrl(`/${SIN_ACCESO_RUTA}`);
     }),
-  );
+  ) as Observable<boolean | UrlTree>;
 };

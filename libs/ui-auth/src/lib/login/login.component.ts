@@ -13,9 +13,15 @@ import { AuthService } from '@haberes/shared-api';
 })
 export class LoginComponent {
   requireFacultadId: boolean | null = null;
+  requireAdministrador: boolean | null = null;
+  readonly infoMessage = signal<string>('');
 
   constructor() {
     this.requireFacultadId = this.route.snapshot.data['requireFacultadId'] ?? null;
+    this.requireAdministrador = this.route.snapshot.data['requireAdministrador'] ?? null;
+    if (this.route.snapshot.queryParams['motivo'] === 'sesion-expirada') {
+      this.infoMessage.set('Tu sesión expiró. Volvé a ingresar para continuar.');
+    }
   }
 
   private readonly fb = inject(FormBuilder);
@@ -111,7 +117,12 @@ export class LoginComponent {
             this.errorMessage.set('Módulo GLOBAL. Usuario restringido a facultad.');
             return;
           }
-          this.router.navigate(['/']);
+          if (this.requireAdministrador === true && response.usuario.administrador !== 1) {
+            this.authService.clearSession();
+            this.errorMessage.set('Módulo ADMINISTRADOR. Usuario NO habilitado.');
+            return;
+          }
+          this.router.navigate(['/'], { replaceUrl: true });
         } else {
           this.errorMessage.set(response.error || 'Error desconocido');
         }

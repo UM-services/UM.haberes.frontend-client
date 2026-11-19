@@ -4,9 +4,11 @@ import {
   provideRouter,
   Router,
   RouterStateSnapshot,
+  UrlTree,
 } from '@angular/router';
 import { firstValueFrom, Observable, of } from 'rxjs';
 
+import { SIN_ACCESO_RUTA } from '../acceso.constants';
 import { AuthService, Persona } from './auth.service';
 import { moduloGuard } from './modulo.guard';
 
@@ -34,13 +36,13 @@ describe('moduloGuard', () => {
     return { auth, navigate };
   };
 
-  const ejecutar = (data: Record<string, unknown>): Promise<boolean> =>
+  const ejecutar = (data: Record<string, unknown>): Promise<boolean | UrlTree> =>
     TestBed.runInInjectionContext(() =>
       firstValueFrom(
         moduloGuard(
           { data } as unknown as ActivatedRouteSnapshot,
           {} as RouterStateSnapshot,
-        ) as Observable<boolean>,
+        ) as Observable<boolean | UrlTree>,
       ),
     );
 
@@ -53,12 +55,14 @@ describe('moduloGuard', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('con requireFacultadId true rechaza a un usuario sin facultad', async () => {
+  it('con requireFacultadId true deniega sin borrar la sesión', async () => {
     const { auth, navigate } = setup(persona(null));
 
-    await expect(ejecutar({ requireFacultadId: true })).resolves.toBe(false);
-    expect(auth.clearSession).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith(['/login']);
+    const resultado = await ejecutar({ requireFacultadId: true });
+    expect(resultado).toBeInstanceOf(UrlTree);
+    expect((resultado as UrlTree).toString()).toContain(SIN_ACCESO_RUTA);
+    expect(auth.clearSession).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('con requireFacultadId false deja entrar a un usuario sin facultad', async () => {
@@ -69,12 +73,14 @@ describe('moduloGuard', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('con requireFacultadId false rechaza a un usuario con facultad', async () => {
+  it('con requireFacultadId false deniega sin borrar la sesión', async () => {
     const { auth, navigate } = setup(persona(3));
 
-    await expect(ejecutar({ requireFacultadId: false })).resolves.toBe(false);
-    expect(auth.clearSession).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith(['/login']);
+    const resultado = await ejecutar({ requireFacultadId: false });
+    expect(resultado).toBeInstanceOf(UrlTree);
+    expect((resultado as UrlTree).toString()).toContain(SIN_ACCESO_RUTA);
+    expect(auth.clearSession).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('sin requireFacultadId sólo exige sesión, sin mirar la facultad', async () => {

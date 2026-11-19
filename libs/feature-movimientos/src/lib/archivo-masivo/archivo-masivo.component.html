@@ -1,0 +1,183 @@
+<div class="flex flex-col gap-6">
+
+  <div class="um-page-header">
+    <div>
+      <span class="um-eyebrow">Movimientos y Bancos</span>
+      <h1 class="um-page-title">
+        {{ esOtrosBancos() ? 'Generar Archivo Otros Bancos' : 'Generar Archivo Santander' }}
+      </h1>
+      <p class="um-page-desc max-w-3xl">
+        Generación del archivo masivo de acreditación de haberes
+        {{ esOtrosBancos() ? '(transferencias interbancarias)' : '(Banco Santander)' }}.
+        Prepara los CBUs del período, registra las acreditaciones y genera la orden de pago.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" class="um-btn-secondary" [disabled]="eliminando()" (click)="eliminarPeriodo()">
+        {{ eliminando() ? 'Eliminando...' : 'Eliminar CBUs del período' }}
+      </button>
+      <button
+        type="button"
+        class="um-btn-primary flex items-center gap-2"
+        [disabled]="generando()"
+        (click)="generar()"
+      >
+        @if (generando()) {
+          <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
+          <span>Generando...</span>
+        } @else {
+          <span>Generar archivo</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (mensaje()) {
+    <div class="um-alert um-alert-success">
+      {{ mensaje() }}
+    </div>
+  }
+  @if (error()) {
+    <div class="um-alert um-alert-error">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="um-card">
+    <div class="um-eyebrow mb-3">Período y archivo</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+      <div class="md:col-span-5">
+        <lib-periodo-nav
+          idPrefijo="masivo"
+          [anho]="anho()"
+          [mes]="mes()"
+          (periodoChange)="onPeriodo($event)"
+        />
+      </div>
+
+      <div class="md:col-span-4">
+        <label for="masivo-fecha" class="um-label">Fecha de pago</label>
+        <ui-input-fecha
+          inputId="masivo-fecha"
+          [ngModel]="fechaPago()"
+          (ngModelChange)="fechaPago.set($event)"
+        />
+      </div>
+
+      <div class="md:col-span-3">
+        <label for="masivo-envio" class="um-label">Número de envío</label>
+        <input
+          id="masivo-envio"
+          type="number"
+          min="1"
+          class="um-input text-center font-mono tabular-nums"
+          [ngModel]="numEnvio()"
+          (ngModelChange)="numEnvio.set(+$event || 1)"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="um-card">
+    <div class="um-eyebrow mb-3">Filtros</div>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+      <div class="md:col-span-4">
+        <span class="um-label">Salida</span>
+        <div class="flex flex-wrap items-center gap-4 pt-1">
+          <label class="flex items-center gap-2 text-sm text-um-text">
+            <input
+              type="checkbox"
+              [ngModel]="administrativos()"
+              (ngModelChange)="administrativos.set($event)"
+            />
+            Administrativos
+          </label>
+          <label class="flex items-center gap-2 text-sm text-um-text">
+            <input type="checkbox" [ngModel]="docentes()" (ngModelChange)="docentes.set($event)" />
+            Docentes
+          </label>
+        </div>
+        <p class="mt-1 text-[11px] text-um-muted">
+          Sin marcas o ambas: se incluyen todos los legajos (salida T).
+        </p>
+      </div>
+
+      <div class="md:col-span-4">
+        <label for="masivo-dependencia" class="um-label">Dependencia</label>
+        <select
+          id="masivo-dependencia"
+          class="um-input"
+          [ngModel]="dependenciaId()"
+          (ngModelChange)="dependenciaId.set(+$event)"
+        >
+          <option [ngValue]="0">Todas las dependencias</option>
+          @for (dependencia of dependencias(); track dependencia.dependenciaId) {
+            <option [ngValue]="dependencia.dependenciaId">{{ dependencia.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      @if (esOtrosBancos()) {
+        <div class="md:col-span-4">
+          <span class="um-label">Modalidad</span>
+          <label class="mt-2 flex items-center gap-2 text-sm text-um-text">
+            <input type="checkbox" [ngModel]="cci()" (ngModelChange)="cci.set($event)" />
+            Acreditar por CCI (acuerdo 03 / forma de pago 57)
+          </label>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="um-card">
+    <div class="um-eyebrow mb-3">Universo por novedades del código</div>
+    <label class="flex items-center gap-2 text-sm text-um-text">
+      <input
+        type="checkbox"
+        [ngModel]="soloCodigo()"
+        (ngModelChange)="onSoloCodigo($event)"
+      />
+      Generar sólo con los legajos con novedades del código
+    </label>
+
+    @if (soloCodigo()) {
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+        <div class="md:col-span-6">
+          <label for="masivo-codigo-busqueda" class="um-label">Buscar código</label>
+          <input
+            id="masivo-codigo-busqueda"
+            type="text"
+            class="um-input"
+            placeholder="Escriba el nombre o número del código y presione Enter"
+            [ngModel]="codigoBusqueda()"
+            (ngModelChange)="codigoBusqueda.set($event)"
+            (keydown.enter)="buscarCodigos()"
+            (blur)="buscarCodigos()"
+          />
+        </div>
+        <div class="md:col-span-6">
+          <label for="masivo-codigo" class="um-label">Código</label>
+          <select
+            id="masivo-codigo"
+            class="um-input"
+            [ngModel]="codigoId()"
+            (ngModelChange)="onCodigoSeleccionado($event)"
+          >
+            <option [ngValue]="null">Seleccione un código</option>
+            @for (codigo of codigos(); track codigo.codigoId) {
+              <option [ngValue]="codigo.codigoId">{{ codigo.codigoId }} - {{ codigo.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    }
+  </div>
+
+  <lib-rechazos-grid
+    [rechazos]="rechazos()"
+    [conImporte]="esOtrosBancos()"
+    [nombreArchivo]="'no-asignados-' + anho() + '-' + mes()"
+    [titulo]="esOtrosBancos() ? 'Legajos rechazados (Otros Bancos)' : 'Legajos rechazados (Santander)'"
+  />
+</div>

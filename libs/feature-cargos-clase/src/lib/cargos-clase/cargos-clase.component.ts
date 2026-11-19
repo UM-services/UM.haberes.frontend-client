@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { mensajeDeError, periodoTexto } from '@haberes/shared-api';
+import { ImportePipe } from '@haberes/ui-layout';
 import { CargoClase, CargoClaseDetalle, CargosClaseService, Clase } from './cargos-clase.service';
 
 @Component({
   selector: 'lib-cargos-clase',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImportePipe],
   templateUrl: './cargos-clase.component.html',
 })
 export class CargosClaseComponent implements OnInit {

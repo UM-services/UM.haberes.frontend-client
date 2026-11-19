@@ -21,7 +21,7 @@ async function prepararSesion(
     route.fulfill({ json: persona }),
   );
   await page.route('**/api/haberes/core/usuario/**', (route) =>
-    route.fulfill({ json: { legajoId: persona.legajoId, usuarioId: 7, facultadId } }),
+    route.fulfill({ json: { legajoId: persona.legajoId, usuarioId: 7, facultadId, administrador: 0 } }),
   );
   if (facultadId != null) {
     await page.route('**/api/haberes/core/facultad/**', (route) =>

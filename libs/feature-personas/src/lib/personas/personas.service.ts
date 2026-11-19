@@ -66,7 +66,6 @@ export interface PersonaPatch {
   localidadAfip?: number;
   situacionAfip?: number;
   modeloContratacionAfip?: number;
-  directivoEtec?: number;
 }
 
 /** Valor para `<input type="date">` a partir del ISO que devuelve haberes-core. */

@@ -37,7 +37,7 @@ export class FusionDocenteComponent {
     { titulo: 'Facultad', valor: (fila) => fila.facultad },
     { titulo: 'Sede', valor: (fila) => fila.sede },
     { titulo: 'Cargo', valor: (fila) => fila.cargo },
-    { titulo: 'Básico', valor: (fila) => fila.basico, tipo: 'importe', alineacion: 'der' }
+    { titulo: 'Básico', valor: (fila) => fila.basico, tipo: 'moneda', alineacion: 'der' }
   ];
 
   readonly secciones = computed<readonly SeccionTabla<FilaFusion>[]>(() => {

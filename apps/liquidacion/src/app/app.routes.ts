@@ -1,5 +1,6 @@
 import { Route, Routes } from '@angular/router';
-import { authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { SIN_ACCESO_RUTA, authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { NoAccesoComponent } from '@haberes/ui-layout';
 import { RUTAS_MIGRADAS, TODAS_LAS_OPCIONES } from './menu-options.data';
 
 /** Liquidación es un módulo global: sólo entra un usuario sin facultad asignada. */
@@ -8,6 +9,53 @@ const DATOS_MODULO = { requireFacultadId: false } as const;
 const bonoIndividualRoute: Route = {
   path: 'consultas/bono-individual',
   loadComponent: () => import('@haberes/feature-bonos').then(m => m.BonoIndividualComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const liquidacionIndividualRoute: Route = {
+  path: 'liquidacion/individual',
+  loadComponent: () =>
+    import('@haberes/feature-liquidacion').then(m => m.LiquidacionIndividualComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const liquidacionGeneralRoute: Route = {
+  path: 'liquidacion/general',
+  loadComponent: () =>
+    import('@haberes/feature-liquidacion').then(m => m.LiquidacionGeneralComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const novedadesRoute: Route = {
+  path: 'liquidacion/novedades',
+  loadComponent: () => import('@haberes/feature-liquidacion').then(m => m.NovedadesComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const transferirNovedadesRoute: Route = {
+  path: 'liquidacion/transferir-novedades',
+  loadComponent: () =>
+    import('@haberes/feature-designaciones').then(m => m.TransferirNovedadesComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const asigCargosRoute: Route = {
+  path: 'liquidacion/asig-cargos',
+  loadComponent: () =>
+    import('@haberes/feature-cargos').then(m => m.AsignacionCargosComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const etecAsigCargosRoute: Route = {
+  path: 'liquidacion/etec/asig-cargos',
+  loadComponent: () =>
+    import('@haberes/feature-etec-asignaciones').then(m => m.AsignacionesEtecComponent),
   canActivate: [authGuard, moduloGuard],
   data: DATOS_MODULO
 };
@@ -145,6 +193,13 @@ const imputacionIndividualRoute: Route = {
   data: DATOS_MODULO
 };
 
+const formulario931Route: Route = {
+  path: 'contabilidad/formulario-931',
+  loadComponent: () => import('@haberes/feature-contabilidad').then(m => m.Formulario931Component),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const designacionesGeneralRoute: Route = {
   path: 'designaciones/general',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.DesignacionesComponent),
@@ -208,6 +263,43 @@ const cursosConsultaRoute: Route = {
   data: DATOS_MODULO
 };
 
+const santanderMasivoRoute: Route = {
+  path: 'movimientos/santander',
+  loadComponent: () => import('@haberes/feature-movimientos').then(m => m.SantanderMasivoComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const otrosBancosMasivoRoute: Route = {
+  path: 'movimientos/otros-bancos',
+  loadComponent: () => import('@haberes/feature-movimientos').then(m => m.OtrosBancosMasivoComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const santanderIndividualRoute: Route = {
+  path: 'movimientos/santander-individual',
+  loadComponent: () =>
+    import('@haberes/feature-movimientos').then(m => m.SantanderIndividualComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const otrosBancosIndividualRoute: Route = {
+  path: 'movimientos/otros-bancos-individual',
+  loadComponent: () =>
+    import('@haberes/feature-movimientos').then(m => m.OtrosBancosIndividualComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
+const excluidosRoute: Route = {
+  path: 'movimientos/excluidos',
+  loadComponent: () => import('@haberes/feature-movimientos').then(m => m.ExcluidosComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const opcionesRoutes: Routes = TODAS_LAS_OPCIONES
   .filter(opcion => !RUTAS_MIGRADAS.has(opcion.path))
   .map(opcion => ({
@@ -231,12 +323,23 @@ export const appRoutes: Routes = [
     data: DATOS_MODULO
   },
   {
+    // Ruta pública de las guards: explica la denegación sin cerrar la sesión.
+    path: SIN_ACCESO_RUTA,
+    component: NoAccesoComponent
+  },
+  {
     path: 'inicio',
     loadComponent: () => import('./inicio.component').then(m => m.InicioComponent),
     canActivate: [authGuard, moduloGuard],
     data: DATOS_MODULO
   },
   bonoIndividualRoute,
+  liquidacionIndividualRoute,
+  liquidacionGeneralRoute,
+  novedadesRoute,
+  transferirNovedadesRoute,
+  asigCargosRoute,
+  etecAsigCargosRoute,
   totalesGeneralesRoute,
   totalesCodigoRoute,
   comparacionMesesRoute,
@@ -256,6 +359,7 @@ export const appRoutes: Routes = [
   historicoCargosRoute,
   bonosDependenciaRoute,
   imputacionIndividualRoute,
+  formulario931Route,
   designacionesGeneralRoute,
   actualizarCargosClaseRoute,
   anotadorRoute,
@@ -265,6 +369,11 @@ export const appRoutes: Routes = [
   cargosClaseDuplicarRoute,
   fusionTodosRoute,
   cursosConsultaRoute,
+  santanderMasivoRoute,
+  otrosBancosMasivoRoute,
+  santanderIndividualRoute,
+  otrosBancosIndividualRoute,
+  excluidosRoute,
   ...opcionesRoutes,
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },
   { path: '**', redirectTo: 'inicio' }

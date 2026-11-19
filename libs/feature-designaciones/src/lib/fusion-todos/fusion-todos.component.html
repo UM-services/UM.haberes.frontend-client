@@ -43,12 +43,25 @@
       </div>
       <div class="md:col-span-6 flex flex-wrap items-center justify-end gap-4">
         <label class="flex items-center gap-2 text-xs font-medium text-um-text"
-               [title]="hayCargos() ? 'El período ya tiene cargos cargados: no se puede duplicar' : 'Copia los cargos del mes anterior'">
-          <input type="checkbox" [ngModel]="duplicar()" [disabled]="running() || hayCargos()"
+               [title]="hayCargos()
+                 ? 'El período ya tiene cargos cargados: no se puede duplicar'
+                 : estadoCargos() === 'error'
+                   ? 'No se pudo verificar el período: no se puede duplicar'
+                   : 'Copia los cargos del mes anterior'">
+          <input type="checkbox" [ngModel]="duplicar()"
+                 [disabled]="running() || hayCargos() || estadoCargos() !== 'ok'"
                  (ngModelChange)="duplicar.set($event)" class="h-4 w-4">
           <span>Duplicar mes anterior</span>
         </label>
-        @if (hayCargos()) {
+        @if (estadoCargos() === 'cargando') {
+          <span class="um-badge bg-um-surface border border-um-border text-um-muted">
+            Verificando cargos del período...
+          </span>
+        } @else if (estadoCargos() === 'error') {
+          <span class="um-badge bg-rose-50 border border-rose-200 text-rose-700">
+            Período sin verificar
+          </span>
+        } @else if (hayCargos()) {
           <span class="um-badge bg-amber-50 border border-amber-200 text-amber-800">
             Período con cargos cargados
           </span>
@@ -63,12 +76,18 @@
   @if (exito()) {
     <div class="um-card border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium">{{ exito() }}</div>
   }
+  @if (depuracionPendiente()) {
+    <div class="um-card border-amber-200 bg-amber-50 text-amber-800 text-xs font-medium">
+      La depuración de fusiones huérfanas quedó pendiente. Reintentá el proceso para completarla.
+    </div>
+  }
 
   <!-- Ejecución -->
   <div class="um-card">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <button (click)="fusionarTodos()" [disabled]="running()" class="um-btn-primary flex items-center gap-1.5">
+        <button (click)="fusionarTodos()" [disabled]="running() || estadoCargos() !== 'ok'"
+                class="um-btn-primary flex items-center gap-1.5">
           @if (running()) {
             <div class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full"></div>
           }

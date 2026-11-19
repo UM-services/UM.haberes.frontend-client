@@ -1,16 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnInit,
   computed,
   inject,
   signal
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '@haberes/shared-api';
 import { BonoReportService } from '@haberes/feature-bonos';
-import { take } from 'rxjs';
+import { Subscription, switchMap, take, timer } from 'rxjs';
 
 import { ConsultasCatalogosService, DependenciaConsulta } from '../consultas-catalogos.service';
 import { ConsultasReportService } from '../consultas-report.service';
@@ -61,8 +63,12 @@ export class BonosDependenciaComponent implements OnInit {
   readonly progreso = signal<{ actual: number; total: number } | null>(null);
   readonly resultados = signal<readonly ResultadoEnvioBono[]>([]);
   readonly fallidos = signal<readonly { legajoId: number; motivo: string }[]>([]);
+  /** Legajos que no se pudieron incluir en el PDF (el resto sí se generó). */
+  readonly fallidosGeneracion = signal<readonly { legajoId: number; motivo: string }[]>([]);
 
   private legajoSolicitante: number | null = null;
+  private readonly destroyRef = inject(DestroyRef);
+  private pdfPoll?: Subscription;
 
   readonly habilitado = computed(() => this.dependenciaId() !== null);
   readonly filas = computed<readonly FilaBonoDependencia[]>(() => this.datos()?.filas ?? []);
@@ -147,6 +153,7 @@ export class BonosDependenciaComponent implements OnInit {
     this.imprimiendo.set(true);
     this.error.set(null);
     this.fallidos.set([]);
+    this.fallidosGeneracion.set([]);
     this.bonoService
       .printPrepareDependencia(
         this.dependenciaId() as number,
@@ -173,22 +180,83 @@ export class BonosDependenciaComponent implements OnInit {
       });
   }
 
+  /**
+   * Genera el PDF consolidado en el report-service. El backend lo arma en segundo plano y acá
+   * se consulta el avance hasta que queda listo para descargar.
+   */
   descargarPdf() {
     if (!this.habilitado()) {
       return;
     }
     this.imprimiendo.set(true);
     this.error.set(null);
-    this.service.descargar('bonoDependencia', 'pdf', this.parametros()).subscribe({
+    this.fallidosGeneracion.set([]);
+    this.progreso.set({ actual: 0, total: 0 });
+    this.service
+      .iniciarPdfBonoDependencia(
+        this.anho(),
+        this.mes(),
+        this.dependenciaId() as number,
+        this.filtro()
+      )
+      .subscribe({
+        next: (job) => this.esperarPdf(job.jobId),
+        error: (error: unknown) => {
+          this.error.set(this.service.mensajeDeError(error, 'No se pudo generar el PDF consolidado.'));
+          this.terminarImpresion();
+        }
+      });
+  }
+
+  private esperarPdf(jobId: string) {
+    this.pdfPoll?.unsubscribe();
+    this.pdfPoll = timer(0, 1500)
+      .pipe(
+        switchMap(() => this.service.estadoPdfBonoDependencia(jobId)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (estado) => {
+          this.progreso.set({ actual: estado.procesados, total: estado.total });
+          if (estado.estado === 'LISTO') {
+            this.pdfPoll?.unsubscribe();
+            this.fallidosGeneracion.set(
+              estado.fallidos.map((fallido) => ({
+                legajoId: Number(fallido.legajoId),
+                motivo: fallido.motivo
+              }))
+            );
+            this.guardarPdf(jobId);
+          } else if (estado.estado === 'ERROR') {
+            this.pdfPoll?.unsubscribe();
+            this.error.set(estado.mensaje?.trim() || 'No se pudo generar el PDF consolidado.');
+            this.terminarImpresion();
+          }
+        },
+        error: (error: unknown) => {
+          this.pdfPoll?.unsubscribe();
+          this.error.set(this.service.mensajeDeError(error, 'No se pudo generar el PDF consolidado.'));
+          this.terminarImpresion();
+        }
+      });
+  }
+
+  private guardarPdf(jobId: string) {
+    this.service.descargarPdfBonoDependencia(jobId).subscribe({
       next: (blob) => {
         this.guardar(blob, `bonos-${this.dependenciaId()}-${this.anho()}-${this.mes()}.pdf`);
-        this.imprimiendo.set(false);
+        this.terminarImpresion();
       },
       error: (error: unknown) => {
-        this.error.set(this.service.mensajeDeError(error, 'No se pudo generar el PDF consolidado.'));
-        this.imprimiendo.set(false);
+        this.error.set(this.service.mensajeDeError(error, 'No se pudo descargar el PDF generado.'));
+        this.terminarImpresion();
       }
     });
+  }
+
+  private terminarImpresion() {
+    this.imprimiendo.set(false);
+    this.progreso.set(null);
   }
 
   enviar() {
@@ -258,10 +326,12 @@ export class BonosDependenciaComponent implements OnInit {
   }
 
   private limpiar() {
+    this.pdfPoll?.unsubscribe();
     this.datos.set(null);
     this.marcados.set(new Set());
     this.resultados.set([]);
     this.fallidos.set([]);
+    this.fallidosGeneracion.set([]);
     this.error.set(null);
   }
 

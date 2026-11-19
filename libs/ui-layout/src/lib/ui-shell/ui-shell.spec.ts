@@ -134,4 +134,36 @@ describe('UiShellComponent', () => {
     expect(component.isCambioClaveOpen()).toBe(false);
     expect(fixture.nativeElement.querySelector('#modal-title')).toBeNull();
   });
+
+  it('projecta el contenido de la app dentro del área principal', async () => {
+    @Component({
+      standalone: true,
+      imports: [UiShellComponent],
+      selector: 'lib-shell-host',
+      template: `
+        <ui-shell moduleName="Simulador Novedades">
+          <p data-testid="barra-proyectada">Contenido de la app</p>
+        </ui-shell>
+      `,
+    })
+    class ShellHostComponent {}
+
+    await TestBed.configureTestingModule({
+      imports: [ShellHostComponent],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        { provide: API_URL, useValue: '' },
+        { provide: AuthService, useValue: AUTH_STUB },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(ShellHostComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // El contenido proyectado sólo aparece en la vista autenticada; las apps
+    // que no proyectan nada (todas menos el simulador) no cambian.
+    expect(fixture.nativeElement.querySelector('[data-testid="barra-proyectada"]')).not.toBeNull();
+  });
 });

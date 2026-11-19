@@ -47,9 +47,9 @@ export class TotalesCodigoComponent {
   readonly columnas: readonly ColumnaTabla<FilaCodigoVista>[] = [
     { titulo: 'Código', valor: (fila) => String(fila.codigoId) },
     { titulo: 'Descripción', valor: (fila) => fila.nombre },
-    { titulo: 'Novedades', valor: (fila) => fila.novedades, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Liquidado', valor: (fila) => fila.liquidado, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Diferencia', valor: (fila) => fila.diferencia, tipo: 'importe', alineacion: 'der' }
+    { titulo: 'Novedades', valor: (fila) => fila.novedades, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Liquidado', valor: (fila) => fila.liquidado, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Diferencia', valor: (fila) => fila.diferencia, tipo: 'moneda', alineacion: 'der' }
   ];
 
   readonly secciones = computed<readonly SeccionTabla<FilaCodigoVista>[]>(() => {

@@ -41,7 +41,7 @@ no la conoce. Las rutas legacy que consume el cliente de escritorio no pasan por
 | `/consultas/libro-sueldos` | Libro de Sueldos (+ LSD ZIP) | `frmLibroSueldo.frm` | `/ui/libroSueldos/{data,pdf,xlsx}/{anho}/{mes}` + `POST /ui/libroSueldos/lsd/{anho}/{mes}` |
 | `/consultas/basicos-periodo` | Básicos por Período | `frmBasicoPeriodo.frm` | `/ui/basicosPeriodo/{data,pdf,xlsx}/{anho}/{mes}` |
 | `/consultas/cursos-contratado` | Cursos por Contratado | `frmCursoContratado.frm` | `/ui/cursosContratado/{data,pdf,xlsx}/{anho}/{mes}` |
-| `/consultas/bonos-dependencia` | Bonos por Dependencia (grilla + PDF + envío) | `frmImprimir.frm` | `/ui/bonoDependencia/{data,pdf}/{anho}/{mes}/{dependenciaId}/{salida}` + `/ui/bonoDependencia/sendBono/{legajoId}/{anho}/{mes}` |
+| `/consultas/bonos-dependencia` | Bonos por Dependencia (grilla + PDF + envío) | `frmImprimir.frm` | `/ui/bonoDependencia/data/{anho}/{mes}/{dependenciaId}/{salida}` + `POST /ui/bonoDependencia/pdf/{...}` (job) + `/ui/bonoDependencia/pdf/job/{jobId}` + `/ui/bonoDependencia/pdf/job/{jobId}/file` + `/ui/bonoDependencia/sendBono/{legajoId}/{anho}/{mes}` |
 | `/consultas/historico-cargos` | Histórico de Asignación de Cargos (aviso + PDF) | `frmCargoHist.frm` | `/ui/historicoCargos/{data,pdf}/{categoriaId}` |
 
 ## Convenciones

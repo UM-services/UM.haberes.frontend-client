@@ -44,8 +44,8 @@ export class DetalleCodigoComponent implements OnInit {
   readonly columnas: readonly ColumnaTabla<FilaDetalleCodigo>[] = [
     { titulo: 'Legajo', valor: (fila) => fila.legajoId, tipo: 'entero' },
     { titulo: 'Apellido y Nombre', valor: (fila) => fila.apellidoNombre },
-    { titulo: 'Liquidado', valor: (fila) => fila.liquidado, tipo: 'importe', alineacion: 'der' },
-    { titulo: 'Novedad', valor: (fila) => fila.novedad, tipo: 'importe', alineacion: 'der' },
+    { titulo: 'Liquidado', valor: (fila) => fila.liquidado, tipo: 'moneda', alineacion: 'der' },
+    { titulo: 'Novedad', valor: (fila) => fila.novedad, tipo: 'moneda', alineacion: 'der' },
     { titulo: 'Cantidad', valor: (fila) => fila.cantidad, tipo: 'entero', alineacion: 'der' }
   ];
 

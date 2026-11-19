@@ -1,0 +1,166 @@
+<div class="w-full pb-4">
+  <header class="um-page-header">
+    <div>
+      <p class="um-eyebrow">Módulo contable</p>
+      <h1 class="um-page-title">Totales Formulario 931</h1>
+      <p class="um-page-desc">
+        Totales de aportes y contribuciones del período informados en el F.931. Hay un único
+        registro por mes.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-2">
+      <button
+        type="button"
+        class="um-btn-secondary h-9 w-9 justify-center px-0 font-mono text-base"
+        title="Mes anterior"
+        aria-label="Mes anterior"
+        (click)="irAnterior()"
+        [disabled]="cargando()"
+      >
+        &lt;
+      </button>
+      <div>
+        <label class="um-label" for="ff931-mes">Mes</label>
+        <input
+          id="ff931-mes"
+          name="mes"
+          type="number"
+          min="1"
+          max="12"
+          class="um-input w-20 text-center font-mono tabular-nums"
+          [ngModel]="mes()"
+          (ngModelChange)="mes.set(+$event)"
+          (change)="recargarPeriodo()"
+          (keydown.enter)="recargarPeriodo()"
+        />
+      </div>
+      <div>
+        <label class="um-label" for="ff931-anho">Año</label>
+        <input
+          id="ff931-anho"
+          name="anho"
+          type="number"
+          min="2000"
+          max="2100"
+          class="um-input w-24 text-center font-mono tabular-nums"
+          [ngModel]="anho()"
+          (ngModelChange)="anho.set(+$event)"
+          (change)="recargarPeriodo()"
+          (keydown.enter)="recargarPeriodo()"
+        />
+      </div>
+      <button
+        type="button"
+        class="um-btn-secondary h-9 w-9 justify-center px-0 font-mono text-base"
+        title="Mes siguiente"
+        aria-label="Mes siguiente"
+        (click)="irSiguiente()"
+        [disabled]="cargando()"
+      >
+        &gt;
+      </button>
+      <span class="um-badge" [class.text-emerald-700]="esNuevo()" [class.text-um-muted]="!esNuevo()">
+        {{ esNuevo() ? 'Período nuevo' : 'Período existente' }}
+      </span>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="um-alert um-alert-error mt-4" role="alert">{{ error() }}</div>
+  }
+  @if (mensaje()) {
+    <div class="um-alert um-alert-success mt-4">{{ mensaje() }}</div>
+  }
+  @if (esNuevo() && !cargando()) {
+    <div class="um-alert mt-4">
+      Sin datos para {{ periodoTexto }}. Complete los totales y guarde.
+    </div>
+  }
+  @if (hayNegativos) {
+    <div class="um-alert um-alert-warn mt-4">
+      Hay importes negativos en {{ periodoTexto }}. Se guardarán tal cual, como ajuste o
+      rectificativa del período.
+    </div>
+  }
+
+  <div [class.opacity-60]="cargando()" [class.pointer-events-none]="cargando()">
+    <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <section class="um-card p-4">
+        <h2 class="text-sm font-semibold text-um-ink">Totales del período</h2>
+        <p class="mt-1 text-xs text-um-muted">
+          Importes informados en el F.931 para {{ periodoTexto }}. Se muestran y se guardan con
+          dos decimales.
+        </p>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          @for (campo of campos; track campo.campo) {
+            <div>
+              <label class="um-label" [for]="'ff931-' + campo.campo">{{ campo.etiqueta }}</label>
+              <input
+                [id]="'ff931-' + campo.campo"
+                [name]="campo.campo"
+                type="number"
+                step="0.01"
+                class="um-input text-right font-mono tabular-nums"
+                [class.text-amber-700]="importeNegativo(campo.campo)"
+                [(ngModel)]="form[campo.campo]"
+              />
+            </div>
+          }
+        </div>
+
+        <p class="mt-4 text-xs text-um-muted">
+          Las etiquetas mantienen la numeración de códigos del formulario. Los importes negativos
+          se aceptan con confirmación al guardar.
+        </p>
+      </section>
+
+      <aside class="um-card h-fit p-4">
+        <h2 class="text-sm font-semibold text-um-ink">Totales de control</h2>
+        <p class="mt-1 text-xs text-um-muted">Calculados en pantalla; no se guardan.</p>
+
+        <dl class="mt-4 grid gap-4">
+          <div>
+            <dt class="text-[11px] font-semibold uppercase tracking-wider text-um-muted">Aportes</dt>
+            <dd class="mt-1 font-mono text-lg tabular-nums text-um-ink">
+              {{ aportes | umImporte: 'simbolo' }}
+            </dd>
+            <p class="mt-1 text-[11px] text-um-muted">351 + 352 + 312 + 028</p>
+          </div>
+          <div class="border-t border-um-border pt-4">
+            <dt class="text-[11px] font-semibold uppercase tracking-wider text-um-muted">
+              Leyes sociales
+            </dt>
+            <dd class="mt-1 font-mono text-lg tabular-nums text-um-ink">
+              {{ leyesSociales | umImporte: 'simbolo' }}
+            </dd>
+            <p class="mt-1 text-[11px] text-um-muted">028 + 301 + 302 + 312 + 351 + 352</p>
+          </div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+
+  <div uiStickyFooter>
+    <p class="text-xs text-um-muted">
+      Período <span class="font-mono tabular-nums">{{ periodoTexto }}</span>
+      @if (form.seguridadSocialId !== null) {
+        · Registro <span class="font-mono">#{{ form.seguridadSocialId }}</span>
+      }
+      @if (cargando()) {
+        · Cargando…
+      }
+    </p>
+    <div class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="um-btn-primary"
+        (click)="guardar()"
+        [disabled]="guardando() || cargando()"
+      >
+        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>
