@@ -36,6 +36,13 @@ const novedadesRoute: Route = {
   data: DATOS_MODULO
 };
 
+const sijpRoute: Route = {
+  path: 'liquidacion/sijp',
+  loadComponent: () => import('@haberes/feature-liquidacion').then(m => m.SijpComponent),
+  canActivate: [authGuard, moduloGuard],
+  data: DATOS_MODULO
+};
+
 const transferirNovedadesRoute: Route = {
   path: 'liquidacion/transferir-novedades',
   loadComponent: () =>
@@ -337,6 +344,7 @@ export const appRoutes: Routes = [
   liquidacionIndividualRoute,
   liquidacionGeneralRoute,
   novedadesRoute,
+  sijpRoute,
   transferirNovedadesRoute,
   asigCargosRoute,
   etecAsigCargosRoute,
