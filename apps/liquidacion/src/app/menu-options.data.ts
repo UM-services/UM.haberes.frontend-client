@@ -466,6 +466,7 @@ export const RUTAS_MIGRADAS: ReadonlySet<string> = new Set([
   '/liquidacion/individual',
   '/liquidacion/general',
   '/liquidacion/novedades',
+  '/liquidacion/sijp',
   '/liquidacion/transferir-novedades',
   '/liquidacion/asig-cargos',
   '/liquidacion/etec/asig-cargos',
