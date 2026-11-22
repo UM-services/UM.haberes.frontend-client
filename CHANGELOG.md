@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.26.0] - 2026-11-22
+
+### Added
+
+- **feat(`feature-etec-asignaciones`):** bloque **Presentismo del período** sobre el cargo ETEC seleccionado: checkbox *Pierde el presentismo del período* con **motivo** obligatorio (máx. 255), alta contra `POST /api/haberes/etec/presentismo/`, edición del motivo contra `PUT /api/haberes/etec/presentismo/{presentismoId}` y restitución con `DELETE .../{presentismoId}` al destildar. La grilla de cargos suma la columna **Presentismo ({período})** con el badge **Pierde** y el bloque informa que la liquidación emite el 985 PRESENTISMO ETEC bruto y el 984 DESCUENTO PRESENTISMO ETEC por el mismo importe en negativo.
+- **feat(`feature-etec-asignaciones`):** bloque **Presentismo ETEC por horas** para todos los cargos ETEC por horas del legajo en el período. Lee `GET /api/haberes/etec/presentismo-horas/legajo/{legajoId}/periodo/{anho}/{mes}`, que además informa `tieneCargosHoras`; sólo habilita el alta cuando el legajo tiene horas en el período, permite editar el motivo (`PUT`) y quitar el registro existente (`DELETE`) aunque el legajo ya no tenga cursos por horas, y sugiere quitarlo con un aviso ámbar en ese caso.
+- **feat(`feature-etec-asignaciones`):** el período acreditado deja ambos bloques de presentismo en **modo consulta**. La pantalla verifica `GET /api/haberes/core/acreditacion/periodo/{anho}/{mes}` (un 404 se interpreta como período abierto y devuelve `null`) y deshabilita las escrituras cuando `acreditado = 1` o cuando la verificación falla, con avisos diferenciados.
+- **feat(`feature-etec-asignaciones`):** modelos `PresentismoEtec`, `PresentismoEtecRequest`, `PresentismoEtecUpdateRequest`, `PresentismoHorasEtec`, `PresentismoHorasRequest`, `PresentismoHorasUpdateRequest` y `AcreditacionPeriodo`; `AsignacionesEtecService` expone `presentismos`, `crearPresentismo`, `actualizarPresentismo`, `eliminarPresentismo`, `presentismoHoras`, `crearPresentismoHoras`, `actualizarPresentismoHoras`, `eliminarPresentismoHoras` y `acreditacionDelPeriodo`. Las escrituras conservan el header de auditoría `X-Legajo-Solicitante`.
+
+### Fixed
+
+- **fix(`feature-etec-asignaciones`):** el **valor del punto ETEC** del período se lee de `GET /api/haberes/etec/control/{anho}/{mes}/opcional` (servicio `haberes-etec`) en lugar de `/api/haberes/core/etec/control/...`, que dejaba el importe de referencia sin datos.
+
+### Tests
+
+- `asignaciones-etec.service.spec.ts`: pérdidas del legajo en el período, `POST`/`PUT`/`DELETE` del presentismo por cargo y por horas con y sin header de auditoría, estado del presentismo por horas y acreditación del período (incluido el 404 traducido a `null`), más la ruta corregida del valor del punto.
+- `asignaciones-etec.component.spec.ts`: alta y baja de la pérdida por cargo, bloqueo con período acreditado, alta y baja de la pérdida por horas, y ausencia de cargos por horas sin habilitar el registro; la carga inicial ahora espera también la acreditación del período.
+
 ## [0.25.0] - 2026-11-19
 
 ### Added

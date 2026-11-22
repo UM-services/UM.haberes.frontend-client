@@ -7,7 +7,11 @@ import {
   AsignacionEtec,
   AsignacionEtecRequest,
   CatalogosEtec,
-  CategoriaEtec
+  CategoriaEtec,
+  PresentismoEtec,
+  PresentismoEtecRequest,
+  PresentismoHorasEtec,
+  PresentismoHorasRequest
 } from './asignaciones-etec.models';
 
 describe('AsignacionesEtecService', () => {
@@ -131,7 +135,7 @@ describe('AsignacionesEtecService', () => {
     let resultado: { valorPuntoEtec: number | null } | null | undefined;
     service.valorPunto(2026, 11).subscribe((r) => (resultado = r));
 
-    const req = http.expectOne('/api/haberes/core/etec/control/2026/11/opcional');
+    const req = http.expectOne('/api/haberes/etec/control/2026/11/opcional');
     expect(req.request.method).toBe('GET');
     req.flush({ anho: 2026, mes: 11, valorPuntoEtec: 3000 });
     expect(resultado?.valorPuntoEtec).toBe(3000);
@@ -141,7 +145,129 @@ describe('AsignacionesEtecService', () => {
     let resultado: { valorPuntoEtec: number | null } | null | undefined;
     service.valorPunto(2026, 1).subscribe((r) => (resultado = r));
 
-    http.expectOne('/api/haberes/core/etec/control/2026/1/opcional').flush(null);
+    http.expectOne('/api/haberes/etec/control/2026/1/opcional').flush(null);
     expect(resultado).toBeNull();
+  });
+
+  it('presentismos pide las pérdidas del legajo en el período', () => {
+    let resultado: PresentismoEtec[] | undefined;
+    service.presentismos(100, 2026, 11).subscribe((r) => (resultado = r));
+
+    const req = http.expectOne('/api/haberes/etec/presentismo/legajo/100/periodo/2026/11');
+    expect(req.request.method).toBe('GET');
+    req.flush([{ presentismoId: 1, asignacionCargoId: 12, anho: 2026, mes: 11, motivo: 'Ausencia' }]);
+    expect(resultado?.length).toBe(1);
+  });
+
+  it('crearPresentismo hace POST con header de auditoría', () => {
+    const presentismo: PresentismoEtecRequest = {
+      asignacionCargoId: 12,
+      anho: 2026,
+      mes: 11,
+      motivo: 'Ausencia'
+    };
+    service.crearPresentismo(presentismo, 999).subscribe();
+
+    const req = http.expectOne('/api/haberes/etec/presentismo/');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(presentismo);
+    expect(req.request.headers.get('X-Legajo-Solicitante')).toBe('999');
+    req.flush({ presentismoId: 1, ...presentismo });
+  });
+
+  it('actualizarPresentismo hace PUT por id', () => {
+    service.actualizarPresentismo(1, { motivo: 'Ausencia' }, null).subscribe();
+
+    const req = http.expectOne('/api/haberes/etec/presentismo/1');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ motivo: 'Ausencia' });
+    expect(req.request.headers.has('X-Legajo-Solicitante')).toBe(false);
+    req.flush({ presentismoId: 1, asignacionCargoId: 12, anho: 2026, mes: 11, motivo: 'Ausencia' });
+  });
+
+  it('eliminarPresentismo hace DELETE por id', () => {
+    service.eliminarPresentismo(1, 999).subscribe();
+
+    const req = http.expectOne('/api/haberes/etec/presentismo/1');
+    expect(req.request.method).toBe('DELETE');
+    expect(req.request.headers.get('X-Legajo-Solicitante')).toBe('999');
+    req.flush(null);
+  });
+
+  it('acreditacionDelPeriodo devuelve null cuando no hay registro', () => {
+    let resultado: { acreditado: number } | null | undefined;
+    service.acreditacionDelPeriodo(2026, 11).subscribe((r) => (resultado = r));
+
+    http.expectOne('/api/haberes/core/acreditacion/periodo/2026/11')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    expect(resultado).toBeNull();
+  });
+
+  it('acreditacionDelPeriodo devuelve el estado del período', () => {
+    let resultado: { acreditado: number } | null | undefined;
+    service.acreditacionDelPeriodo(2026, 11).subscribe((r) => (resultado = r));
+
+    http.expectOne('/api/haberes/core/acreditacion/periodo/2026/11')
+      .flush({ acreditacionId: 1, anho: 2026, mes: 11, acreditado: 1 });
+    expect(resultado?.acreditado).toBe(1);
+  });
+
+  it('presentismoHoras pide el estado del legajo y período', () => {
+    let resultado: PresentismoHorasEtec | undefined;
+    service.presentismoHoras(100, 2026, 11).subscribe((r) => (resultado = r));
+
+    const req = http.expectOne('/api/haberes/etec/presentismo-horas/legajo/100/periodo/2026/11');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      presentismoHorasId: null,
+      legajoId: 100,
+      anho: 2026,
+      mes: 11,
+      motivo: null,
+      tieneCargosHoras: true
+    });
+    expect(resultado?.tieneCargosHoras).toBe(true);
+  });
+
+  it('crearPresentismoHoras hace POST con header de auditoría', () => {
+    const presentismo: PresentismoHorasRequest = {
+      legajoId: 100,
+      anho: 2026,
+      mes: 11,
+      motivo: 'Ausencia'
+    };
+    service.crearPresentismoHoras(presentismo, 999).subscribe();
+
+    const req = http.expectOne('/api/haberes/etec/presentismo-horas/');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(presentismo);
+    expect(req.request.headers.get('X-Legajo-Solicitante')).toBe('999');
+    req.flush({ presentismoHorasId: 7, ...presentismo, tieneCargosHoras: true });
+  });
+
+  it('actualizarPresentismoHoras hace PUT por id', () => {
+    service.actualizarPresentismoHoras(7, { motivo: 'Ausencia' }, null).subscribe();
+
+    const req = http.expectOne('/api/haberes/etec/presentismo-horas/7');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ motivo: 'Ausencia' });
+    expect(req.request.headers.has('X-Legajo-Solicitante')).toBe(false);
+    req.flush({
+      presentismoHorasId: 7,
+      legajoId: 100,
+      anho: 2026,
+      mes: 11,
+      motivo: 'Ausencia',
+      tieneCargosHoras: true
+    });
+  });
+
+  it('eliminarPresentismoHoras hace DELETE por id', () => {
+    service.eliminarPresentismoHoras(7, 999).subscribe();
+
+    const req = http.expectOne('/api/haberes/etec/presentismo-horas/7');
+    expect(req.request.method).toBe('DELETE');
+    expect(req.request.headers.get('X-Legajo-Solicitante')).toBe('999');
+    req.flush(null);
   });
 });
