@@ -33,6 +33,7 @@ um.haberes.frontend-client/
 │   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones, asignación de cursos y transferencia de novedades
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
 │   ├── feature-cargos/       # @haberes/feature-cargos — Cargos del legajo, docentes sede y asignación de cargos
+│   ├── feature-etec-asignaciones/ # @haberes/feature-etec-asignaciones — Cargos ETEC por puntos y presentismo del período
 │   ├── feature-bonos/        # @haberes/feature-bonos — Bono individual del docente
 │   ├── feature-liquidacion/  # @haberes/feature-liquidacion — Liquidación individual, general, novedades y SIJP del período
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
@@ -72,7 +73,7 @@ um.haberes.frontend-client/
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) y transferencia de novedades entre períodos (`/liquidacion/transferir-novedades`) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del agente (`/liquidacion/asig-cargos`) |
-| `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): alta y baja con dependencia, fechas, observaciones, valor del punto del período e importe estimado (`/liquidacion/etec/asig-cargos`) |
+| `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): alta y baja con dependencia, fechas, observaciones, valor del punto del período e importe estimado; registro de la pérdida de presentismo del período por cargo y por los cargos ETEC por horas, con bloqueo en períodos acreditados (`/liquidacion/etec/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
 | `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos); liquidación general del universo liquidable con procesos masivos; novedades mensuales por concepto con carga individual y por planilla (`.xlsx`); y generación del archivo SIJP del período (variantes normal y ETEC) |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |

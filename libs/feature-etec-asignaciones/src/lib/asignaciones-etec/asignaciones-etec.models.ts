@@ -46,6 +46,65 @@ export interface AsignacionEtecRequest {
   observaciones: string | null;
 }
 
+/** Pérdida de presentismo de una asignación de cargo ETEC en un período. */
+export interface PresentismoEtec {
+  presentismoId: number;
+  asignacionCargoId: number;
+  anho: number;
+  mes: number;
+  motivo: string;
+  legajoId?: number | null;
+  categoriaId?: number | null;
+  dependenciaId?: number | null;
+  categoriaNombre?: string | null;
+  dependenciaNombre?: string | null;
+  personaApellido?: string | null;
+  personaNombre?: string | null;
+}
+
+export interface PresentismoEtecRequest {
+  asignacionCargoId: number;
+  anho: number;
+  mes: number;
+  motivo: string;
+}
+
+export interface PresentismoEtecUpdateRequest {
+  motivo: string;
+}
+
+/** Pérdida de presentismo de los cargos ETEC por horas de un legajo en un período. */
+export interface PresentismoHorasEtec {
+  presentismoHorasId: number | null;
+  legajoId: number;
+  anho: number;
+  mes: number;
+  motivo: string | null;
+  personaApellido?: string | null;
+  personaNombre?: string | null;
+  tieneCargosHoras: boolean;
+}
+
+export interface PresentismoHorasRequest {
+  legajoId: number;
+  anho: number;
+  mes: number;
+  motivo: string;
+}
+
+export interface PresentismoHorasUpdateRequest {
+  motivo: string;
+}
+
+/** Estado del período según `acreditacion`. `acreditado = 1` cierra las escrituras. */
+export interface AcreditacionPeriodo {
+  acreditacionId: number;
+  anho: number;
+  mes: number;
+  acreditado: number;
+  limiteNovedades?: string | null;
+}
+
 /** Recorte del control del período que necesita la pantalla. */
 export interface ControlPeriodo {
   anho: number;
