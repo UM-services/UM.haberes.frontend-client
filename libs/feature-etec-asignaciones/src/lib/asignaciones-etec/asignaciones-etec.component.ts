@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { take } from 'rxjs';
+import { Observable, take } from 'rxjs';
 
 import {
   AuthService,
@@ -16,11 +16,16 @@ import { FechaPipe, ImportePipe, InputFechaComponent, PersonaSearchComponent } f
 
 import { AsignacionesEtecService } from './asignaciones-etec.service';
 import {
+  AcreditacionPeriodo,
   AsignacionEtec,
   AsignacionEtecRequest,
   CategoriaEtec,
   Dependencia,
   Periodo,
+  PresentismoEtec,
+  PresentismoEtecRequest,
+  PresentismoHorasEtec,
+  PresentismoHorasRequest,
   estadoAsignacion,
   fechaHoy,
   periodoActual,
@@ -68,6 +73,19 @@ export class AsignacionesEtecComponent {
   readonly valorPunto = signal<number | null>(null);
   readonly valorPuntoListo = signal<boolean>(false);
 
+  readonly presentismos = signal<PresentismoEtec[]>([]);
+  readonly acreditacion = signal<AcreditacionPeriodo | null>(null);
+  readonly acreditacionVerificada = signal<boolean>(false);
+  readonly acreditacionError = signal<boolean>(false);
+  readonly pierdePresentismo = signal<boolean>(false);
+  readonly motivoPresentismo = signal<string>('');
+  readonly guardandoPresentismo = signal<boolean>(false);
+
+  readonly presentismoHoras = signal<PresentismoHorasEtec | null>(null);
+  readonly pierdePresentismoHoras = signal<boolean>(false);
+  readonly motivoPresentismoHoras = signal<string>('');
+  readonly guardandoPresentismoHoras = signal<boolean>(false);
+
   readonly cargando = signal<boolean>(false);
   readonly guardando = signal<boolean>(false);
   readonly error = signal<string | null>(null);
@@ -114,6 +132,54 @@ export class AsignacionesEtecComponent {
     && this.dependenciaId() !== null
   );
 
+  readonly periodoCerrado = computed(() => this.acreditacion()?.acreditado === 1);
+
+  /** La acreditación se pudo verificar y el período sigue abierto. */
+  readonly puedeEscribirPresentismo = computed(() =>
+    this.acreditacionVerificada() && !this.acreditacionError() && !this.periodoCerrado()
+  );
+
+  readonly presentismoSeleccionado = computed<PresentismoEtec | null>(() => {
+    const asignacion = this.seleccionado();
+    if (!asignacion) {
+      return null;
+    }
+    return this.presentismos().find(
+      (item) => item.asignacionCargoId === asignacion.asignacionCargoId
+    ) ?? null;
+  });
+
+  readonly puedeGuardarPresentismo = computed(() => {
+    if (!this.seleccionado() || !this.puedeEscribirPresentismo() || this.guardandoPresentismo()) {
+      return false;
+    }
+    if (this.pierdePresentismo()) {
+      return this.motivoPresentismo().trim().length > 0;
+    }
+    return this.presentismoSeleccionado() !== null;
+  });
+
+  readonly tieneCargosHoras = computed(() => this.presentismoHoras()?.tieneCargosHoras === true);
+
+  readonly puedeEscribirPresentismoHoras = computed(() =>
+    this.hayPersona()
+    && this.puedeEscribirPresentismo()
+    && (this.tieneCargosHoras() || this.presentismoHoras()?.presentismoHorasId != null)
+  );
+
+  readonly puedeGuardarPresentismoHoras = computed(() => {
+    if (!this.puedeEscribirPresentismoHoras() || this.guardandoPresentismoHoras()) {
+      return false;
+    }
+    if (this.pierdePresentismoHoras()) {
+      if (!this.tieneCargosHoras() && this.presentismoHoras()?.presentismoHorasId == null) {
+        return false;
+      }
+      return this.motivoPresentismoHoras().trim().length > 0;
+    }
+    return this.presentismoHoras()?.presentismoHorasId != null;
+  });
+
   constructor() {
     this.auth.currentUser$.pipe(take(1)).subscribe((usuario) => {
       if (usuario) {
@@ -122,6 +188,7 @@ export class AsignacionesEtecComponent {
     });
     this.cargarCatalogos();
     this.cargarValorPunto();
+    this.cargarAcreditacion();
   }
 
   // --- Persona -------------------------------------------------------------
@@ -174,6 +241,8 @@ export class AsignacionesEtecComponent {
     this.limpiarMensajes();
     this.resetFormulario();
     this.cargarAsignaciones();
+    this.cargarPresentismos();
+    this.cargarPresentismoHoras();
   }
 
   private limpiarPersona(): void {
@@ -181,6 +250,9 @@ export class AsignacionesEtecComponent {
     this.legajoInput.set('');
     this.documentoInput.set('');
     this.asignaciones.set([]);
+    this.presentismos.set([]);
+    this.presentismoHoras.set(null);
+    this.sincronizarPresentismoHoras();
     this.limpiarMensajes();
     this.resetFormulario();
   }
@@ -217,6 +289,82 @@ export class AsignacionesEtecComponent {
   cambiarPeriodo(delta: number): void {
     this.periodo.set(sumarMes(this.periodo(), delta));
     this.cargarValorPunto();
+    this.cargarAcreditacion();
+    this.cargarPresentismos();
+    this.cargarPresentismoHoras();
+  }
+
+  private cargarAcreditacion(): void {
+    const { anho, mes } = this.periodo();
+    this.acreditacionVerificada.set(false);
+    this.acreditacionError.set(false);
+    this.service.acreditacionDelPeriodo(anho, mes).subscribe({
+      next: (acreditacion) => {
+        this.acreditacion.set(acreditacion);
+        this.acreditacionVerificada.set(true);
+      },
+      error: () => {
+        this.acreditacion.set(null);
+        this.acreditacionVerificada.set(true);
+        this.acreditacionError.set(true);
+      }
+    });
+  }
+
+  private cargarPresentismos(): void {
+    const persona = this.persona();
+    if (!persona) {
+      this.presentismos.set([]);
+      this.sincronizarPresentismo();
+      return;
+    }
+    const { anho, mes } = this.periodo();
+    this.service.presentismos(persona.legajoId, anho, mes).subscribe({
+      next: (presentismos) => {
+        this.presentismos.set(presentismos);
+        this.sincronizarPresentismo();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.presentismos.set([]);
+        this.sincronizarPresentismo();
+        this.error.set(this.mensajeHttp(err, 'No se pudo cargar el presentismo del período.'));
+      }
+    });
+  }
+
+  private sincronizarPresentismo(): void {
+    const actual = this.presentismoSeleccionado();
+    this.pierdePresentismo.set(actual !== null);
+    this.motivoPresentismo.set(actual?.motivo ?? '');
+  }
+
+  private cargarPresentismoHoras(): void {
+    const persona = this.persona();
+    if (!persona) {
+      this.presentismoHoras.set(null);
+      this.sincronizarPresentismoHoras();
+      return;
+    }
+    this.presentismoHoras.set(null);
+    this.sincronizarPresentismoHoras();
+    const { anho, mes } = this.periodo();
+    this.service.presentismoHoras(persona.legajoId, anho, mes).subscribe({
+      next: (presentismo) => {
+        this.presentismoHoras.set(presentismo);
+        this.sincronizarPresentismoHoras();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.presentismoHoras.set(null);
+        this.sincronizarPresentismoHoras();
+        this.error.set(this.mensajeHttp(err, 'No se pudo cargar el presentismo por horas del período.'));
+      }
+    });
+  }
+
+  private sincronizarPresentismoHoras(): void {
+    const actual = this.presentismoHoras();
+    this.pierdePresentismoHoras.set(actual?.presentismoHorasId != null);
+    this.motivoPresentismoHoras.set(actual?.motivo ?? '');
   }
 
   private cargarAsignaciones(): void {
@@ -248,6 +396,7 @@ export class AsignacionesEtecComponent {
     this.dependenciaId.set(asignacion.dependenciaId);
     this.observaciones.set(asignacion.observaciones ?? '');
     this.limpiarMensajes();
+    this.sincronizarPresentismo();
   }
 
   resetFormulario(): void {
@@ -257,6 +406,7 @@ export class AsignacionesEtecComponent {
     this.categoriaId.set(null);
     this.dependenciaId.set(null);
     this.observaciones.set('');
+    this.sincronizarPresentismo();
   }
 
   guardar(): void {
@@ -287,6 +437,7 @@ export class AsignacionesEtecComponent {
         this.guardando.set(false);
         this.resetFormulario();
         this.cargarAsignaciones();
+        this.cargarPresentismos();
       },
       error: (err: HttpErrorResponse) => {
         this.error.set(
@@ -317,10 +468,117 @@ export class AsignacionesEtecComponent {
         this.guardando.set(false);
         this.resetFormulario();
         this.cargarAsignaciones();
+        this.cargarPresentismos();
       },
       error: (err: HttpErrorResponse) => {
         this.error.set(this.mensajeHttp(err, 'No se pudo eliminar el cargo ETEC.'));
         this.guardando.set(false);
+      }
+    });
+  }
+
+  // --- Presentismo del período ---------------------------------------------
+
+  guardarPresentismo(): void {
+    const actual = this.seleccionado();
+    const persona = this.persona();
+    if (!actual || !persona || !this.puedeGuardarPresentismo()) {
+      return;
+    }
+    const existente = this.presentismoSeleccionado();
+    const motivo = this.motivoPresentismo().trim();
+    const { anho, mes } = this.periodo();
+    const solicitante = this.legajoSolicitante();
+
+    this.guardandoPresentismo.set(true);
+    this.limpiarMensajes();
+
+    let operacion: Observable<unknown>;
+    if (this.pierdePresentismo()) {
+      if (existente) {
+        operacion = this.service.actualizarPresentismo(existente.presentismoId, { motivo }, solicitante);
+      } else {
+        const body: PresentismoEtecRequest = {
+          asignacionCargoId: actual.asignacionCargoId,
+          anho,
+          mes,
+          motivo
+        };
+        operacion = this.service.crearPresentismo(body, solicitante);
+      }
+    } else if (existente) {
+      operacion = this.service.eliminarPresentismo(existente.presentismoId, solicitante);
+    } else {
+      this.guardandoPresentismo.set(false);
+      return;
+    }
+
+    operacion.subscribe({
+      next: () => {
+        this.exito.set(
+          this.pierdePresentismo()
+            ? 'Pérdida de presentismo registrada para el período.'
+            : 'Presentismo restituido para el período.'
+        );
+        this.guardandoPresentismo.set(false);
+        this.cargarPresentismos();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.mensajeHttp(err, 'No se pudo guardar el presentismo del período.'));
+        this.guardandoPresentismo.set(false);
+      }
+    });
+  }
+
+  // --- Presentismo por horas ------------------------------------------------
+
+  guardarPresentismoHoras(): void {
+    const persona = this.persona();
+    if (!persona || !this.puedeGuardarPresentismoHoras()) {
+      return;
+    }
+    const actual = this.presentismoHoras();
+    const motivo = this.motivoPresentismoHoras().trim();
+    const { anho, mes } = this.periodo();
+    const solicitante = this.legajoSolicitante();
+
+    this.guardandoPresentismoHoras.set(true);
+    this.limpiarMensajes();
+
+    let operacion: Observable<unknown>;
+    if (this.pierdePresentismoHoras()) {
+      if (actual?.presentismoHorasId != null) {
+        operacion = this.service.actualizarPresentismoHoras(
+          actual.presentismoHorasId, { motivo }, solicitante);
+      } else {
+        const body: PresentismoHorasRequest = {
+          legajoId: persona.legajoId,
+          anho,
+          mes,
+          motivo
+        };
+        operacion = this.service.crearPresentismoHoras(body, solicitante);
+      }
+    } else if (actual?.presentismoHorasId != null) {
+      operacion = this.service.eliminarPresentismoHoras(actual.presentismoHorasId, solicitante);
+    } else {
+      this.guardandoPresentismoHoras.set(false);
+      return;
+    }
+
+    operacion.subscribe({
+      next: () => {
+        this.exito.set(
+          this.pierdePresentismoHoras()
+            ? 'Pérdida de presentismo por horas registrada para el período.'
+            : 'Presentismo por horas restituido para el período.'
+        );
+        this.guardandoPresentismoHoras.set(false);
+        this.cargarPresentismoHoras();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.mensajeHttp(err, 'No se pudo guardar el presentismo por horas del período.'));
+        this.guardandoPresentismoHoras.set(false);
       }
     });
   }
@@ -359,6 +617,12 @@ export class AsignacionesEtecComponent {
 
   estadoDe(asignacion: AsignacionEtec): string {
     return estadoAsignacion(asignacion);
+  }
+
+  tienePerdidaPresentismo(asignacion: AsignacionEtec): boolean {
+    return this.presentismos().some(
+      (item) => item.asignacionCargoId === asignacion.asignacionCargoId
+    );
   }
 
   private limpiarMensajes(): void {

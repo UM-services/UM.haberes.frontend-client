@@ -1,14 +1,21 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
 
 import {
+  AcreditacionPeriodo,
   AsignacionEtec,
   AsignacionEtecRequest,
   CatalogosEtec,
   CategoriaEtec,
   ControlPeriodo,
   Dependencia,
+  PresentismoEtec,
+  PresentismoEtecRequest,
+  PresentismoEtecUpdateRequest,
+  PresentismoHorasEtec,
+  PresentismoHorasRequest,
+  PresentismoHorasUpdateRequest,
   esCargoEtec
 } from './asignaciones-etec.models';
 
@@ -29,7 +36,10 @@ export class AsignacionesEtecService {
   private readonly cargoUrl = '/api/haberes/etec/cargo';
   private readonly asignacionUrl = '/api/haberes/etec/asignacion-cargo';
   private readonly dependenciaUrl = '/api/haberes/core/dependencia';
-  private readonly controlUrl = '/api/haberes/core/etec/control';
+  private readonly controlUrl = '/api/haberes/etec/control';
+  private readonly presentismoUrl = '/api/haberes/etec/presentismo';
+  private readonly presentismoHorasUrl = '/api/haberes/etec/presentismo-horas';
+  private readonly acreditacionUrl = '/api/haberes/core/acreditacion';
 
   catalogos(): Observable<CatalogosEtec> {
     return forkJoin({
@@ -70,6 +80,77 @@ export class AsignacionesEtecService {
   /** `200` con cuerpo vacío cuando el período todavía no tiene control ETEC cargado. */
   valorPunto(anho: number, mes: number): Observable<ControlPeriodo | null> {
     return this.http.get<ControlPeriodo | null>(`${this.controlUrl}/${anho}/${mes}/opcional`);
+  }
+
+  /** Pérdidas de presentismo registradas para el legajo en el período. */
+  presentismos(legajoId: number, anho: number, mes: number): Observable<PresentismoEtec[]> {
+    return this.http.get<PresentismoEtec[]>(
+      `${this.presentismoUrl}/legajo/${legajoId}/periodo/${anho}/${mes}`
+    );
+  }
+
+  crearPresentismo(body: PresentismoEtecRequest, solicitante: number | null): Observable<PresentismoEtec> {
+    return this.http.post<PresentismoEtec>(`${this.presentismoUrl}/`, body, this.headers(solicitante));
+  }
+
+  actualizarPresentismo(
+    presentismoId: number,
+    body: PresentismoEtecUpdateRequest,
+    solicitante: number | null
+  ): Observable<PresentismoEtec> {
+    return this.http.put<PresentismoEtec>(
+      `${this.presentismoUrl}/${presentismoId}`,
+      body,
+      this.headers(solicitante)
+    );
+  }
+
+  eliminarPresentismo(presentismoId: number, solicitante: number | null): Observable<void> {
+    return this.http.delete<void>(`${this.presentismoUrl}/${presentismoId}`, this.headers(solicitante));
+  }
+
+  /** Estado del presentismo por horas del legajo/período (incluye si tiene cargos por horas). */
+  presentismoHoras(legajoId: number, anho: number, mes: number): Observable<PresentismoHorasEtec> {
+    return this.http.get<PresentismoHorasEtec>(
+      `${this.presentismoHorasUrl}/legajo/${legajoId}/periodo/${anho}/${mes}`
+    );
+  }
+
+  crearPresentismoHoras(
+    body: PresentismoHorasRequest,
+    solicitante: number | null
+  ): Observable<PresentismoHorasEtec> {
+    return this.http.post<PresentismoHorasEtec>(
+      `${this.presentismoHorasUrl}/`,
+      body,
+      this.headers(solicitante)
+    );
+  }
+
+  actualizarPresentismoHoras(
+    presentismoHorasId: number,
+    body: PresentismoHorasUpdateRequest,
+    solicitante: number | null
+  ): Observable<PresentismoHorasEtec> {
+    return this.http.put<PresentismoHorasEtec>(
+      `${this.presentismoHorasUrl}/${presentismoHorasId}`,
+      body,
+      this.headers(solicitante)
+    );
+  }
+
+  eliminarPresentismoHoras(presentismoHorasId: number, solicitante: number | null): Observable<void> {
+    return this.http.delete<void>(
+      `${this.presentismoHorasUrl}/${presentismoHorasId}`,
+      this.headers(solicitante)
+    );
+  }
+
+  /** Estado del período. 404 = todavía no hay registro de acreditación (período abierto). */
+  acreditacionDelPeriodo(anho: number, mes: number): Observable<AcreditacionPeriodo | null> {
+    return this.http
+      .get<AcreditacionPeriodo>(`${this.acreditacionUrl}/periodo/${anho}/${mes}`)
+      .pipe(catchError((error: { status?: number }) => error.status === 404 ? of(null) : throwError(() => error)));
   }
 
   private headers(solicitante: number | null): { headers: Record<string, string> } {
