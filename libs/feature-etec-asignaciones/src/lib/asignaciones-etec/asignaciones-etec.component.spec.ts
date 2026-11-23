@@ -97,7 +97,7 @@ describe('AsignacionesEtecComponent', () => {
 
   const flushInicial = (valorPuntoEtec: number | null = 3000, acreditado = 0) => {
     const { anho, mes } = periodoActual();
-    http.expectOne('/api/haberes/etec/cargo/').flush([cargoEtec, categoriaComun]);
+    http.expectOne(`/api/haberes/etec/cargo/${anho}/${mes}`).flush([cargoEtec, categoriaComun]);
     http.expectOne('/api/haberes/core/dependencia/').flush([dependencia]);
     http.expectOne(controlPath(anho, mes)).flush(
       valorPuntoEtec === null ? null : { anho, mes, valorPuntoEtec }
@@ -163,6 +163,9 @@ describe('AsignacionesEtecComponent', () => {
     const siguiente = sumarMes(periodoActual(), 1);
     component.cambiarPeriodo(1);
 
+    http.expectOne(`/api/haberes/etec/cargo/${siguiente.anho}/${siguiente.mes}`)
+      .flush([cargoEtec, categoriaComun]);
+    http.expectOne('/api/haberes/core/dependencia/').flush([dependencia]);
     http.expectOne(controlPath(siguiente.anho, siguiente.mes))
       .flush({ anho: siguiente.anho, mes: siguiente.mes, valorPuntoEtec: 3500 });
     http.expectOne(acreditacionPath(siguiente.anho, siguiente.mes))
