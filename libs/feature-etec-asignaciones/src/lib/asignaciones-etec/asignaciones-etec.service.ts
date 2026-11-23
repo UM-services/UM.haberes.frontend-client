@@ -41,9 +41,9 @@ export class AsignacionesEtecService {
   private readonly presentismoHorasUrl = '/api/haberes/etec/presentismo-horas';
   private readonly acreditacionUrl = '/api/haberes/core/acreditacion';
 
-  catalogos(): Observable<CatalogosEtec> {
+  catalogos(anho: number, mes: number): Observable<CatalogosEtec> {
     return forkJoin({
-      cargos: this.http.get<CategoriaEtec[]>(`${this.cargoUrl}/`),
+      cargos: this.http.get<CategoriaEtec[]>(`${this.cargoUrl}/${anho}/${mes}`),
       dependencias: this.http.get<Dependencia[]>(`${this.dependenciaUrl}/`)
     }).pipe(
       map(({ cargos, dependencias }) => ({
