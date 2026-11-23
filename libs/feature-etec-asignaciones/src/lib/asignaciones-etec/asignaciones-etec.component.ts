@@ -260,7 +260,8 @@ export class AsignacionesEtecComponent {
   // --- Catálogos, período y datos ------------------------------------------
 
   private cargarCatalogos(): void {
-    this.service.catalogos().subscribe({
+    const { anho, mes } = this.periodo();
+    this.service.catalogos(anho, mes).subscribe({
       next: (catalogos) => {
         this.cargos.set(catalogos.cargos);
         this.dependencias.set(catalogos.dependencias);
@@ -288,6 +289,7 @@ export class AsignacionesEtecComponent {
 
   cambiarPeriodo(delta: number): void {
     this.periodo.set(sumarMes(this.periodo(), delta));
+    this.cargarCatalogos();
     this.cargarValorPunto();
     this.cargarAcreditacion();
     this.cargarPresentismos();
