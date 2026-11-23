@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.27.0] - 2026-11-23
+
+### Added
+
+- **feat(`feature-categorias`):** la grilla de categorías pasa a un **buscador paginado server-side** contra `POST /api/haberes/core/categoria/search` (body `{ texto, condiciones, pagina, tamano }`, 50 filas por página). El filtro busca por ID o nombre con debounce de 300 ms, muestra el rango `inicio–fin de total`, permite limpiar el filtro, deshabilita *Anterior*/*Siguiente* en los extremos, avisa cuando la página quedó fuera de rango (retrocediendo a la última válida), vuelve a la página anterior al borrar la última fila de una página y regresa a la primera página al dar de alta conservando el filtro. `CategoriasService.search` agrega el contrato `CategoriaPage` (`filas`, `total`, `pagina`, `tamano`) y `CategoriaFiltro`/`CondicionCategoria`.
+- **feat(`feature-categorias`):** el ID de una categoría nueva se sugiere con `GET /categoria/last` y ya no con la grilla cargada, porque la grilla es una página y no el catálogo; la duplicación del ID la rechaza el backend y su mensaje se muestra en el formulario.
+- **feat(`feature-categorias`):** nueva condición **Horas ETEC (escala de horas)** sobre el campo `etecHoras` de `Categoria`/`CategoriaRequest`, con columna **Horas ETEC** en la grilla. Al marcarla, la categoría queda docente, no no-docente, no liquida por hora y anula básico y puntos, porque el importe sale de la escala de horas del período (`monto fijo + horas × valor hora`).
+- **feat(`feature-control-periodo`):** cada tramo de la **escala de horas de clase** exige ahora una **categoría** (`categoriaId`) elegida entre las categorías marcadas como horas ETEC, que se leen con `GET /api/haberes/core/categoria/` y se filtran por `etecHoras === 1`. El tramo nuevo hereda la categoría del anterior y el guardado valida *«Cada tramo de horas debe indicar la categoría que liquida sus horas»* antes de enviar `PUT /etec/hora/escala/{anho}/{mes}`.
+
+### Changed
+
+- **feat(`feature-control-periodo`):** el tramo de la escala de horas ya no genera siempre un cargo «Docente ETEC Horas»: el cargo se crea con la categoría asignada al tramo. La grilla suma la columna **Categoría** y los tramos guardados sin `categoriaId` no se pueden volver a enviar hasta completarla.
+
+### Tests
+
+- `categorias.service.spec.ts`: búsqueda paginada con el filtro en el body del `POST`.
+- `categorias.component.spec.ts`: primera página sin filtro, sugerencia de ID con `last`, debounce de 300 ms que reinicia la página, paginación de a 50 con *Siguiente* deshabilitado en la última, `Anterior` bloqueado en la primera, limpieza del filtro, estado vacío, alta que vuelve a la página 1, mensaje del backend por ID duplicado y retroceso de página al borrar la última fila.
+- `control-periodo.service.spec.ts`: filtrado de las categorías marcadas como horas ETEC.
+- `control-periodo.component.spec.ts`: la escala de horas se lee y se envía con `categoriaId`, el tramo nuevo hereda la categoría del anterior y las cargas del período esperan también `GET /categoria/`.
+
 ## [0.26.0] - 2026-11-22
 
 ### Added
