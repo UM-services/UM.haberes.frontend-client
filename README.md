@@ -80,13 +80,13 @@ um.haberes.frontend-client/
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales; totales del Formulario 931 por período (`/contabilidad/formulario-931`) |
 | `feature-movimientos` | `@haberes/feature-movimientos` | Archivos bancarios del período: generación masiva Santander y Otros Bancos (`.txt` bancario desde Base64), emisión individual por legajo o documento con ajuste de importe no persistido, y ABM de excluidos con reportes PDF/XLSX (`/movimientos/...`) |
 | `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
-| `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, puntos ETEC, flags y vigencia mensual |
+| `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, puntos ETEC, flags (incluida **horas ETEC**) y vigencia mensual, con buscador paginado server-side |
 | `feature-codigos` | `@haberes/feature-codigos` | Códigos de concepto, grupo contable y conceptos AFIP |
 | `feature-clases` | `@haberes/feature-clases` | Clases de hora cátedra y valor hora |
 | `feature-cargos-clase` | `@haberes/feature-cargos-clase` | Cargos con clase y asignaciones por período |
 | `feature-adicionales` | `@haberes/feature-adicionales` | Rangos de adicional por carga horaria |
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
-| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos y escala global de arraigo |
+| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos (cada tramo con la categoría que liquida sus horas) y escala global de arraigo |
 | `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
 | `feature-limite-novedades` | `@haberes/feature-limite-novedades` | Límite de carga de novedades del período (`/limite-novedades` del módulo Administrador) con alta y edición parcial del registro de acreditación y estado de la carga en sólo lectura |
 
