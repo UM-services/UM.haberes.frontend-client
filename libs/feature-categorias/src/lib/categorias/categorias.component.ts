@@ -1,6 +1,16 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, catchError, debounceTime, merge, of, switchMap, tap } from 'rxjs';
 import { mensajeDeError } from '@haberes/shared-api';
 import { ImportePipe } from '@haberes/ui-layout';
 import { Categoria, CategoriasService } from './categorias.service';
@@ -14,6 +24,7 @@ interface CategoriaForm {
   docente: boolean;
   noDocente: boolean;
   liquidaPorHora: boolean;
+  etecHoras: boolean;
 }
 
 @Component({
@@ -25,8 +36,12 @@ interface CategoriaForm {
 })
 export class CategoriasComponent implements OnInit {
   private readonly service = inject(CategoriasService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly categorias = signal<Categoria[]>([]);
+  readonly filas = signal<Categoria[]>([]);
+  readonly total = signal(0);
+  readonly pagina = signal(0);
+  readonly filtroTexto = signal('');
   readonly cargando = signal(false);
   readonly guardando = signal(false);
   readonly importando = signal(false);
@@ -34,52 +49,110 @@ export class CategoriasComponent implements OnInit {
   readonly mensaje = signal('');
   readonly esNueva = signal(true);
 
+  /** Filas por página del buscador (contrato de `POST /categoria/search`). */
+  readonly tamano = 50;
+
+  readonly inicioRango = computed(() =>
+    this.total() === 0 ? 0 : this.pagina() * this.tamano + 1,
+  );
+  readonly finRango = computed(() => this.pagina() * this.tamano + this.filas().length);
+  readonly hayPaginaAnterior = computed(() => this.pagina() > 0);
+  readonly hayPaginaSiguiente = computed(() => (this.pagina() + 1) * this.tamano < this.total());
+  readonly hayFiltro = computed(() => this.filtroTexto().trim().length > 0);
+
+  private readonly recargar$ = new Subject<void>();
+  private readonly texto$ = new Subject<void>();
+
   // El legacy usaba la fecha del sistema: el período no se elige en pantalla.
   private readonly anho = new Date().getFullYear();
   private readonly mes = new Date().getMonth() + 1;
 
   form: CategoriaForm = this.formVacio();
 
+  constructor() {
+    merge(this.texto$.pipe(debounceTime(300)), this.recargar$)
+      .pipe(
+        tap(() => {
+          this.error.set('');
+          this.cargando.set(true);
+        }),
+        switchMap(() =>
+          this.service
+            .search({
+              texto: this.filtroTexto().trim(),
+              pagina: this.pagina(),
+              tamano: this.tamano,
+            })
+            .pipe(
+              catchError((err) => {
+                this.error.set(mensajeDeError(err, 'No se pudieron cargar las categorías'));
+                this.filas.set([]);
+                this.total.set(0);
+                return of(null);
+              }),
+            ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((page) => {
+        this.cargando.set(false);
+        if (!page) return;
+
+        // La página quedó fuera de rango (p. ej. se borró su última fila): ir a la última válida.
+        if (page.filas.length === 0 && page.pagina > 0 && page.total > 0) {
+          this.pagina.set(Math.max(Math.ceil(page.total / this.tamano) - 1, 0));
+          this.recargar$.next();
+          return;
+        }
+
+        this.filas.set(page.filas);
+        this.total.set(page.total);
+      });
+  }
+
   ngOnInit(): void {
     this.cargar();
   }
 
+  /** Repite la búsqueda con el texto y la página vigentes. */
   cargar(): void {
-    this.cargando.set(true);
-    this.service.getCategorias().subscribe({
-      next: (categorias) => {
-        this.categorias.set(categorias);
-        this.cargando.set(false);
-      },
-      error: (err) => {
-        this.error.set(mensajeDeError(err, 'No se pudieron cargar las categorías'));
-        this.cargando.set(false);
-      },
-    });
+    this.recargar$.next();
+  }
+
+  onFiltro(texto: string): void {
+    this.filtroTexto.set(texto);
+    this.pagina.set(0);
+    this.texto$.next();
+  }
+
+  limpiarFiltro(): void {
+    this.filtroTexto.set('');
+    this.pagina.set(0);
+    this.recargar$.next();
+  }
+
+  irPagina(delta: number): void {
+    const destino = this.pagina() + delta;
+    if (destino < 0 || destino * this.tamano >= this.total()) return;
+    this.pagina.set(destino);
+    this.recargar$.next();
   }
 
   nueva(): void {
     this.limpiar();
 
-    // Sugerencia inmediata con la grilla ya cargada; no depende del request.
-    const ultimoLocal = this.categorias().reduce(
-      (max, categoria) => Math.max(max, Number(categoria.categoriaId) || 0),
-      0,
-    );
-    const sugerido = ultimoLocal + 1;
-    this.form = { ...this.formVacio(), categoriaId: sugerido };
+    // El ID se sugiere con el último del backend: la grilla es una página, no el catálogo.
+    const provisional = 0;
+    this.form = { ...this.formVacio(), categoriaId: provisional };
     this.esNueva.set(true);
 
-    // Si la grilla está desactualizada, el backend puede tener un ID mayor.
     this.service.getLast().subscribe({
       next: (ultima) => {
-        const siguiente = Math.max(ultimoLocal, Number(ultima?.categoriaId) || 0) + 1;
-        if (this.esNueva() && this.form.categoriaId === sugerido) {
-          this.form = { ...this.form, categoriaId: siguiente };
-        }
+        if (!this.esNueva() || this.form.categoriaId !== provisional) return;
+        this.form = { ...this.form, categoriaId: Number(ultima?.categoriaId ?? 0) + 1 };
       },
       error: () => {
-        // La sugerencia local ya quedó cargada.
+        // Sin sugerencia: el ID se puede cargar a mano.
       },
     });
   }
@@ -95,6 +168,7 @@ export class CategoriasComponent implements OnInit {
       docente: categoria.docente === 1,
       noDocente: categoria.noDocente === 1,
       liquidaPorHora: categoria.liquidaPorHora === 1,
+      etecHoras: categoria.etecHoras === 1,
     };
     this.esNueva.set(false);
   }
@@ -115,6 +189,18 @@ export class CategoriasComponent implements OnInit {
       this.form.docente = true;
       this.form.noDocente = false;
       this.form.liquidaPorHora = false;
+      this.form.etecHoras = false;
+      this.form.basico = 0;
+    }
+  }
+
+  /** Una categoría de horas ETEC no lleva básico, puntos ni jornada: la escala define el importe. */
+  onEtecHorasChange(): void {
+    if (this.form.etecHoras) {
+      this.form.docente = true;
+      this.form.noDocente = false;
+      this.form.liquidaPorHora = false;
+      this.form.puntos = 0;
       this.form.basico = 0;
     }
   }
@@ -132,10 +218,6 @@ export class CategoriasComponent implements OnInit {
       this.error.set('La categoría debe tener un ID entero mayor a cero.');
       return;
     }
-    if (this.esNueva() && this.categorias().some((categoria) => categoria.categoriaId === categoriaId)) {
-      this.error.set(`La categoría ${categoriaId} ya existe. Seleccionala en la grilla para editarla.`);
-      return;
-    }
 
     const puntos = Number(this.form.puntos ?? 0);
     if (puntos < 0) {
@@ -143,9 +225,16 @@ export class CategoriasComponent implements OnInit {
       return;
     }
 
-    // Un cargo con puntos (ETEC) se liquida por puntos × valor del punto: no usa
-    // básico, es docente y no liquida por hora.
-    if (puntos > 0) {
+    if (this.form.etecHoras) {
+      // La categoría de horas ETEC liquida por la escala de horas: no usa básico ni puntos.
+      this.form.docente = true;
+      this.form.noDocente = false;
+      this.form.liquidaPorHora = false;
+      this.form.puntos = 0;
+      this.form.basico = 0;
+    } else if (puntos > 0) {
+      // Un cargo con puntos (ETEC) se liquida por puntos × valor del punto: no usa
+      // básico, es docente y no liquida por hora.
       this.form.docente = true;
       this.form.noDocente = false;
       this.form.liquidaPorHora = false;
@@ -163,10 +252,12 @@ export class CategoriasComponent implements OnInit {
       docente: this.form.docente ? 1 : 0,
       noDocente: this.form.noDocente ? 1 : 0,
       liquidaPorHora: this.form.liquidaPorHora ? 1 : 0,
-      puntos,
+      puntos: this.form.etecHoras ? 0 : puntos,
+      etecHoras: this.form.etecHoras ? 1 : 0,
     };
 
-    const request$ = this.esNueva()
+    const esNueva = this.esNueva();
+    const request$ = esNueva
       ? this.service.create(payload, this.anho, this.mes)
       : this.service.update(payload, this.anho, this.mes);
 
@@ -175,10 +266,12 @@ export class CategoriasComponent implements OnInit {
       next: () => {
         this.guardando.set(false);
         this.mensaje.set('Categoría guardada correctamente.');
+        if (esNueva) this.pagina.set(0);
         this.cargar();
       },
       error: (err) => {
         this.guardando.set(false);
+        // El backend valida la duplicación del ID (la grilla ya no trae todo el catálogo).
         this.error.set(mensajeDeError(err, 'No se pudo guardar la categoría'));
       },
     });
@@ -192,6 +285,7 @@ export class CategoriasComponent implements OnInit {
       next: () => {
         this.mensaje.set('Categoría eliminada.');
         if (this.form.categoriaId === categoria.categoriaId) this.limpiar();
+        if (this.filas().length === 1 && this.pagina() > 0) this.pagina.set(this.pagina() - 1);
         this.cargar();
       },
       error: (err) => this.error.set(mensajeDeError(err, 'No se pudo eliminar la categoría')),
@@ -261,6 +355,7 @@ export class CategoriasComponent implements OnInit {
       docente: false,
       noDocente: false,
       liquidaPorHora: false,
+      etecHoras: false,
     };
   }
 

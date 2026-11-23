@@ -14,6 +14,11 @@ adicionales, modo de liquidación y el bloque **ETEC (cargos por puntos)**.
   independiente del período: se lee con `GET /api/haberes/core/etec/arraigo/escala` y se reemplaza
   completa con `PUT /api/haberes/core/etec/arraigo/escala`. Valida años ≥ 1, antigüedades no
   repetidas y porcentajes entre 0 y 100.
+- La **escala de horas de clase** del período define tramos de horas semanales (`monto fijo +
+  horas × valor hora`) y cada tramo exige la **categoría** que liquida sus horas, elegida entre
+  las categorías marcadas como **horas ETEC** (`GET /api/haberes/core/categoria/` filtrado por
+  `etecHoras === 1`). Se lee con `GET /api/haberes/core/etec/hora/escala/{anho}/{mes}` y se
+  reemplaza con `PUT` en la misma ruta; valida categoría, desde/hasta y tramos no superpuestos.
 - Consumida por la app `administrador`.
 - Alias: `@haberes/feature-control-periodo`.
 - Ruta: `/control-periodo` (ver `apps/administrador/src/app/app.routes.ts`).

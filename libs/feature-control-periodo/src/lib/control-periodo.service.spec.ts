@@ -221,12 +221,27 @@ describe('ControlPeriodoService', () => {
   });
 
   it('reemplaza la escala de horas del período con PUT', () => {
-    const tramos = [{ horasDesde: 0, horasHasta: 6, montoFijo: 100000, valorHora: 5000 }];
+    const tramos = [
+      { categoriaId: 2002, horasDesde: 0, horasHasta: 6, montoFijo: 100000, valorHora: 5000 },
+    ];
     service.guardarEscalaHora(2026, 11, tramos).subscribe();
 
     const req = http.expectOne('/api/haberes/core/etec/hora/escala/2026/11');
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(tramos);
     req.flush([]);
+  });
+
+  it('filtra las categorías marcadas como horas ETEC', () => {
+    service.getCategoriasHorasEtec().subscribe((categorias) => {
+      expect(categorias.map((categoria) => categoria.categoriaId)).toEqual([2002]);
+    });
+
+    const req = http.expectOne('/api/haberes/core/categoria/');
+    expect(req.request.method).toBe('GET');
+    req.flush([
+      { categoriaId: 1, nombre: 'Común', etecHoras: 0 },
+      { categoriaId: 2002, nombre: 'DOCENTE ETEC HORAS', etecHoras: 1 },
+    ]);
   });
 });

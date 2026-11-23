@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_URL } from '@haberes/shared-api';
 
 import {
+  CategoriaHoraEtec,
   ControlEtec,
   ControlEtecRequest,
   ControlPeriodo,
@@ -45,6 +46,17 @@ export class ControlPeriodoService {
 
   private get urlHora(): string {
     return `${this.apiBase}/core/etec/hora/escala`;
+  }
+
+  private get urlCategorias(): string {
+    return `${this.apiBase}/core/categoria/`;
+  }
+
+  /** Categorías del catálogo marcadas como «horas ETEC» (`etec_horas = 1`). */
+  getCategoriasHorasEtec(): Observable<CategoriaHoraEtec[]> {
+    return this.http
+      .get<CategoriaHoraEtec[]>(this.urlCategorias)
+      .pipe(map((categorias) => categorias.filter((categoria) => categoria.etecHoras === 1)));
   }
 
   getPeriodo(anho: number, mes: number): Observable<ControlPeriodo | null> {

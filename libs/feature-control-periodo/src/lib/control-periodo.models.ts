@@ -337,16 +337,25 @@ export type EscalaArraigoEtecRequest = Omit<EscalaArraigoEtec, 'escalaArraigoEte
  *
  * Cada tramo define un rango de horas semanales con un monto fijo y un valor por hora:
  * `importe = monto fijo + horas × valor hora`. Las horas se suman por sede de la facultad
- * ETEC (15) y el tramo resultante genera un cargo con la categoría «Docente ETEC Horas».
- * La escala cuelga de `control_etec`, así que se configura y se copia por período.
+ * ETEC (15) y el tramo resultante genera un cargo con la categoría indicada en el tramo
+ * (marcada como «horas ETEC»). La escala cuelga de `control_etec`, así que se configura y
+ * se copia por período.
  */
 export interface EscalaHoraEtec {
   escalaHoraEtecId: number | null;
   controlEtecId: number | null;
+  categoriaId: number | null;
   horasDesde: number | null;
   horasHasta: number | null;
   montoFijo: number | null;
   valorHora: number | null;
+}
+
+/** Categoría marcada como `etec_horas` para asignar a un tramo de la escala. */
+export interface CategoriaHoraEtec {
+  categoriaId: number;
+  nombre: string;
+  etecHoras: number;
 }
 
 /** Payload de `PUT /etec/hora/escala/{anho}/{mes}` (el período va en la ruta). */
@@ -356,6 +365,7 @@ export function tramoHoraVacio(): EscalaHoraEtec {
   return {
     escalaHoraEtecId: null,
     controlEtecId: null,
+    categoriaId: null,
     horasDesde: null,
     horasHasta: null,
     montoFijo: 0,
