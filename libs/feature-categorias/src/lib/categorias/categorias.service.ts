@@ -13,6 +13,8 @@ export interface Categoria {
   estadoDocente: number;
   /** Puntaje del cargo ETEC. 0 = categoría común. */
   puntos: number;
+  /** 1 = la categoría liquida las horas de clase ETEC (escala de horas). */
+  etecHoras: number;
 }
 
 /** Payload de `POST /categoria/{anho}/{mes}` y `PUT /categoria/{id}/{anho}/{mes}`. */
@@ -26,12 +28,32 @@ export interface CategoriaRequest {
   estadoDocente: number;
   /** Puntaje del cargo ETEC. 0 = categoría común. */
   puntos: number;
+  /** 1 = la categoría liquida las horas de clase ETEC (escala de horas). */
+  etecHoras: number;
 }
 
 export interface CategoriaUploadRequest {
   filename: string;
   base64: string;
 }
+
+/** Respuesta paginada de `POST /core/categoria/search`. */
+export interface CategoriaPage {
+  filas: Categoria[];
+  total: number;
+  pagina: number;
+  tamano: number;
+}
+
+/** Body de `POST /core/categoria/search`. */
+export interface CategoriaFiltro {
+  texto?: string;
+  condiciones?: CondicionCategoria[];
+  pagina?: number;
+  tamano?: number;
+}
+
+export type CondicionCategoria = 'DOCENTE' | 'NO_DOCENTE' | 'LIQUIDA_POR_HORA' | 'ETEC';
 
 @Injectable({ providedIn: 'root' })
 export class CategoriasService {
@@ -44,6 +66,11 @@ export class CategoriasService {
 
   getCategorias(): Observable<Categoria[]> {
     return this.http.get<Categoria[]>(`${this.url}/`);
+  }
+
+  /** Búsqueda paginada del catálogo; `texto` busca por nombre y por ID. */
+  search(filtro: CategoriaFiltro): Observable<CategoriaPage> {
+    return this.http.post<CategoriaPage>(`${this.url}/search`, filtro);
   }
 
   getLast(): Observable<Categoria> {

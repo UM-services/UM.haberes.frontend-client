@@ -8,6 +8,7 @@ import {
   CAMPOS_CONTROL_ETEC,
   CAMPOS_IMPORTE,
   CampoControlEtec,
+  CategoriaHoraEtec,
   ControlEtec,
   ControlEtecRequest,
   ControlPeriodo,
@@ -61,6 +62,7 @@ export class ControlPeriodoComponent implements OnInit {
   readonly guardandoEscala = signal(false);
   readonly escalaHora = signal<EscalaHoraEtec[]>([]);
   readonly guardandoEscalaHora = signal(false);
+  readonly categoriasHora = signal<CategoriaHoraEtec[]>([]);
 
   form: ControlPeriodoForm = this.formVacio();
   etecForm: ControlEtecRequest = controlEtecVacio();
@@ -96,6 +98,7 @@ export class ControlPeriodoComponent implements OnInit {
     this.cargarControlEtec(anho, mes);
     this.cargarEscalaArraigo();
     this.cargarEscalaHora(anho, mes);
+    this.cargarCategoriasHora();
 
     this.service.getPeriodo(anho, mes).subscribe({
       next: (control) => {
@@ -360,7 +363,11 @@ export class ControlPeriodoComponent implements OnInit {
     const ultimo = tramos[tramos.length - 1];
     this.escalaHora.set([
       ...tramos,
-      { ...tramoHoraVacio(), horasDesde: ultimo?.horasHasta ?? null },
+      {
+        ...tramoHoraVacio(),
+        horasDesde: ultimo?.horasHasta ?? null,
+        categoriaId: ultimo?.categoriaId ?? null,
+      },
     ]);
   }
 
@@ -383,6 +390,7 @@ export class ControlPeriodoComponent implements OnInit {
     this.limpiarMensajes();
     this.guardandoEscalaHora.set(true);
     const payload = this.escalaHora().map((tramo) => ({
+      categoriaId: tramo.categoriaId == null ? null : Number(tramo.categoriaId),
       horasDesde: this.numero(tramo.horasDesde),
       horasHasta: this.numero(tramo.horasHasta),
       montoFijo: this.numero(tramo.montoFijo),
@@ -418,11 +426,24 @@ export class ControlPeriodoComponent implements OnInit {
     });
   }
 
+  private cargarCategoriasHora(): void {
+    this.service.getCategoriasHorasEtec().subscribe({
+      next: (categorias) => this.categoriasHora.set(categorias),
+      error: (err) =>
+        this.error.set(
+          mensajeDeError(err, 'No se pudieron cargar las categorías de horas ETEC'),
+        ),
+    });
+  }
+
   private validarEscalaHora(): string | null {
     const ordenados = [...this.escalaHora()].sort(
       (a, b) => this.numero(a.horasDesde) - this.numero(b.horasDesde),
     );
     for (const tramo of ordenados) {
+      if (tramo.categoriaId == null) {
+        return 'Cada tramo de horas debe indicar la categoría que liquida sus horas.';
+      }
       if (tramo.horasDesde == null || tramo.horasHasta == null) {
         return 'Cada tramo de horas debe indicar el desde y el hasta.';
       }
