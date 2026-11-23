@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.28.0] - 2026-11-23
+
+### Added
+
+- **feat(`feature-etec-asignaciones`):** el catálogo de cargos ETEC se lee con los puntos vigentes en el período seleccionado (`GET /api/haberes/etec/cargo/{anho}/{mes}`). El combo de cargos y el importe de referencia (`puntos × valor del punto`) usan el puntaje del período; al cambiar de mes/año se recarga el catálogo junto con el valor del punto.
+
+### Changed
+
+- **feat(`feature-etec-asignaciones`):** `AsignacionesEtecService.catalogos(anho, mes)` recibe el período en la ruta; `AsignacionesEtecComponent.cargarCatalogos()` lo toma de `periodo()` y `cambiarPeriodo()` vuelve a cargarlo. El ABM de cargos ETEC (app Administrador) no cambia.
+
+### Tests
+
+- `asignaciones-etec.service.spec.ts`: la ruta del catálogo incluye año y mes.
+- `asignaciones-etec.component.spec.ts`: la carga inicial y el cambio de período esperan el catálogo del período.
+
 ## [0.27.0] - 2026-11-23
 
 ### Added

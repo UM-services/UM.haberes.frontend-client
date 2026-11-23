@@ -83,9 +83,9 @@ describe('AsignacionesEtecService', () => {
 
   it('catalogos pide cargos ETEC y dependencias y filtra los que no son cargo con puntos', () => {
     let resultado: CatalogosEtec | undefined;
-    service.catalogos().subscribe((r) => (resultado = r));
+    service.catalogos(2026, 11).subscribe((r) => (resultado = r));
 
-    http.expectOne('/api/haberes/etec/cargo/').flush([cargoEtec, categoriaComun, categoriaSinDocente]);
+    http.expectOne('/api/haberes/etec/cargo/2026/11').flush([cargoEtec, categoriaComun, categoriaSinDocente]);
     http.expectOne('/api/haberes/core/dependencia/')
       .flush([{ dependenciaId: 7, nombre: 'SISTEMAS', acronimo: 'SIS' }]);
 
