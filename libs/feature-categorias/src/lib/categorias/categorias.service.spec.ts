@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { API_URL } from '@haberes/shared-api';
 
-import { CategoriasService } from './categorias.service';
+import { CategoriasService, CategoriaPage } from './categorias.service';
 
 describe('CategoriasService', () => {
   let service: CategoriasService;
@@ -19,6 +19,7 @@ describe('CategoriasService', () => {
     liquidaPorHora: 0,
     estadoDocente: 25,
     puntos: 0,
+    etecHoras: 0,
   };
 
   beforeEach(() => {
@@ -46,6 +47,19 @@ describe('CategoriasService', () => {
     const put = http.expectOne('/api/haberes/core/categoria/3/2026/10');
     expect(put.request.method).toBe('PUT');
     put.flush(categoria);
+  });
+
+  it('busca con el filtro paginado en el body', () => {
+    let resultado: CategoriaPage | undefined;
+    service.search({ texto: 'aux', pagina: 0, tamano: 50 }).subscribe((page) => (resultado = page));
+
+    const req = http.expectOne('/api/haberes/core/categoria/search');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ texto: 'aux', pagina: 0, tamano: 50 });
+    req.flush({ filas: [categoria], total: 1, pagina: 0, tamano: 50 });
+
+    expect(resultado?.total).toBe(1);
+    expect(resultado?.filas).toEqual([categoria]);
   });
 
   it('descarga la planilla como blob', () => {
