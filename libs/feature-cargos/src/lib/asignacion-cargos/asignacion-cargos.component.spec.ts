@@ -76,7 +76,7 @@ describe('AsignacionCargosComponent', () => {
 
   afterEach(() => http.verify());
 
-  it('arranca sin agente y con los catálogos cargados', () => {
+  it('arranca sin legajo y con los catálogos cargados', () => {
     expect(component.hayPersona()).toBe(false);
     flushCatalogos();
 
@@ -199,6 +199,6 @@ describe('AsignacionCargosComponent', () => {
     const req = http.expectOne('/api/haberes/core/personaFacultad/');
     req.flush({ detail: 'already exists' }, { status: 409, statusText: 'Conflict' });
 
-    expect(component.error()).toBe('La facultad ya está habilitada para este agente.');
+    expect(component.error()).toBe('La facultad ya está habilitada para este legajo.');
   });
 });

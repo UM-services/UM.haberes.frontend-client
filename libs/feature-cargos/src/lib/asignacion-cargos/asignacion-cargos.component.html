@@ -6,21 +6,21 @@
       <span class="um-eyebrow">Liquidación · Cargos</span>
       <h1 class="um-page-title">Asignación de Cargos No Docentes</h1>
       <p class="um-page-desc max-w-2xl">
-        Altas, bajas y actualizaciones de los cargos no docentes del agente y de sus facultades
+        Altas, bajas y actualizaciones de los cargos no docentes del legajo y de sus facultades
         habilitadas. La jornada y las horas se ajustan según la categoría del cargo.
       </p>
     </div>
   </div>
 
-  <!-- Agente -->
+  <!-- Legajo -->
   <div class="um-card">
-    <div class="um-eyebrow mb-3">Agente</div>
+    <div class="um-eyebrow mb-3">Legajo</div>
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
       <div class="md:col-span-6">
         <ui-persona-search
-          label="Agente (Legajo o Apellido)"
+          label="Buscar por legajo o apellido"
           placeholder="Escriba legajo o apellido para buscar..."
-          buscandoLabel="Buscando agente..."
+          buscandoLabel="Buscando legajo..."
           [persona]="persona()"
           (seleccionada)="onPersonaSeleccionada($event)"
         />
@@ -41,15 +41,15 @@
       </div>
     </div>
 
-    @if (persona(); as agente) {
+    @if (persona(); as legajo) {
       <div class="mt-4 pt-4 border-t border-um-border grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <span class="um-eyebrow block">Apellido y Nombre</span>
-          <span class="text-sm font-semibold text-um-ink">{{ agente.apellidoNombre || (agente.apellido + ', ' + agente.nombre) }}</span>
+          <span class="text-sm font-semibold text-um-ink">{{ legajo.apellidoNombre || (legajo.apellido + ', ' + legajo.nombre) }}</span>
         </div>
         <div>
           <span class="um-eyebrow block">Legajo</span>
-          <span class="text-sm font-mono tabular-nums text-um-ink">{{ agente.legajoId }}</span>
+          <span class="text-sm font-mono tabular-nums text-um-ink">{{ legajo.legajoId }}</span>
         </div>
         <div>
           <span class="um-eyebrow block">Facultades habilitadas</span>
@@ -173,7 +173,7 @@
         <div class="bg-um-surface px-4 py-3 border-b border-um-border flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full bg-um-primary"></span>
-            <h3 class="font-bold text-um-ink text-xs uppercase tracking-wider">Cargos del Agente</h3>
+            <h3 class="font-bold text-um-ink text-xs uppercase tracking-wider">Cargos del Legajo</h3>
           </div>
           <span class="um-badge bg-white border border-um-border text-um-text tabular-nums">
             {{ cargos().length }} registros
@@ -226,9 +226,9 @@
                 <tr>
                   <td colspan="9" class="px-4 py-8 text-center text-um-muted text-xs italic">
                     @if (hayPersona()) {
-                      El agente no tiene cargos asignados.
+                      El legajo no tiene cargos asignados.
                     } @else {
-                      Busque un agente para ver sus cargos.
+                      Busque un legajo para ver sus cargos.
                     }
                   </td>
                 </tr>
@@ -269,7 +269,7 @@
           </button>
         </div>
         @if (hayPersona() && facultadesDisponibles().length === 0) {
-          <span class="text-[11px] text-um-muted">El agente ya tiene todas las facultades habilitadas.</span>
+          <span class="text-[11px] text-um-muted">El legajo ya tiene todas las facultades habilitadas.</span>
         }
       </div>
 
@@ -277,9 +277,9 @@
         @if (facultadesHabilitadas().length === 0) {
           <p class="text-xs text-um-muted italic">
             @if (hayPersona()) {
-              El agente no tiene facultades habilitadas.
+              El legajo no tiene facultades habilitadas.
             } @else {
-              Busque un agente para ver sus facultades.
+              Busque un legajo para ver sus facultades.
             }
           </p>
         } @else {
