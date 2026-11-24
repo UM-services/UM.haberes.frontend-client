@@ -2,8 +2,8 @@
  * Modelos de Asignación de Cargos ETEC.
  *
  * Un cargo ETEC es una categoría con `puntos > 0` y `docente = 1`; su importe no es el
- * básico de la categoría sino `puntos × valorPuntoEtec` del período. La asignación al
- * agente vive en `etec_asignacion_cargo`, no en `cargo`.
+ * básico de la categoría sino `puntos × valorPuntoEtec + montoFijoCargo` del período. La
+ * asignación al legajo vive en `etec_asignacion_cargo`, no en `cargo`.
  */
 
 export interface CategoriaEtec {
@@ -110,6 +110,7 @@ export interface ControlPeriodo {
   anho: number;
   mes: number;
   valorPuntoEtec: number | null;
+  montoFijoCargo: number | null;
 }
 
 export interface CatalogosEtec {

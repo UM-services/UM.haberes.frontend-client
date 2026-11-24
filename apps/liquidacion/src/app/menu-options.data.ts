@@ -26,14 +26,14 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/liquidacion/asig-cargos',
         grupo: 'Liquidación',
         origenVb6: 'frmAsigCargo.frm',
-        descripcion: 'Alta, baja y actualización de cargos no docentes del agente y sus facultades habilitadas',
+        descripcion: 'Alta, baja y actualización de cargos no docentes del legajo y sus facultades habilitadas',
         iconSvg: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
       },
       {
         label: 'Asignación de Cargos ETEC',
         path: '/liquidacion/etec/asig-cargos',
         grupo: 'Liquidación',
-        descripcion: 'Alta y baja de cargos con puntos del agente, con dependencia, fechas y valor del punto',
+        descripcion: 'Alta y baja de cargos con puntos del legajo, con dependencia, fechas y valor del punto',
         iconSvg: 'M9 7h6m-6 4h6m-6 4h3m6 5H6a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2z'
       },
       {
@@ -41,7 +41,7 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/liquidacion/novedades',
         grupo: 'Liquidación',
         origenVb6: 'frmNovedad.frm',
-        descripcion: 'Gestión y carga de novedades mensuales de haberes por agente',
+        descripcion: 'Gestión y carga de novedades mensuales de haberes por legajo',
         iconSvg: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
       },
       {
@@ -217,7 +217,7 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/movimientos/santander-individual',
         grupo: 'Movimientos y Bancos',
         origenVb6: 'frmGenSantanderInd.frm',
-        descripcion: 'Emisión puntual de pago o ajuste de acreditación Santander para un agente',
+        descripcion: 'Emisión puntual de pago o ajuste de acreditación Santander para un legajo',
         iconSvg: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
       },
       {
@@ -233,7 +233,7 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/movimientos/excluidos',
         grupo: 'Movimientos y Bancos',
         origenVb6: 'frmExcluidos.frm',
-        descripcion: 'Gestión de agentes con pago retenido o excluidos del envío bancario',
+        descripcion: 'Gestión de legajos con pago retenido o excluidos del envío bancario',
         iconSvg: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'
       }
     ]
@@ -289,7 +289,7 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/consultas/detalle-codigo',
         grupo: 'Consultas y Reportes',
         origenVb6: 'frmRpDetCodigo.frm',
-        descripcion: 'Listado detallado de agentes a los que se les liquidó un código en particular',
+        descripcion: 'Listado detallado de legajos a los que se les liquidó un código en particular',
         iconSvg: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'
       },
       {
@@ -345,7 +345,7 @@ export const MENU_GROUPS: GrupoOpciones[] = [
         path: '/consultas/planilla-liquidables',
         grupo: 'Consultas y Reportes',
         origenVb6: 'frmLiquidables.frm',
-        descripcion: 'Padrón de agentes habilitados para liquidar en el período corriente',
+        descripcion: 'Padrón de legajos habilitados para liquidar en el período corriente',
         iconSvg: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
       },
       {

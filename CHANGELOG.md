@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.29.0] - 2026-11-24
+
+### Added
+
+- **feat(`feature-etec-asignaciones`):** el **monto fijo del cargo** del período se suma al importe de referencia de los cargos ETEC por puntos: `puntos × valor del punto + montoFijoCargo`. Se lee junto con el valor del punto en `GET /api/haberes/etec/control/{anho}/{mes}/opcional` (`ControlPeriodo.montoFijoCargo`), se muestra en un campo propio del resumen del período y en la nueva columna **Monto fijo ({período})** de la grilla de cargos ETEC del legajo; sin monto fijo informado el importe mantiene el cálculo anterior.
+- **feat(`ui-layout`):** `umImporte` y `formatearImporteUm` aceptan un tercer parámetro con la cantidad de decimales (por defecto `IMPORTE_DECIMALES = 2`) y cachean el `Intl.NumberFormat` por cantidad. El **valor del punto ETEC** se muestra con 4 decimales (`{{ valorPunto() | umImporte:'numero':4 }}`), sin perder precisión en el importe calculado.
+
+### Changed
+
+- **refactor(nomenclatura):** los textos visibles pasan de «agente» a «legajo» en Asignación de Cargos No Docentes, Asignación de Cargos ETEC, Designación de Docentes, Archivo Individual y Excluidos, y en las descripciones de los menús de Liquidación y Novedades; el buscador de personas se rotula «Buscar por legajo o apellido».
+
+### Tests
+
+- `importe.pipe.spec.ts`: decimales configurables (4 y 0) en `formatearImporteUm` y en el pipe.
+- `asignaciones-etec.component.spec.ts`: el monto fijo del período se toma del control y se suma al importe del cargo; los fixtures de control incluyen `montoFijoCargo`.
+- `asignacion-cargos.component.spec.ts`: el mensaje de facultad ya habilitada nombra al legajo.
+
 ## [0.28.0] - 2026-11-23
 
 ### Added

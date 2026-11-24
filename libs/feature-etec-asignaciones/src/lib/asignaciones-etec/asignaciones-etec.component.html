@@ -6,21 +6,21 @@
       <span class="um-eyebrow">Liquidación · ETEC</span>
       <h1 class="um-page-title">Asignación de Cargos ETEC</h1>
       <p class="um-page-desc max-w-2xl">
-        Alta, actualización y baja de los cargos con puntos del agente. El importe del cargo
-        surge de los puntos de la categoría por el valor del punto del período.
+        Alta, actualización y baja de los cargos con puntos del legajo. El importe del cargo
+        surge de los puntos de la categoría por el valor del punto del período más el monto fijo.
       </p>
     </div>
   </div>
 
-  <!-- Agente -->
+  <!-- Legajo -->
   <div class="um-card">
-    <div class="um-eyebrow mb-3">Agente</div>
+    <div class="um-eyebrow mb-3">Legajo</div>
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
       <div class="md:col-span-6">
         <ui-persona-search
-          label="Agente (Legajo o Apellido)"
+          label="Buscar por legajo o apellido"
           placeholder="Escriba legajo o apellido para buscar..."
-          buscandoLabel="Buscando agente..."
+          buscandoLabel="Buscando legajo..."
           [persona]="persona()"
           (seleccionada)="onPersonaSeleccionada($event)"
         />
@@ -41,15 +41,15 @@
       </div>
     </div>
 
-    @if (persona(); as agente) {
+    @if (persona(); as legajo) {
       <div class="mt-4 pt-4 border-t border-um-border grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <span class="um-eyebrow block">Apellido y Nombre</span>
-          <span class="text-sm font-semibold text-um-ink">{{ agente.apellidoNombre || (agente.apellido + ', ' + agente.nombre) }}</span>
+          <span class="text-sm font-semibold text-um-ink">{{ legajo.apellidoNombre || (legajo.apellido + ', ' + legajo.nombre) }}</span>
         </div>
         <div>
           <span class="um-eyebrow block">Legajo</span>
-          <span class="text-sm font-mono tabular-nums text-um-ink">{{ agente.legajoId }}</span>
+          <span class="text-sm font-mono tabular-nums text-um-ink">{{ legajo.legajoId }}</span>
         </div>
         <div>
           <span class="um-eyebrow block">Cargos ETEC asignados</span>
@@ -144,9 +144,9 @@
 
         @if (categoriaId() !== null) {
           <p class="mt-3 text-[11px] text-um-muted">
-            El cargo ETEC se liquida como puntos por valor del punto: no lleva jornada ni horas.
-            El presentismo se marca aparte, por período, en el bloque inferior. La dependencia es
-            obligatoria para imputar el cargo en los reportes.
+            El cargo ETEC se liquida como puntos por valor del punto más el monto fijo del período:
+            no lleva jornada ni horas. El presentismo se marca aparte, por período, en el bloque
+            inferior. La dependencia es obligatoria para imputar el cargo en los reportes.
           </p>
         }
       </div>
@@ -156,7 +156,7 @@
         <div class="bg-um-surface px-4 py-3 border-b border-um-border flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full bg-um-primary"></span>
-            <h3 class="font-bold text-um-ink text-xs uppercase tracking-wider">Cargos ETEC del Agente</h3>
+            <h3 class="font-bold text-um-ink text-xs uppercase tracking-wider">Cargos ETEC del Legajo</h3>
           </div>
           <span class="um-badge bg-white border border-um-border text-um-text tabular-nums">
             {{ asignaciones().length }} registros
@@ -170,6 +170,7 @@
                 <th>Baja</th>
                 <th>Cargo</th>
                 <th class="text-right">Puntos</th>
+                <th class="text-right">Monto fijo ({{ periodoTexto() }})</th>
                 <th>Dependencia</th>
                 <th class="text-right">Importe ({{ periodoTexto() }})</th>
                 <th class="text-center">Presentismo ({{ periodoTexto() }})</th>
@@ -188,6 +189,13 @@
                   <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaBaja | umFecha }}</td>
                   <td class="whitespace-nowrap font-medium text-um-ink">{{ nombreCargoDe(asignacion) }}</td>
                   <td class="text-right font-mono text-um-ink tabular-nums">{{ puntosDeAsignacion(asignacion) | number:'1.0-2' }}</td>
+                  <td class="text-right font-mono text-um-text tabular-nums">
+                    @if (montoFijo() !== null) {
+                      {{ montoFijo() | umImporte }}
+                    } @else {
+                      —
+                    }
+                  </td>
                   <td class="whitespace-nowrap text-um-text">{{ nombreDependenciaDe(asignacion) }}</td>
                   <td class="text-right font-mono text-um-ink tabular-nums">
                     @if (importeDe(asignacion) !== null) {
@@ -219,18 +227,18 @@
               }
               @if (asignaciones().length === 0 && !cargando()) {
                 <tr>
-                  <td colspan="9" class="px-4 py-8 text-center text-um-muted text-xs italic">
+                  <td colspan="10" class="px-4 py-8 text-center text-um-muted text-xs italic">
                     @if (hayPersona()) {
-                      El agente no tiene cargos ETEC asignados.
+                      El legajo no tiene cargos ETEC asignados.
                     } @else {
-                      Busque un agente para ver sus cargos ETEC.
+                      Busque un legajo para ver sus cargos ETEC.
                     }
                   </td>
                 </tr>
               }
               @if (cargando()) {
                 <tr>
-                  <td colspan="9" class="px-4 py-6 text-center text-um-muted text-xs">Cargando cargos ETEC...</td>
+                  <td colspan="10" class="px-4 py-6 text-center text-um-muted text-xs">Cargando cargos ETEC...</td>
                 </tr>
               }
             </tbody>
@@ -319,12 +327,12 @@
 
         @if (!hayPersona()) {
           <p class="text-xs text-um-muted">
-            Buscá un agente para consultar sus cargos ETEC por horas y registrar la pérdida de
+            Buscá un legajo para consultar sus cargos ETEC por horas y registrar la pérdida de
             presentismo del período.
           </p>
         } @else if (!tieneCargosHoras() && !presentismoHoras()?.presentismoHorasId) {
           <p class="text-xs text-um-muted">
-            El agente no tiene cargos ETEC por horas con horas en el período.
+            El legajo no tiene cargos ETEC por horas con horas en el período.
           </p>
         } @else {
           @if (!tieneCargosHoras()) {
@@ -416,7 +424,17 @@
           <dt class="text-xs text-um-muted">Valor del punto</dt>
           <dd class="font-mono text-um-ink tabular-nums">
             @if (valorPunto() !== null) {
-              {{ valorPunto() | umImporte }}
+              {{ valorPunto() | umImporte:'numero':4 }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <dt class="text-xs text-um-muted">Monto fijo del cargo</dt>
+          <dd class="font-mono text-um-ink tabular-nums">
+            @if (montoFijo() !== null) {
+              {{ montoFijo() | umImporte }}
             } @else {
               —
             }
@@ -445,9 +463,9 @@
       </dl>
 
       <p class="text-[11px] text-um-muted">
-        Importe de referencia: puntos del cargo por el valor del punto del período. El período
-        también define el presentismo que se registra; la asignación se guarda con fechas de alta
-        y baja.
+        Importe de referencia: puntos del cargo por el valor del punto del período más el monto
+        fijo del cargo. El período también define el presentismo que se registra; la asignación se
+        guarda con fechas de alta y baja.
       </p>
     </div>
   </div>
