@@ -15,30 +15,50 @@ export type ImporteModo = 'numero' | 'simbolo';
 /** Valor aceptado por {@link ImportePipe}: número o texto numérico del backend. */
 export type ImporteValor = number | string | null | undefined;
 
-const FORMATO = new Intl.NumberFormat('es-AR', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-  useGrouping: true,
-});
+/** Decimales por defecto de los importes del sistema (`1.234.567,89`). */
+export const IMPORTE_DECIMALES = 2;
+
+const FORMATOS = new Map<number, Intl.NumberFormat>();
+
+/** Formato argentino cacheado por cantidad de decimales (el valor del punto usa 4). */
+function formatoImporte(decimales: number): Intl.NumberFormat {
+  const digitos = Math.max(0, Math.trunc(decimales));
+  let formato = FORMATOS.get(digitos);
+  if (!formato) {
+    formato = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: digitos,
+      maximumFractionDigits: digitos,
+      useGrouping: true,
+    });
+    FORMATOS.set(digitos, formato);
+  }
+  return formato;
+}
 
 /**
  * Formatea un importe con el formato argentino fijo (`1.234.567,89`).
  *
  * No depende del `LOCALE_ID`: el separador de miles es `.` y el decimal `,`,
- * siempre con dos decimales, igual que los reportes del sistema legacy.
+ * siempre con dos decimales, igual que los reportes del sistema legacy, salvo
+ * que se indiquen más (por ejemplo el valor del punto ETEC, que usa 4).
  *
  * ```ts
  * formatearImporteUm(1234567.89);              // '1.234.567,89'
  * formatearImporteUm(16.5, 'simbolo');         // '$ 16,50'
+ * formatearImporteUm(311.3633, 'numero', 4);   // '311,3633'
  * formatearImporteUm(null);                    // '—'
  * ```
  */
-export function formatearImporteUm(valor: ImporteValor, modo: ImporteModo = 'numero'): string {
+export function formatearImporteUm(
+  valor: ImporteValor,
+  modo: ImporteModo = 'numero',
+  decimales: number = IMPORTE_DECIMALES
+): string {
   const numero = aNumero(valor);
   if (numero == null) {
     return IMPORTE_VACIO;
   }
-  const texto = FORMATO.format(numero);
+  const texto = formatoImporte(decimales).format(numero);
   return modo === 'simbolo' ? `$ ${texto}` : texto;
 }
 
@@ -63,11 +83,16 @@ function aNumero(valor: ImporteValor): number | null {
  * ```html
  * {{ categoria.basico | umImporte }}           <!-- 1.234.567,89 -->
  * {{ form.importes.doctorado | umImporte: 'simbolo' }} <!-- $ 120.000,00 -->
+ * {{ valorPunto | umImporte: 'numero': 4 }}    <!-- 311,3633 -->
  * ```
  */
 @Pipe({ name: 'umImporte' })
 export class ImportePipe implements PipeTransform {
-  transform(valor: ImporteValor, modo: ImporteModo = 'numero'): string {
-    return formatearImporteUm(valor, modo);
+  transform(
+    valor: ImporteValor,
+    modo: ImporteModo = 'numero',
+    decimales: number = IMPORTE_DECIMALES
+  ): string {
+    return formatearImporteUm(valor, modo, decimales);
   }
 }

@@ -95,12 +95,12 @@ describe('AsignacionesEtecComponent', () => {
     tieneCargosHoras: true
   });
 
-  const flushInicial = (valorPuntoEtec: number | null = 3000, acreditado = 0) => {
+  const flushInicial = (valorPuntoEtec: number | null = 3000, acreditado = 0, montoFijoCargo = 0) => {
     const { anho, mes } = periodoActual();
     http.expectOne(`/api/haberes/etec/cargo/${anho}/${mes}`).flush([cargoEtec, categoriaComun]);
     http.expectOne('/api/haberes/core/dependencia/').flush([dependencia]);
     http.expectOne(controlPath(anho, mes)).flush(
-      valorPuntoEtec === null ? null : { anho, mes, valorPuntoEtec }
+      valorPuntoEtec === null ? null : { anho, mes, valorPuntoEtec, montoFijoCargo }
     );
     http.expectOne(acreditacionPath(anho, mes)).flush(
       { acreditacionId: 1, anho, mes, acreditado }
@@ -134,7 +134,7 @@ describe('AsignacionesEtecComponent', () => {
 
   afterEach(() => http.verify());
 
-  it('arranca sin agente, con cargos ETEC filtrados y el valor del punto del período', () => {
+  it('arranca sin legajo, con cargos ETEC filtrados y el valor del punto del período', () => {
     expect(component.hayPersona()).toBe(false);
     flushInicial();
 
@@ -155,6 +155,15 @@ describe('AsignacionesEtecComponent', () => {
     expect(component.importeDe(asignacion)).toBe(1738 * 3000);
   });
 
+  it('toma el monto fijo del período y lo suma al importe del cargo', () => {
+    flushInicial(311.3633, 0, 50000);
+    seleccionarPersona();
+
+    expect(component.valorPunto()).toBe(311.3633);
+    expect(component.montoFijo()).toBe(50000);
+    expect(component.importeDe(asignacion)).toBe(1738 * 311.3633 + 50000);
+  });
+
   it('el selector de período pide el valor del punto y recalcula el importe', () => {
     flushInicial(3000);
     component.categoriaId.set(992);
@@ -167,7 +176,7 @@ describe('AsignacionesEtecComponent', () => {
       .flush([cargoEtec, categoriaComun]);
     http.expectOne('/api/haberes/core/dependencia/').flush([dependencia]);
     http.expectOne(controlPath(siguiente.anho, siguiente.mes))
-      .flush({ anho: siguiente.anho, mes: siguiente.mes, valorPuntoEtec: 3500 });
+      .flush({ anho: siguiente.anho, mes: siguiente.mes, valorPuntoEtec: 3500, montoFijoCargo: 0 });
     http.expectOne(acreditacionPath(siguiente.anho, siguiente.mes))
       .flush({ acreditacionId: 1, anho: siguiente.anho, mes: siguiente.mes, acreditado: 0 });
 
@@ -289,7 +298,7 @@ describe('AsignacionesEtecComponent', () => {
       { status: 409, statusText: 'Conflict' }
     );
 
-    expect(component.error()).toBe('Ya existe una asignación vigente de ese cargo ETEC para el agente.');
+    expect(component.error()).toBe('Ya existe una asignación vigente de ese cargo ETEC para el legajo.');
   });
 
   it('registra la pérdida de presentismo de la asignación seleccionada', () => {

@@ -38,7 +38,7 @@ import {
  * Asignación de Cargos ETEC (cargo por puntos).
  *
  * El cargo ETEC no lleva jornada, horas ni presentismo: su importe es
- * `puntos × valorPuntoEtec` del período. La asignación se persiste en
+ * `puntos × valorPuntoEtec + montoFijoCargo` del período. La asignación se persiste en
  * `etec_asignacion_cargo` a través de `haberes-etec`, que valida cargo, fechas y solape.
  */
 @Component({
@@ -71,6 +71,7 @@ export class AsignacionesEtecComponent {
 
   readonly periodo = signal<Periodo>(periodoActual());
   readonly valorPunto = signal<number | null>(null);
+  readonly montoFijo = signal<number | null>(null);
   readonly valorPuntoListo = signal<boolean>(false);
 
   readonly presentismos = signal<PresentismoEtec[]>([]);
@@ -113,7 +114,7 @@ export class AsignacionesEtecComponent {
     if (puntos === null || valor === null) {
       return null;
     }
-    return puntos * valor;
+    return puntos * valor + (this.montoFijo() ?? 0);
   });
 
   readonly sinValorPunto = computed(() => {
@@ -277,10 +278,12 @@ export class AsignacionesEtecComponent {
     this.service.valorPunto(anho, mes).subscribe({
       next: (control) => {
         this.valorPunto.set(control?.valorPuntoEtec ?? null);
+        this.montoFijo.set(control?.montoFijoCargo ?? null);
         this.valorPuntoListo.set(true);
       },
       error: (err: HttpErrorResponse) => {
         this.valorPunto.set(null);
+        this.montoFijo.set(null);
         this.valorPuntoListo.set(true);
         this.error.set(this.mensajeHttp(err, 'No se pudo obtener el valor del punto del período.'));
       }
@@ -382,7 +385,7 @@ export class AsignacionesEtecComponent {
       },
       error: (err: HttpErrorResponse) => {
         this.asignaciones.set([]);
-        this.error.set(this.mensajeHttp(err, 'No se pudieron cargar los cargos ETEC del agente.'));
+        this.error.set(this.mensajeHttp(err, 'No se pudieron cargar los cargos ETEC del legajo.'));
         this.cargando.set(false);
       }
     });
@@ -444,7 +447,7 @@ export class AsignacionesEtecComponent {
       error: (err: HttpErrorResponse) => {
         this.error.set(
           err.status === 409
-            ? 'Ya existe una asignación vigente de ese cargo ETEC para el agente.'
+            ? 'Ya existe una asignación vigente de ese cargo ETEC para el legajo.'
             : this.mensajeHttp(err, 'No se pudo guardar el cargo ETEC.')
         );
         this.guardando.set(false);
@@ -614,7 +617,7 @@ export class AsignacionesEtecComponent {
     if (puntos === null || valor === null) {
       return null;
     }
-    return puntos * valor;
+    return puntos * valor + (this.montoFijo() ?? 0);
   }
 
   estadoDe(asignacion: AsignacionEtec): string {

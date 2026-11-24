@@ -90,7 +90,7 @@ export const NOVEDADES_GRUPOS: GrupoPanel[] = [
       {
         label: 'Cargos por Legajo',
         path: '/cargos',
-        descripcion: 'Detalle de cargos y designaciones de un agente por número de legajo',
+        descripcion: 'Detalle de cargos y designaciones por número de legajo',
         disponible: true,
       },
     ],

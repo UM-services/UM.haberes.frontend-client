@@ -9,6 +9,12 @@ describe('formatearImporteUm', () => {
     expect(formatearImporteUm(0)).toBe('0,00');
   });
 
+  it('respeta la cantidad de decimales indicada (valor del punto ETEC)', () => {
+    expect(formatearImporteUm(311.3633, 'numero', 4)).toBe('311,3633');
+    expect(formatearImporteUm('1738.5', 'numero', 4)).toBe('1.738,5000');
+    expect(formatearImporteUm(311.3633, 'numero', 0)).toBe('311');
+  });
+
   it('antepone el símbolo cuando el modo es simbolo', () => {
     expect(formatearImporteUm(1234567.89, 'simbolo')).toBe('$ 1.234.567,89');
     expect(formatearImporteUm(0, 'simbolo')).toBe('$ 0,00');
@@ -33,6 +39,7 @@ describe('ImportePipe', () => {
     const pipe = new ImportePipe();
     expect(pipe.transform(1234567.89)).toBe('1.234.567,89');
     expect(pipe.transform(120000, 'simbolo')).toBe('$ 120.000,00');
+    expect(pipe.transform(311.3633, 'numero', 4)).toBe('311,3633');
     expect(pipe.transform(undefined)).toBe(IMPORTE_VACIO);
   });
 });

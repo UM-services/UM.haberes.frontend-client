@@ -22,7 +22,7 @@ import {
 } from './asignacion-cargos.models';
 
 /**
- * Asignación de Cargos No Docentes de un agente.
+ * Asignación de Cargos No Docentes de un legajo.
  *
  * Misma operación que el formulario legado: alta, actualización y baja de
  * cargos del legajo y habilitación/remoción de sus facultades. Las reglas de
@@ -203,7 +203,7 @@ export class AsignacionCargosComponent {
       },
       error: (err: HttpErrorResponse) => {
         this.cargos.set([]);
-        this.error.set(this.mensajeHttp(err, 'No se pudieron cargar los cargos del agente.'));
+        this.error.set(this.mensajeHttp(err, 'No se pudieron cargar los cargos del legajo.'));
         this.cargando.set(false);
       }
     });
@@ -339,7 +339,7 @@ export class AsignacionCargosComponent {
       error: (err: HttpErrorResponse) => {
         this.error.set(
           err.status === 409
-            ? 'La facultad ya está habilitada para este agente.'
+            ? 'La facultad ya está habilitada para este legajo.'
             : this.mensajeHttp(err, 'No se pudo habilitar la facultad.')
         );
         this.guardandoFacultad.set(false);
