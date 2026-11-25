@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { NovedadesService } from './novedades.service';
-import { AcreditacionPeriodo, Novedad, NovedadPendiente } from './novedades.models';
+import { AcreditacionPeriodo, Novedad, NovedadPendiente, NovedadesTransferencia } from './novedades.models';
 
 describe('NovedadesService', () => {
   let service: NovedadesService;
@@ -190,17 +190,21 @@ describe('NovedadesService', () => {
     expect(texto).toBe('Legajo= 99 inexistente');
   });
 
-  it('importar y transferir son GET del período', () => {
+  it('importar es GET y transferir es POST del período', () => {
     service.importar(2026, 11, 999).subscribe();
     const importar = http.expectOne('/api/haberes/core/novedadfile/import/2026/11');
     expect(importar.request.method).toBe('GET');
     expect(importar.request.headers.get('X-Legajo-Solicitante')).toBe('999');
     importar.flush(null, { status: 204, statusText: 'No Content' });
 
-    service.transferir(2026, 11, 999).subscribe();
+    let resultado: NovedadesTransferencia | undefined;
+    service.transferir(2026, 11, 999).subscribe((r) => (resultado = r));
     const transferir = http.expectOne('/api/haberes/core/novedadfile/transfer/2026/11');
-    expect(transferir.request.method).toBe('GET');
-    transferir.flush(null, { status: 204, statusText: 'No Content' });
+    expect(transferir.request.method).toBe('POST');
+    expect(transferir.request.headers.get('X-Legajo-Solicitante')).toBe('999');
+    transferir.flush({ nuevas: 3, actualizadas: 4, sinCambios: 2, total: 9 });
+
+    expect(resultado).toEqual({ nuevas: 3, actualizadas: 4, sinCambios: 2, total: 9 });
   });
 
   it('acreditacionDelPeriodo traduce el 404 a período abierto', () => {

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NOVEDADES_MENU_ITEMS } from '@haberes/novedades-menu';
+import { PermisosService } from '@haberes/shared-api';
 import { UiShellComponent } from '@haberes/ui-layout';
 import { FacultadBarComponent } from './facultad-bar/facultad-bar.component';
 
@@ -12,7 +13,7 @@ import { FacultadBarComponent } from './facultad-bar/facultad-bar.component';
     <ui-shell
       moduleName="Simulador Novedades"
       menuSectionLabel="Menú Simulador Novedades"
-      [menuItems]="menuItems"
+      [menuItems]="menuItems()"
     >
       <app-facultad-bar />
     </ui-shell>
@@ -21,5 +22,9 @@ import { FacultadBarComponent } from './facultad-bar/facultad-bar.component';
 export class AppComponent {
   title = 'simulador-novedades';
 
-  readonly menuItems = NOVEDADES_MENU_ITEMS;
+  private readonly permisos = inject(PermisosService);
+
+  readonly menuItems = computed(() =>
+    NOVEDADES_MENU_ITEMS.filter((item) => this.permisos.tieneAcceso(item.path)),
+  );
 }

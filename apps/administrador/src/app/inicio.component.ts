@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { UiOpcionesPanelComponent } from '@haberes/ui-layout';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
+import { PermisosService } from '@haberes/shared-api';
+import { GrupoPanel, UiOpcionesPanelComponent } from '@haberes/ui-layout';
 import { ADMINISTRADOR_GRUPOS } from './menu-options.data';
 
 /** Panel principal del módulo Administrador: catálogo de opciones en formato hub. */
@@ -10,12 +11,19 @@ import { ADMINISTRADOR_GRUPOS } from './menu-options.data';
   imports: [UiOpcionesPanelComponent],
   template: `
     <ui-opciones-panel
-      [grupos]="grupos"
+      [grupos]="grupos()"
       titulo="Directorio de Administración"
       descripcion="Parámetros y datos maestros del sistema de haberes"
     />
   `,
 })
 export class InicioComponent {
-  readonly grupos = ADMINISTRADOR_GRUPOS;
+  private readonly permisos = inject(PermisosService);
+
+  readonly grupos = computed<GrupoPanel[]>(() =>
+    ADMINISTRADOR_GRUPOS.map((grupo) => ({
+      ...grupo,
+      items: grupo.items.filter((item) => this.permisos.tieneAcceso(item.path)),
+    })).filter((grupo) => grupo.items.length > 0),
+  );
 }

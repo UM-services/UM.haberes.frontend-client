@@ -38,7 +38,13 @@ export const ADMINISTRADOR_MENU_GROUPS: MenuGroup[] = [
   {
     title: 'Seguridad',
     iconSvg: 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3zm0 5v5m0 3h.01',
-    items: [{ label: 'Usuarios', path: '/usuarios' }],
+    items: [
+      { label: 'Usuarios', path: '/usuarios' },
+      { label: 'Permisos', path: '/seguridad/permisos' },
+      { label: 'Roles', path: '/seguridad/roles' },
+      { label: 'Catálogo de permisos', path: '/seguridad/catalogo' },
+      { label: 'Simulador de permisos', path: '/seguridad/simulador' },
+    ],
   },
 ];
 
@@ -125,12 +131,36 @@ export const ADMINISTRADOR_GRUPOS: GrupoPanel[] = [
   {
     id: 'seguridad',
     title: 'Seguridad',
-    descripcion: 'Acceso al módulo y habilitación de administradores',
+    descripcion: 'Acceso al módulo, habilitación de administradores y permisos por funcionalidad',
     items: [
       {
         label: 'Usuarios',
         path: '/usuarios',
         descripcion: 'Habilitación del flag administrador de Haberes',
+        disponible: true,
+      },
+      {
+        label: 'Permisos',
+        path: '/seguridad/permisos',
+        descripcion: 'Roles y permisos directos de un usuario, con el bundle efectivo',
+        disponible: true,
+      },
+      {
+        label: 'Roles',
+        path: '/seguridad/roles',
+        descripcion: 'Alta de roles y matriz rol × permiso',
+        disponible: true,
+      },
+      {
+        label: 'Catálogo de permisos',
+        path: '/seguridad/catalogo',
+        descripcion: 'Inventario de claves y sincronización con el manifiesto',
+        disponible: true,
+      },
+      {
+        label: 'Simulador de permisos',
+        path: '/seguridad/simulador',
+        descripcion: 'Permisos efectivos de un usuario y su origen',
         disponible: true,
       },
     ],

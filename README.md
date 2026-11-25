@@ -28,7 +28,7 @@ um.haberes.frontend-client/
 ├── libs/
 │   ├── ui-layout/            # @haberes/ui-layout — Shell institucional J2 unificado (ui-shell, ui-opciones-panel)
 │   ├── ui-auth/              # @haberes/ui-auth — Login y cambio de clave J2
-│   ├── shared-api/           # @haberes/shared-api — AuthService, guards, env
+│   ├── shared-api/           # @haberes/shared-api — Auth con token firmado, permisos efectivos y guards
 │   ├── novedades-menu/       # @haberes/novedades-menu — Menú y directorio compartidos de Novedades
 │   ├── feature-designaciones/# @haberes/feature-designaciones — Designaciones, asignación de cursos y transferencia de novedades
 │   ├── feature-anotador/     # @haberes/feature-anotador — Anotaciones docentes
@@ -48,7 +48,8 @@ um.haberes.frontend-client/
 │   ├── feature-sedes/       # @haberes/feature-sedes — Sedes y desarraigo
 │   ├── feature-control-periodo/ # @haberes/feature-control-periodo — Control del período
 │   ├── feature-limite-novedades/ # @haberes/feature-limite-novedades — Límite de carga de novedades del período
-│   └── feature-usuarios/     # @haberes/feature-usuarios — Usuarios y flag administrador
+│   ├── feature-usuarios/     # @haberes/feature-usuarios — Usuarios y flag administrador
+│   └── feature-seguridad/    # @haberes/feature-seguridad — RBAC: permisos por usuario, roles, catálogo y simulador
 └── docs/
     └── architecture.mermaid  # Diagrama de arquitectura
 ```
@@ -68,7 +69,7 @@ um.haberes.frontend-client/
 |---|---|---|
 | `ui-layout` | `@haberes/ui-layout` | Layout compartido: shell institucional oscuro J2 (`ui-shell`), soporte polimórfico (menú lineal o acordeón), badge de entorno, usuario y cambio de clave; buscador estándar (`ui-persona-search`), panel de opciones (`ui-opciones-panel`), pantalla de acceso restringido (`ui-no-acceso`), aviso de inactividad (`ui-inactividad`), botón de solicitud de acceso (`ui-solicitar-acceso`), pipes `umImporte`/`umFecha`, input de fecha `ui-input-fecha` y directiva `[uiStickyFooter]` |
 | `ui-auth` | `@haberes/ui-auth` | Formulario de login corporativo bajo diseño J2 (marca sólo texto) y modal de cambio de clave (`lib-cambio-clave-modal`) |
-| `shared-api` | `@haberes/shared-api` | Lógica de autenticación, interceptores, indicador de entorno (`APP_ENV_INFO`) y guards de rutas |
+| `shared-api` | `@haberes/shared-api` | Autenticación con token firmado (login y pre-login), `authInterceptor` (Bearer sólo para la API propia), interceptores de error, indicador de entorno (`APP_ENV_INFO`), guards de rutas (`authGuard`, `moduloGuard`, `administradorGuard`, `facultadSimuladaGuard`, `confirmarSalida`, `permisoGuard`/`permisoRutaGuard`), `PermisosService` con el bundle efectivo y el mapa `rutas-permisos` espejo del backend |
 | `novedades-menu` | `@haberes/novedades-menu` | Menú lateral y directorio del panel principal de Novedades, compartidos entre `novedades` y `simulador-novedades` |
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) y transferencia de novedades entre períodos (`/liquidacion/transferir-novedades`) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
@@ -88,7 +89,16 @@ um.haberes.frontend-client/
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
 | `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos (cada tramo con la categoría que liquida sus horas) y escala global de arraigo |
 | `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
+| `feature-seguridad` | `@haberes/feature-seguridad` | RBAC de Haberes: permisos por usuario con roles heredados y excepciones, roles y matriz rol × permiso, catálogo con sincronización del manifiesto y simulador de permisos efectivos (`/seguridad/*`) |
 | `feature-limite-novedades` | `@haberes/feature-limite-novedades` | Límite de carga de novedades del período (`/limite-novedades` del módulo Administrador) con alta y edición parcial del registro de acreditación y estado de la carga en sólo lectura |
+
+## Seguridad y Permisos (RBAC)
+
+- **Login con token firmado**: el ingreso se resuelve contra `POST /api/haberes/core/auth/login`, que devuelve un token firmado. La sesión persistida (`haberes_user`, versión 3) guarda **sólo `legajoId` y el token**; facultad, flag administrador y permisos se revalidan siempre contra el backend. El `authInterceptor` agrega `Authorization: Bearer <token>` únicamente a las peticiones de la API propia.
+- **Pre-login mínimo**: la pantalla de login usa `GET /api/haberes/core/auth/legajo/{legajoId}`, que informa nombre, si el usuario está habilitado y si es primer ingreso, sin exponer documento, CUIL, facultad ni permisos.
+- **Bundle efectivo**: `PermisosService` carga `GET /api/haberes/core/permisoEfectivo/usuario/{legajoId}` al iniciar sesión y lo limpia al cerrarla. Sin bundle (error o sin sesión) todo lo que declara permiso queda oculto (**fail-closed**); para `ADMIN_HABERES` el backend devuelve todas las claves.
+- **Gating de rutas y menú**: cada ruta protegida incluye `permisoRutaGuard`, que traduce la URL a claves con el mapa `rutas-permisos` (espejo del mapa del backend, semántica OR y prefijo más específico primero). Sin permiso se informa en `AccesoDenegadoService` y se redirige a `sin-acceso`. Los menús y paneles de inicio filtran sus opciones con el mismo mapa.
+- **Administración del RBAC**: el módulo Administrador expone `/seguridad/permisos` (roles heredados y excepciones por usuario), `/seguridad/roles` (roles y matriz rol × permiso, con `ADMIN_HABERES` protegido), `/seguridad/catalogo` (inventario y sincronización con el manifiesto, con `dryRun`) y `/seguridad/simulador` (permisos efectivos y su origen), cada una protegida por su clave `seguridad.*`.
 
 ## Sistema de Diseño Institucional (J2)
 
@@ -97,7 +107,7 @@ Todas las aplicaciones comparten el tema visual **J2** institucional de 4 capas,
 - **Tokens (`@theme static`)**: Paleta `um-*` (`bg-um-sidebar`, `text-um-ink`, `border-um-border`, `bg-um-surface`, `text-um-primary`), tipografía Inter institucional, espaciados y radios. Es la única fuente de colores corporativos.
 - **Base y Densidad (`@layer base`)**: Escala global del `87.5%` (~14px base) para maximizar la densidad visual en escritorio, normalización de spinners numéricos y cifras tabulares (`tabular-nums`) para alineación contable precisa.
 - **Shell Estructural (`<ui-shell>`)**: Shell J2 (`@haberes/ui-layout`) con sidebar oscuro institucional, badge de ambiente coloreado según entorno (`APP_ENV_INFO`), usuario, sede, cambio de clave, logout y menú polimórfico (lineal para `novedades` y agrupado para `liquidacion`).
-- **Utilidades de Componentes (`@layer components`)**: Clases semánticas `.um-*`: `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`.um-input-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`), `.um-table` y `.um-sticky-footer`.
+- **Utilidades de Componentes (`@layer components`)**: Clases semánticas `.um-*`: `.um-page-header`, `.um-eyebrow`, `.um-page-title`, `.um-page-desc`, `.um-label`, `.um-input` (`.um-input-invalid`), `.um-btn-primary`, `.um-btn-secondary`, `.um-card`, `.um-badge`, `.um-alert` (`-error`, `-warn`, `-success`), `.um-progress`/`.um-progress-bar` (progreso indeterminado), `.um-table` y `.um-sticky-footer`.
 - **Pipes y controles compartidos**: `umImporte` (importes en `1.234.567,89`, con modo `'simbolo'` y decimales configurables para valores como el punto ETEC), `umFecha` (`dd/MM/yyyy` con hora opcional, calculado en UTC para que la fecha no se corra de día), `ui-input-fecha` (fecha `dd/mm/aaaa` estable, valor ISO) y `[uiStickyFooter]` (barra de acciones fija al pie) viven en `@haberes/ui-layout`; no se reimplementan por pantalla.
 - **Marca institucional**: La marca del shell y del login es siempre texto (`UM · Haberes` + nombre del módulo en el sidebar; `um-eyebrow`/`um-page-title` en login), espejo de tesoreria-frontend; no se usan logos ni imágenes de marca.
 - **Nomenclatura limpia**: Prohibición de términos o referencias a Visual Basic 6 (`.frm`, `.vbp`, etc.) en cualquier título, badge o etiqueta visible al usuario. Ver detalle completo en [AGENTS.md](AGENTS.md).
