@@ -37,9 +37,10 @@ import {
 /**
  * Asignación de Cargos ETEC (cargo por puntos).
  *
- * El cargo ETEC no lleva jornada, horas ni presentismo: su importe es
- * `puntos × valorPuntoEtec + montoFijoCargo` del período. La asignación se persiste en
- * `etec_asignacion_cargo` a través de `haberes-etec`, que valida cargo, fechas y solape.
+ * El importe del cargo se calcula como `puntos × valorPuntoEtec + montoFijoCargo` del período.
+ * La asignación guarda además las horas del cargo y las veces del básico del maestro de grado
+ * como datos de configuración. Se persiste en `etec_asignacion_cargo` a través de
+ * `haberes-etec`, que valida cargo, fechas y solape.
  */
 @Component({
   selector: 'haberes-asignaciones-etec',
@@ -66,6 +67,8 @@ export class AsignacionesEtecComponent {
   readonly fechaAlta = signal<string>(fechaHoy());
   readonly fechaBaja = signal<string>('');
   readonly categoriaId = signal<number | null>(null);
+  readonly horasCargo = signal<number | null>(null);
+  readonly vecesBasicoMaestroGrado = signal<number | null>(null);
   readonly dependenciaId = signal<number | null>(null);
   readonly observaciones = signal<string>('');
 
@@ -398,6 +401,8 @@ export class AsignacionesEtecComponent {
     this.fechaAlta.set(fechaInput(asignacion.fechaAlta));
     this.fechaBaja.set(fechaInput(asignacion.fechaBaja));
     this.categoriaId.set(asignacion.categoriaId);
+    this.horasCargo.set(asignacion.horasCargo);
+    this.vecesBasicoMaestroGrado.set(asignacion.vecesBasicoMaestroGrado);
     this.dependenciaId.set(asignacion.dependenciaId);
     this.observaciones.set(asignacion.observaciones ?? '');
     this.limpiarMensajes();
@@ -409,6 +414,8 @@ export class AsignacionesEtecComponent {
     this.fechaAlta.set(fechaHoy());
     this.fechaBaja.set('');
     this.categoriaId.set(null);
+    this.horasCargo.set(null);
+    this.vecesBasicoMaestroGrado.set(null);
     this.dependenciaId.set(null);
     this.observaciones.set('');
     this.sincronizarPresentismo();
@@ -424,6 +431,8 @@ export class AsignacionesEtecComponent {
     const body: AsignacionEtecRequest = {
       legajoId: persona.legajoId,
       categoriaId: this.categoriaId() as number,
+      horasCargo: Number(this.horasCargo() ?? 0),
+      vecesBasicoMaestroGrado: Number(this.vecesBasicoMaestroGrado() ?? 0),
       dependenciaId: this.dependenciaId() as number,
       fechaAlta: fechaPayload(actual?.fechaAlta, this.fechaAlta()),
       fechaBaja: this.fechaBaja() ? fechaPayload(actual?.fechaBaja, this.fechaBaja()) : null,

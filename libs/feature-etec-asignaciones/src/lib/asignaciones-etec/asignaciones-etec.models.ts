@@ -27,6 +27,8 @@ export interface AsignacionEtec {
   asignacionCargoId: number;
   legajoId: number;
   categoriaId: number;
+  horasCargo: number | null;
+  vecesBasicoMaestroGrado: number | null;
   dependenciaId: number | null;
   fechaAlta: string;
   fechaBaja: string | null;
@@ -40,6 +42,8 @@ export interface AsignacionEtec {
 export interface AsignacionEtecRequest {
   legajoId: number;
   categoriaId: number;
+  horasCargo: number;
+  vecesBasicoMaestroGrado: number;
   dependenciaId: number;
   fechaAlta: string;
   fechaBaja: string | null;

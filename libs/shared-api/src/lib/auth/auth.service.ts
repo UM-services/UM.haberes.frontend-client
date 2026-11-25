@@ -38,6 +38,7 @@ export interface Persona {
   ajusteDocente?: number | null;
   altaAdministrativa?: string | null;
   ajusteAdministrativo?: number | null;
+  altaEtec?: string | null;
   estadoCivil?: string | null;
   situacionId?: number | null;
   reemplazoDesarraigo?: number | null;

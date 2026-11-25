@@ -26,6 +26,7 @@ export interface LegajoBanco {
   fijo: number;
   porcentaje: number;
   resto: number;
+  acreditado?: number | null;
 }
 
 export interface AntiguedadPeriodo {
@@ -35,6 +36,7 @@ export interface AntiguedadPeriodo {
   mes: number;
   mesesDocentes?: number | null;
   mesesAdministrativos?: number | null;
+  mesesEtec?: number | null;
 }
 
 /**
@@ -50,6 +52,37 @@ export interface PersonaPatch {
   ajusteDocente?: number;
   altaAdministrativa?: string;
   ajusteAdministrativo?: number;
+  altaEtec?: string;
+  estadoCivil?: string;
+  situacionId?: number;
+  reemplazoDesarraigo?: number;
+  mitadDesarraigo?: number;
+  cuil?: string;
+  posgrado?: number;
+  estado?: number;
+  liquida?: string;
+  estadoAfip?: number;
+  dependenciaId?: number;
+  salida?: string;
+  obraSocial?: number;
+  actividadAfip?: number;
+  localidadAfip?: number;
+  situacionAfip?: number;
+  modeloContratacionAfip?: number;
+}
+
+/** Payload de alta de legajo (`POST /persona/`). */
+export interface PersonaRequest {
+  legajoId: number;
+  documento?: number;
+  apellido?: string;
+  nombre?: string;
+  nacimiento?: string;
+  altaDocente?: string;
+  ajusteDocente?: number;
+  altaAdministrativa?: string;
+  ajusteAdministrativo?: number;
+  altaEtec?: string;
   estadoCivil?: string;
   situacionId?: number;
   reemplazoDesarraigo?: number;
@@ -108,6 +141,11 @@ export class PersonasService {
 
   getPersonaPorDocumento(documento: number): Observable<Persona> {
     return this.http.get<Persona>(`${this.personaUrl}/documento/${documento}`);
+  }
+
+  /** Alta de un legajo nuevo. El número de legajo lo informa el usuario. */
+  crearPersona(request: PersonaRequest): Observable<Persona> {
+    return this.http.post<Persona>(`${this.personaUrl}/`, request);
   }
 
   /** Aplica únicamente los campos informados (endpoint aditivo del backend). */

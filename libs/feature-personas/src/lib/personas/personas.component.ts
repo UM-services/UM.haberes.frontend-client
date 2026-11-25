@@ -10,6 +10,7 @@ import {
   Dependencia,
   LegajoBanco,
   PersonaPatch,
+  PersonaRequest,
   PersonasService,
   fechaInput,
   fechaPayload,
@@ -25,6 +26,7 @@ interface PersonaForm {
   ajusteDocente: number;
   altaAdministrativa: string;
   ajusteAdministrativo: number;
+  altaEtec: string;
   estadoCivil: string;
   cuil: string;
   posgrado: number;
@@ -71,6 +73,7 @@ export class PersonasComponent implements OnInit {
   readonly error = signal('');
   readonly mensaje = signal('');
   readonly personaSeleccionada = signal<Persona | null>(null);
+  readonly modoNuevo = signal(false);
   readonly mailInvalido = signal({ personal: false, institucional: false });
 
   readonly legajoBusqueda = signal('');
@@ -91,6 +94,7 @@ export class PersonasComponent implements OnInit {
     fijo: 0,
     porcentaje: 0,
     resto: false,
+    acreditado: 0,
   };
   readonly cbuEsNuevo = signal(true);
 
@@ -104,6 +108,27 @@ export class PersonasComponent implements OnInit {
   seleccionarPersona(persona: Persona | null): void {
     if (!persona) return;
     this.cargar(persona.legajoId);
+  }
+
+  nuevoLegajo(): void {
+    this.limpiarMensajes();
+    this.persona.set(null);
+    this.personaSeleccionada.set(null);
+    this.contacto.set(null);
+    this.legajosBanco.set([]);
+    this.antiguedad.set(null);
+    this.legajoBusqueda.set('');
+    this.documentoBusqueda.set('');
+    this.form = this.formVacio();
+    this.contactoForm = this.contactoVacio();
+    this.mailInvalido.set({ personal: false, institucional: false });
+    this.modoNuevo.set(true);
+  }
+
+  cancelarAlta(): void {
+    this.modoNuevo.set(false);
+    this.form = this.formVacio();
+    this.limpiarMensajes();
   }
 
   buscarPorLegajo(): void {
@@ -151,6 +176,11 @@ export class PersonasComponent implements OnInit {
   }
 
   guardar(): void {
+    if (this.modoNuevo()) {
+      this.crear();
+      return;
+    }
+
     const actual = this.persona();
     if (!actual) return;
 
@@ -195,6 +225,7 @@ export class PersonasComponent implements OnInit {
       'ajusteDocente',
       'altaAdministrativa',
       'ajusteAdministrativo',
+      'altaEtec',
     ].some((campo) => campo in patchPersona);
 
     this.guardando.set(true);
@@ -227,7 +258,99 @@ export class PersonasComponent implements OnInit {
     }
   }
 
+  private crear(): void {
+    this.limpiarMensajes();
+
+    const legajoId = Number(this.form.legajoId);
+    if (!Number.isInteger(legajoId) || legajoId <= 0) {
+      this.error.set('El número de legajo es obligatorio.');
+      return;
+    }
+    if (!Number(this.form.documento)) {
+      this.error.set('El documento es obligatorio.');
+      return;
+    }
+    if (!this.form.apellido.trim()) {
+      this.error.set('El apellido es obligatorio.');
+      return;
+    }
+    if (!this.form.nombre.trim()) {
+      this.error.set('El nombre es obligatorio.');
+      return;
+    }
+    if (!this.form.dependenciaId) {
+      this.error.set('Debe seleccionar una dependencia.');
+      return;
+    }
+
+    const cuil = this.form.cuil.replace(/-/g, '').trim();
+    if (cuil && cuil.length !== 11) {
+      this.error.set('El CUIL debe tener 11 dígitos.');
+      return;
+    }
+
+    const opcional = (valor: number): number | undefined => {
+      const numero = Number(valor ?? 0);
+      return numero === 0 ? undefined : numero;
+    };
+
+    const payload: PersonaRequest = {
+      legajoId,
+      documento: Number(this.form.documento),
+      apellido: this.form.apellido.trim(),
+      nombre: this.form.nombre.trim(),
+      nacimiento: this.form.nacimiento
+        ? fechaPayload(null, this.form.nacimiento)
+        : undefined,
+      altaDocente: this.form.altaDocente
+        ? fechaPayload(null, this.form.altaDocente)
+        : undefined,
+      ajusteDocente: Number(this.form.ajusteDocente ?? 0),
+      altaAdministrativa: this.form.altaAdministrativa
+        ? fechaPayload(null, this.form.altaAdministrativa)
+        : undefined,
+      ajusteAdministrativo: Number(this.form.ajusteAdministrativo ?? 0),
+      altaEtec: this.form.altaEtec ? fechaPayload(null, this.form.altaEtec) : undefined,
+      estadoCivil: this.form.estadoCivil.slice(0, 10),
+      cuil,
+      posgrado: Number(this.form.posgrado ?? 0),
+      estado: Number(this.form.estado ?? 0),
+      liquida: this.form.liquida,
+      salida: this.form.salida,
+      dependenciaId: Number(this.form.dependenciaId),
+      estadoAfip: Number(this.form.estadoAfip ?? 0),
+      reemplazoDesarraigo: this.form.reemplazoDesarraigo ? 1 : 0,
+      mitadDesarraigo: this.form.mitadDesarraigo ? 1 : 0,
+      obraSocial: opcional(this.form.obraSocial),
+      actividadAfip: opcional(this.form.actividadAfip),
+      localidadAfip: opcional(this.form.localidadAfip),
+      situacionAfip: opcional(this.form.situacionAfip),
+      modeloContratacionAfip: opcional(this.form.modeloContratacionAfip),
+    };
+
+    this.guardando.set(true);
+    this.service.crearPersona(payload).subscribe({
+      next: (persona) => {
+        this.guardando.set(false);
+        this.modoNuevo.set(false);
+        this.aplicarPersona(persona);
+        this.mensaje.set('Legajo creado.');
+        this.service
+          .calcularAntiguedad(persona.legajoId, this.anhoActual, this.mesActual)
+          .subscribe(() => this.cargarAntiguedad(persona.legajoId));
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.error.set(mensajeDeError(err, 'No se pudo crear el legajo'));
+      },
+    });
+  }
+
   descartar(): void {
+    if (this.modoNuevo()) {
+      this.cancelarAlta();
+      return;
+    }
     const actual = this.persona();
     if (!actual) return;
     this.cargar(actual.legajoId);
@@ -268,6 +391,7 @@ export class PersonasComponent implements OnInit {
       fijo: Number(fila.fijo ?? 0),
       porcentaje: Number(fila.porcentaje ?? 0),
       resto: fila.resto === 1,
+      acreditado: Number(fila.acreditado ?? 0),
     };
     this.cbuEsNuevo.set(false);
   }
@@ -281,6 +405,7 @@ export class PersonasComponent implements OnInit {
       fijo: 0,
       porcentaje: 0,
       resto: false,
+      acreditado: 0,
     };
     this.cbuEsNuevo.set(true);
   }
@@ -318,6 +443,7 @@ export class PersonasComponent implements OnInit {
       fijo: Number(this.cbuForm.fijo ?? 0),
       porcentaje: Number(this.cbuForm.porcentaje ?? 0),
       resto: resto ? 1 : 0,
+      acreditado: Number(this.cbuForm.acreditado ?? 0),
     };
 
     this.guardandoCbu.set(true);
@@ -341,6 +467,7 @@ export class PersonasComponent implements OnInit {
   }
 
   private aplicarPersona(persona: Persona): void {
+    this.modoNuevo.set(false);
     this.persona.set(persona);
     this.personaSeleccionada.set(persona);
     this.form = this.formDesde(persona);
@@ -432,6 +559,9 @@ export class PersonasComponent implements OnInit {
         this.form.altaAdministrativa,
       );
     }
+    if (this.form.altaEtec && this.form.altaEtec !== fechaInput(original.altaEtec)) {
+      patch.altaEtec = fechaPayload(original.altaEtec, this.form.altaEtec);
+    }
 
     if (numero(this.form.ajusteDocente) !== numero(original.ajusteDocente)) {
       patch.ajusteDocente = numero(this.form.ajusteDocente);
@@ -511,6 +641,7 @@ export class PersonasComponent implements OnInit {
       ajusteDocente: Number(persona.ajusteDocente ?? 0),
       altaAdministrativa: fechaInput(persona.altaAdministrativa),
       ajusteAdministrativo: Number(persona.ajusteAdministrativo ?? 0),
+      altaEtec: fechaInput(persona.altaEtec),
       estadoCivil: persona.estadoCivil ?? '',
       cuil: persona.cuil ?? '',
       posgrado: Number(persona.posgrado ?? 0),
@@ -540,6 +671,7 @@ export class PersonasComponent implements OnInit {
       ajusteDocente: 0,
       altaAdministrativa: '',
       ajusteAdministrativo: 0,
+      altaEtec: '',
       estadoCivil: '',
       cuil: '',
       posgrado: 0,
