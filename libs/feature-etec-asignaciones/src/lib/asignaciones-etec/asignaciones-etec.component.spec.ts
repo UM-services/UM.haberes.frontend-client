@@ -55,6 +55,8 @@ describe('AsignacionesEtecComponent', () => {
     asignacionCargoId: 12,
     legajoId: 100,
     categoriaId: 992,
+    horasCargo: 18,
+    vecesBasicoMaestroGrado: 1,
     dependenciaId: 7,
     fechaAlta: '2026-11-01T03:00:00+0000',
     fechaBaja: null,
@@ -225,6 +227,8 @@ describe('AsignacionesEtecComponent', () => {
 
     component.fechaAlta.set('2026-11-01');
     component.categoriaId.set(992);
+    component.horasCargo.set(18);
+    component.vecesBasicoMaestroGrado.set(1.5);
     component.dependenciaId.set(7);
     component.observaciones.set('  ACTA 12  ');
     component.guardar();
@@ -234,6 +238,8 @@ describe('AsignacionesEtecComponent', () => {
     expect(req.request.body).toEqual({
       legajoId: 100,
       categoriaId: 992,
+      horasCargo: 18,
+      vecesBasicoMaestroGrado: 1.5,
       dependenciaId: 7,
       fechaAlta: '2026-11-01T00:00:00+0000',
       fechaBaja: null,

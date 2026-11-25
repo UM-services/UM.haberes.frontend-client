@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.31.0] - 2026-11-25
+
+### Added
+
+- **feat(`feature-personas`):** **alta de legajo** desde la pantalla de Personas. El botón **Nuevo legajo** abre la ficha vacía con el número de legajo editable y la crea con `POST /api/haberes/core/persona/` (`PersonasService.crearPersona` y el nuevo payload `PersonaRequest`). Valida legajo, documento, apellido, nombre y dependencia obligatorios, y CUIL de 11 dígitos cuando se informa; al crear recarga la persona y recalcula la antigüedad del período. En modo alta se ocultan Contacto, Antigüedad y CBU por período, y el botón secundario pasa a **Cancelar**.
+- **feat(`feature-personas`):** campo **Alta ETEC** en la ficha: se envía en el alta, en el `PATCH` parcial sólo cuando cambia, y se incorpora como `altaEtec` al tipo `Persona` de `shared-api`.
+- **feat(`feature-personas`):** el panel **Antigüedad** suma el bloque **ETEC** con `mesesEtec` del período (grilla de tres columnas junto a Docente y Administrativo).
+- **feat(`feature-etec-asignaciones`):** las asignaciones de cargos ETEC guardan **Horas del cargo** (`horasCargo`) y **Veces básico maestro de grado** (`vecesBasicoMaestroGrado`) como datos de configuración del cargo: se cargan en el formulario y se muestran en dos columnas nuevas de la grilla. El importe del cargo sigue siendo `puntos × valor del punto + monto fijo` del período.
+- **feat(`feature-control-periodo`):** los parámetros ETEC del período suman **Horas de referencia del cargo por puntos** (`horasReferenciaCargo`) y **Básico del maestro de grado** (`basicoMaestroGrado`), incluidos en `ControlEtec` / `ControlEtecRequest` y persistidos con el resto del control.
+
+### Fixed
+
+- **fix(`feature-personas`):** al editar un CBU existente se conserva el importe **acreditado** (`acreditado`) en el `PUT` de `legajoBanco`; antes se enviaba en cero y se perdía el valor registrado.
+- **fix(`feature-control-periodo`):** la ayuda de la escala de arraigo describe la antigüedad **ETEC** (`meses ETEC / 12`) en lugar de la antigüedad docente; el cálculo de los tramos no cambia.
+
+### Tests
+
+- `personas.component.spec.ts`: alta de legajo con `POST` y número informado, envío de `altaEtec` en el parche parcial con recálculo de antigüedad, y conservación del `acreditado` al editar un CBU.
+- `personas.service.spec.ts`: `crearPersona` hace `POST /api/haberes/core/persona/` con el payload recibido.
+- `asignaciones-etec.component.spec.ts` / `asignaciones-etec.service.spec.ts`: `horasCargo` y `vecesBasicoMaestroGrado` viajan en el cuerpo del alta y en las respuestas.
+- `control-periodo.component.spec.ts` / `control-periodo.service.spec.ts`: los fixtures de control ETEC incluyen `horasReferenciaCargo` y `basicoMaestroGrado`.
+
 ## [0.30.0] - 2026-11-25
 
 ### Added

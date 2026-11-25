@@ -112,6 +112,21 @@
                             [valor]="fechaAlta()" (valorChange)="fechaAlta.set($event)"
                             [disabled]="!hayPersona()" />
           </div>
+          <div class="md:col-span-4">
+            <label for="ae-horas" class="um-label">Horas del cargo</label>
+            <input id="ae-horas" type="number" min="0" step="0.01" inputmode="decimal"
+                   [ngModel]="horasCargo()" (ngModelChange)="horasCargo.set($event)"
+                   [disabled]="!hayPersona()" class="um-input text-right font-mono tabular-nums"
+                   placeholder="0.00">
+          </div>
+          <div class="md:col-span-5">
+            <label for="ae-veces" class="um-label">Veces básico maestro de grado</label>
+            <input id="ae-veces" type="number" min="0" step="0.01" inputmode="decimal"
+                   [ngModel]="vecesBasicoMaestroGrado()"
+                   (ngModelChange)="vecesBasicoMaestroGrado.set($event)"
+                   [disabled]="!hayPersona()" class="um-input text-right font-mono tabular-nums"
+                   placeholder="0.00 / 0.50 / 1.00 / 2.00">
+          </div>
 
           <div class="md:col-span-3">
             <label for="ae-baja" class="um-label">Fecha de baja</label>
@@ -144,8 +159,9 @@
 
         @if (categoriaId() !== null) {
           <p class="mt-3 text-[11px] text-um-muted">
-            El cargo ETEC se liquida como puntos por valor del punto más el monto fijo del período:
-            no lleva jornada ni horas. El presentismo se marca aparte, por período, en el bloque
+            El cargo ETEC se liquida como puntos por valor del punto más el monto fijo del período.
+            Las horas del cargo y las veces del básico del maestro de grado son datos de
+            configuración del cargo. El presentismo se marca aparte, por período, en el bloque
             inferior. La dependencia es obligatoria para imputar el cargo en los reportes.
           </p>
         }
@@ -170,6 +186,8 @@
                 <th>Baja</th>
                 <th>Cargo</th>
                 <th class="text-right">Puntos</th>
+                <th class="text-right">Horas</th>
+                <th class="text-right">Veces básico</th>
                 <th class="text-right">Monto fijo ({{ periodoTexto() }})</th>
                 <th>Dependencia</th>
                 <th class="text-right">Importe ({{ periodoTexto() }})</th>
@@ -189,6 +207,8 @@
                   <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaBaja | umFecha: 'nunca' }}</td>
                   <td class="whitespace-nowrap font-medium text-um-ink">{{ nombreCargoDe(asignacion) }}</td>
                   <td class="text-right font-mono text-um-ink tabular-nums">{{ puntosDeAsignacion(asignacion) | number:'1.0-2' }}</td>
+                  <td class="text-right font-mono text-um-text tabular-nums">{{ (asignacion.horasCargo ?? 0) | number:'1.2-2' }}</td>
+                  <td class="text-right font-mono text-um-text tabular-nums">{{ (asignacion.vecesBasicoMaestroGrado ?? 0) | number:'1.2-2' }}</td>
                   <td class="text-right font-mono text-um-text tabular-nums">
                     @if (montoFijo() !== null) {
                       {{ montoFijo() | umImporte }}
@@ -227,7 +247,7 @@
               }
               @if (asignaciones().length === 0 && !cargando()) {
                 <tr>
-                  <td colspan="10" class="px-4 py-8 text-center text-um-muted text-xs italic">
+                  <td colspan="12" class="px-4 py-8 text-center text-um-muted text-xs italic">
                     @if (hayPersona()) {
                       El legajo no tiene cargos ETEC asignados.
                     } @else {
@@ -238,7 +258,7 @@
               }
               @if (cargando()) {
                 <tr>
-                  <td colspan="10" class="px-4 py-6 text-center text-um-muted text-xs">Cargando cargos ETEC...</td>
+                  <td colspan="12" class="px-4 py-6 text-center text-um-muted text-xs">Cargando cargos ETEC...</td>
                 </tr>
               }
             </tbody>

@@ -242,6 +242,8 @@ export interface ControlEtec {
   mes: number;
   valorPuntoEtec: number | null;
   montoFijoCargo: number | null;
+  horasReferenciaCargo: number | null;
+  basicoMaestroGrado: number | null;
   porcentajePresentismo: number | null;
   porcentajeAdicionalCarrera: number | null;
   garantia: number | null;
@@ -273,6 +275,20 @@ export const CAMPOS_CONTROL_ETEC: CampoControlEtec[] = [
   {
     campo: 'montoFijoCargo',
     label: 'Monto fijo del cargo',
+    step: '0.01',
+    decimales: 2,
+    tipo: 'importe',
+  },
+  {
+    campo: 'horasReferenciaCargo',
+    label: 'Horas de referencia del cargo por puntos',
+    step: '0.01',
+    decimales: 2,
+    tipo: 'numero',
+  },
+  {
+    campo: 'basicoMaestroGrado',
+    label: 'Básico del maestro de grado',
     step: '0.01',
     decimales: 2,
     tipo: 'importe',
@@ -312,6 +328,8 @@ export function controlEtecVacio(): ControlEtecRequest {
   return {
     valorPuntoEtec: 0,
     montoFijoCargo: 0,
+    horasReferenciaCargo: 0,
+    basicoMaestroGrado: 0,
     porcentajePresentismo: 20,
     porcentajeAdicionalCarrera: 10,
     garantia: 0,

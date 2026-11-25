@@ -151,6 +151,8 @@ describe('ControlPeriodoService', () => {
     const request: ControlEtecRequest = {
       valorPuntoEtec: 311.3633,
       montoFijoCargo: 0,
+      horasReferenciaCargo: 18,
+      basicoMaestroGrado: 750000,
       porcentajePresentismo: 20,
       porcentajeAdicionalCarrera: 10,
       garantia: 844872.78,
