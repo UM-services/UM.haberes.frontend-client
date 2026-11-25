@@ -354,17 +354,35 @@ describe('NovedadesComponent', () => {
     expect(component.exito()).toContain('11/2026');
   });
 
-  it('transfiere las novedades del mes anterior', () => {
+  it('transfiere las novedades del mes anterior e informa el resultado', () => {
     abrirPeriodo();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     component.transferirAnterior();
 
-    const req = httpMock.expectOne('/api/haberes/core/novedadfile/transfer/2026/11');
-    expect(req.request.method).toBe('GET');
-    req.flush(null, { status: 204, statusText: 'No Content' });
+    expect(component.transfiriendo()).toBe(true);
+    expect(component.transferenciaOrigen()).toBe('10/2026');
 
-    expect(component.exito()).toContain('10/2026');
+    const req = httpMock.expectOne('/api/haberes/core/novedadfile/transfer/2026/11');
+    expect(req.request.method).toBe('POST');
+    req.flush({ nuevas: 3, actualizadas: 4, sinCambios: 2, total: 9 });
+
+    expect(component.transfiriendo()).toBe(false);
+    expect(component.procesando()).toBe(false);
+    expect(component.exito()).toContain('Se transfirieron 7 novedades desde 10/2026');
+    expect(component.exito()).toContain('3 nuevas, 4 actualizadas; 2 sin cambios');
+  });
+
+  it('avisa cuando la transferencia no tiene cambios', () => {
+    abrirPeriodo();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    component.transferirAnterior();
+
+    httpMock.expectOne('/api/haberes/core/novedadfile/transfer/2026/11')
+      .flush({ nuevas: 0, actualizadas: 0, sinCambios: 5, total: 5 });
+
+    expect(component.exito()).toContain('Sin cambios: las 5 novedades de 10/2026 ya están transferidas.');
   });
 
   it('suma el importe de las novedades mostradas', () => {

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { SIN_ACCESO_RUTA, authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { SIN_ACCESO_RUTA, authGuard, moduloGuard, permisoRutaGuard, unauthGuard } from '@haberes/shared-api';
 import { NoAccesoComponent } from '@haberes/ui-layout';
 
 /** Novedades es un módulo de facultad: sólo entra un usuario con facultad asignada. */
@@ -20,37 +20,37 @@ export const appRoutes: Routes = [
   {
     path: 'anotador',
     loadComponent: () => import('@haberes/feature-anotador').then(m => m.AnotadorComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: DATOS_MODULO
   },
   {
     path: 'cargos',
     loadComponent: () => import('@haberes/feature-cargos').then(m => m.CargosLegajoComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: DATOS_MODULO
   },
   {
     path: 'docentes-sede',
     loadComponent: () => import('@haberes/feature-cargos').then(m => m.DocentesSedeComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: DATOS_MODULO
   },
   {
     path: 'asig-cursos',
     loadComponent: () => import('@haberes/feature-designaciones').then(m => m.AsigCursosComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: DATOS_MODULO
   },
   {
     path: 'designaciones',
     loadComponent: () => import('@haberes/feature-designaciones').then(m => m.DesignacionesComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: DATOS_MODULO
   },
   {
     path: 'inicio',
     loadComponent: () => import('./inicio.component').then(m => m.InicioComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: DATOS_MODULO
   },
   { path: '', redirectTo: 'inicio', pathMatch: 'full' },

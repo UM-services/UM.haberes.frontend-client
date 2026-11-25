@@ -44,39 +44,30 @@ export class LoginComponent {
     const legajoId = Number(this.loginForm.get('legajoId')?.value);
     if (!legajoId) return;
 
-    this.authService.getPersona(legajoId).subscribe({
-      next: (persona) => {
-        this.apellidoNombre.set(persona.apellidoNombre || `${persona.apellido}, ${persona.nombre}`);
-        this.checkUsuario(legajoId);
-      },
-      error: () => {
-        this.errorMessage.set('ERROR: Legajo NO encontrado');
-        this.apellidoNombre.set('');
-      }
-    });
-  }
+    // Endpoint público de pre-login: sólo nombre + habilitado/primer ingreso.
+    this.authService.getDatosLegajo(legajoId).subscribe({
+      next: (datos) => {
+        this.apellidoNombre.set(datos.apellidoNombre || '');
+        this.errorMessage.set('');
 
-  private checkUsuario(legajoId: number) {
-    this.authService.getUsuario(legajoId).subscribe({
-      next: (usuario) => {
-        if (!usuario.usuarioId) {
+        if (!datos.habilitado) {
           this.errorMessage.set('ERROR: Usuario NO HABILITADO');
-          return;
         }
-        if (!usuario.password) {
+
+        if (datos.primerIngreso) {
           this.isFirstTime.set(true);
           this.loginForm.get('rePassword')?.setValidators([Validators.required]);
           this.errorMessage.set('Ingrese Password 2 VECES');
         } else {
           this.isFirstTime.set(false);
           this.loginForm.get('rePassword')?.clearValidators();
-          this.errorMessage.set('');
         }
         this.loginForm.get('rePassword')?.updateValueAndValidity();
       },
       error: () => {
-        this.errorMessage.set('ERROR: Usuario NO encontrado');
-      }
+        this.errorMessage.set('ERROR: Legajo NO encontrado');
+        this.apellidoNombre.set('');
+      },
     });
   }
 

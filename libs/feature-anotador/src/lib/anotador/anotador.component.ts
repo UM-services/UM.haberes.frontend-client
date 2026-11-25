@@ -26,6 +26,17 @@ export class AnotadorComponent {
   readonly facultadEfectiva = computed<number | null>(() => this.facultadId() ?? this.auth.facultadId());
   readonly esGlobal = computed<boolean>(() => this.facultadEfectiva() === null);
 
+  /** Encabezado de la pantalla: el módulo central visa y el de facultad registra. */
+  readonly seccion = computed<string>(() => (this.esGlobal() ? 'Liquidación · Designaciones' : 'Novedades'));
+  readonly titulo = computed<string>(() => (this.esGlobal() ? 'Revisar Anotador' : 'Anotador'));
+  readonly ayuda = computed<string>(() =>
+    this.esGlobal()
+      ? 'Visado de las anotaciones y observaciones que las facultades remiten para el personal. ' +
+        'Elija un legajo de la lista o del buscador, lea su historial del período y autorice o rechace cada novedad con su respuesta.'
+      : 'Registro de anotaciones y observaciones del personal de la facultad para el período. ' +
+        'Busque un legajo, revise su historial y agregue una nueva anotación para que sea visada por Liquidación.'
+  );
+
   anho = signal<number>(new Date().getFullYear());
   mes = signal<number>(new Date().getMonth() + 1);
   

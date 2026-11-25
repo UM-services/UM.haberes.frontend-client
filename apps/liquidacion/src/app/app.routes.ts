@@ -1,5 +1,5 @@
 import { Route, Routes } from '@angular/router';
-import { SIN_ACCESO_RUTA, authGuard, moduloGuard, unauthGuard } from '@haberes/shared-api';
+import { SIN_ACCESO_RUTA, authGuard, moduloGuard, permisoRutaGuard, unauthGuard } from '@haberes/shared-api';
 import { NoAccesoComponent } from '@haberes/ui-layout';
 import { RUTAS_MIGRADAS, TODAS_LAS_OPCIONES } from './menu-options.data';
 
@@ -9,7 +9,7 @@ const DATOS_MODULO = { requireFacultadId: false } as const;
 const bonoIndividualRoute: Route = {
   path: 'consultas/bono-individual',
   loadComponent: () => import('@haberes/feature-bonos').then(m => m.BonoIndividualComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -17,7 +17,7 @@ const liquidacionIndividualRoute: Route = {
   path: 'liquidacion/individual',
   loadComponent: () =>
     import('@haberes/feature-liquidacion').then(m => m.LiquidacionIndividualComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -25,21 +25,21 @@ const liquidacionGeneralRoute: Route = {
   path: 'liquidacion/general',
   loadComponent: () =>
     import('@haberes/feature-liquidacion').then(m => m.LiquidacionGeneralComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const novedadesRoute: Route = {
   path: 'liquidacion/novedades',
   loadComponent: () => import('@haberes/feature-liquidacion').then(m => m.NovedadesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const sijpRoute: Route = {
   path: 'liquidacion/sijp',
   loadComponent: () => import('@haberes/feature-liquidacion').then(m => m.SijpComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -47,7 +47,7 @@ const transferirNovedadesRoute: Route = {
   path: 'liquidacion/transferir-novedades',
   loadComponent: () =>
     import('@haberes/feature-designaciones').then(m => m.TransferirNovedadesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -55,7 +55,7 @@ const asigCargosRoute: Route = {
   path: 'liquidacion/asig-cargos',
   loadComponent: () =>
     import('@haberes/feature-cargos').then(m => m.AsignacionCargosComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -63,224 +63,224 @@ const etecAsigCargosRoute: Route = {
   path: 'liquidacion/etec/asig-cargos',
   loadComponent: () =>
     import('@haberes/feature-etec-asignaciones').then(m => m.AsignacionesEtecComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const totalesGeneralesRoute: Route = {
   path: 'consultas/totales-generales',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.TotalesGeneralesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const totalesCodigoRoute: Route = {
   path: 'consultas/totales-codigo',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.TotalesCodigoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const comparacionMesesRoute: Route = {
   path: 'consultas/comparacion-meses',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.ComparacionMesesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const docentesSedeRoute: Route = {
   path: 'consultas/docentes-sede',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.DocentesSedeComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const designacionDocentesRoute: Route = {
   path: 'consultas/designacion-docentes',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.DesignacionDocentesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cursosDocenteRoute: Route = {
   path: 'consultas/cursos-docente',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.CursosDocenteComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const fusionDocenteRoute: Route = {
   path: 'consultas/fusion-docente',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.FusionDocenteComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cargosClaseFacultadRoute: Route = {
   path: 'consultas/cargos-clase-facultad',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.CargosClaseFacultadComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const liquidablesRoute: Route = {
   path: 'consultas/planilla-liquidables',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.LiquidablesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cantidadCargosRoute: Route = {
   path: 'consultas/cantidad-cargos',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.CantidadCargosComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const detalleCodigoRoute: Route = {
   path: 'consultas/detalle-codigo',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.DetalleCodigoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cargosPeriodoRoute: Route = {
   path: 'consultas/cargos-periodo',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.CargosPeriodoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cursosPeriodoRoute: Route = {
   path: 'consultas/cursos-periodo',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.CursosPeriodoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const libroSueldosRoute: Route = {
   path: 'consultas/libro-sueldos',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.LibroSueldosComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const basicosPeriodoRoute: Route = {
   path: 'consultas/basicos-periodo',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.BasicosPeriodoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cursosContratadoRoute: Route = {
   path: 'consultas/cursos-contratado',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.CursosContratadoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const historicoCargosRoute: Route = {
   path: 'consultas/historico-cargos',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.HistoricoCargosComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const bonosDependenciaRoute: Route = {
   path: 'consultas/bonos-dependencia',
   loadComponent: () => import('@haberes/feature-consultas').then(m => m.BonosDependenciaComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const imputacionIndividualRoute: Route = {
   path: 'contabilidad/imputacion-individual',
   loadComponent: () => import('@haberes/feature-contabilidad').then(m => m.ImputacionIndividualComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const formulario931Route: Route = {
   path: 'contabilidad/formulario-931',
   loadComponent: () => import('@haberes/feature-contabilidad').then(m => m.Formulario931Component),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const designacionesGeneralRoute: Route = {
   path: 'designaciones/general',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.DesignacionesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const actualizarCargosClaseRoute: Route = {
   path: 'designaciones/actualizar-cargos-clase',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.CargosClaseActualizarComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const anotadorRoute: Route = {
   path: 'designaciones/anotador',
   loadComponent: () => import('@haberes/feature-anotador').then(m => m.AnotadorComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const autorizarNovedadesRoute: Route = {
   path: 'designaciones/autorizar-novedades',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.AutorizarNovedadesComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const asigCursosRoute: Route = {
   path: 'designaciones/asig-cursos',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.AsigCursosComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cargosClaseAsignacionRoute: Route = {
   path: 'designaciones/cargos-clase',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.CargosClaseAsignacionComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cargosClaseDuplicarRoute: Route = {
   path: 'designaciones/duplicar-cargos-clase',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.CargosClaseDuplicarComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const fusionTodosRoute: Route = {
   path: 'designaciones/fusionar-todos',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.FusionTodosComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const cursosConsultaRoute: Route = {
   path: 'designaciones/cursos',
   loadComponent: () => import('@haberes/feature-designaciones').then(m => m.CursosConsultaComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const santanderMasivoRoute: Route = {
   path: 'movimientos/santander',
   loadComponent: () => import('@haberes/feature-movimientos').then(m => m.SantanderMasivoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const otrosBancosMasivoRoute: Route = {
   path: 'movimientos/otros-bancos',
   loadComponent: () => import('@haberes/feature-movimientos').then(m => m.OtrosBancosMasivoComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -288,7 +288,7 @@ const santanderIndividualRoute: Route = {
   path: 'movimientos/santander-individual',
   loadComponent: () =>
     import('@haberes/feature-movimientos').then(m => m.SantanderIndividualComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -296,14 +296,14 @@ const otrosBancosIndividualRoute: Route = {
   path: 'movimientos/otros-bancos-individual',
   loadComponent: () =>
     import('@haberes/feature-movimientos').then(m => m.OtrosBancosIndividualComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
 const excluidosRoute: Route = {
   path: 'movimientos/excluidos',
   loadComponent: () => import('@haberes/feature-movimientos').then(m => m.ExcluidosComponent),
-  canActivate: [authGuard, moduloGuard],
+  canActivate: [authGuard, moduloGuard, permisoRutaGuard],
   data: DATOS_MODULO
 };
 
@@ -312,7 +312,7 @@ const opcionesRoutes: Routes = TODAS_LAS_OPCIONES
   .map(opcion => ({
     path: opcion.path.startsWith('/') ? opcion.path.slice(1) : opcion.path,
     loadComponent: () => import('./placeholder-opcion.component').then(m => m.PlaceholderOpcionComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: {
       ...DATOS_MODULO,
       titulo: opcion.label,
@@ -337,7 +337,7 @@ export const appRoutes: Routes = [
   {
     path: 'inicio',
     loadComponent: () => import('./inicio.component').then(m => m.InicioComponent),
-    canActivate: [authGuard, moduloGuard],
+    canActivate: [authGuard, moduloGuard, permisoRutaGuard],
     data: DATOS_MODULO
   },
   bonoIndividualRoute,

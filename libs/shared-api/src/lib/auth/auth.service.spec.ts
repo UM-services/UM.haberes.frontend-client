@@ -111,8 +111,9 @@ describe('AuthService', () => {
     expect(sessions[0]).not.toBeNull();
     expect(service.facultadId()).toBe(3);
     expect(JSON.parse(localStorage.getItem(SESSION_KEY) ?? '{}')).toEqual({
-      version: 2,
+      version: 3,
       legajoId: 123,
+      token: null,
     });
   });
 
@@ -132,8 +133,9 @@ describe('AuthService', () => {
     expect(service.facultadId()).toBe(3);
     // El formato viejo se migra descartando todo lo que no sea el legajo.
     expect(JSON.parse(localStorage.getItem(SESSION_KEY) ?? '{}')).toEqual({
-      version: 2,
+      version: 3,
       legajoId: 123,
+      token: null,
     });
   });
 
@@ -208,8 +210,9 @@ describe('AuthService', () => {
     expect(service.currentUserValue?.administrador).toBe(1);
     // El flag no se persiste: se revalida contra el backend en cada arranque.
     expect(JSON.parse(localStorage.getItem(SESSION_KEY) ?? '{}')).toEqual({
-      version: 2,
+      version: 3,
       legajoId: 123,
+      token: null,
     });
   });
 
@@ -264,8 +267,9 @@ describe('AuthService', () => {
     // sólo un contexto de filtrado y no altera la identidad.
     expect(service.currentUserValue?.facultadId).toBeNull();
     expect(JSON.parse(localStorage.getItem(SESSION_KEY) ?? '{}')).toEqual({
-      version: 2,
+      version: 3,
       legajoId: 123,
+      token: null,
     });
   });
 

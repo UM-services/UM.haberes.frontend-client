@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -13,7 +13,8 @@ import {
   AcreditacionPeriodo,
   Novedad,
   NovedadPendiente,
-  NovedadRequest
+  NovedadRequest,
+  NovedadesTransferencia
 } from './novedades.models';
 
 /**
@@ -31,7 +32,7 @@ import {
   imports: [CommonModule, FormsModule, PersonaSearchComponent],
   templateUrl: './novedades.component.html'
 })
-export class NovedadesComponent implements OnInit {
+export class NovedadesComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly personas = inject(PersonaSearchService);
   private readonly servicio = inject(NovedadesService);
@@ -69,6 +70,12 @@ export class NovedadesComponent implements OnInit {
   cargando = signal<boolean>(false);
   procesando = signal<boolean>(false);
   progreso = signal<string | null>(null);
+
+  /** Transferencia del mes anterior: barra indeterminada y cronómetro mientras dura el POST. */
+  transfiriendo = signal<boolean>(false);
+  transferenciaSegundos = signal<number>(0);
+  transferenciaOrigen = signal<string>('');
+  private cronometro: ReturnType<typeof setInterval> | null = null;
 
   legajoSolicitante = signal<number | null>(null);
 
@@ -601,15 +608,19 @@ export class NovedadesComponent implements OnInit {
     }
     this.procesando.set(true);
     this.limpiarMensajes();
+    this.transfiriendo.set(true);
+    this.transferenciaOrigen.set(origen);
+    this.transferenciaSegundos.set(0);
+    this.iniciarCronometro();
     this.servicio.transferir(this.anho(), this.mes(), this.legajoSolicitante()).subscribe({
-      next: () => {
-        this.exito.set(`Novedades transferidas desde ${origen}.`);
-        this.procesando.set(false);
+      next: (resultado) => {
+        this.finalizarTransferencia();
+        this.exito.set(this.mensajeTransferencia(resultado, origen));
         this.cargarNovedades();
       },
       error: (err: HttpErrorResponse) => {
+        this.finalizarTransferencia();
         this.error.set(this.mensajeHttp(err, 'No se pudieron transferir las novedades del mes anterior.'));
-        this.procesando.set(false);
       }
     });
   }
@@ -640,6 +651,44 @@ export class NovedadesComponent implements OnInit {
   }
 
   // --- Auxiliares ----------------------------------------------------------------------
+
+  ngOnDestroy(): void {
+    this.detenerCronometro();
+  }
+
+  private finalizarTransferencia(): void {
+    this.detenerCronometro();
+    this.transfiriendo.set(false);
+    this.procesando.set(false);
+  }
+
+  private iniciarCronometro(): void {
+    this.detenerCronometro();
+    this.cronometro = setInterval(() => this.transferenciaSegundos.update((segundos) => segundos + 1), 1000);
+  }
+
+  private detenerCronometro(): void {
+    if (this.cronometro !== null) {
+      clearInterval(this.cronometro);
+      this.cronometro = null;
+    }
+  }
+
+  private mensajeTransferencia(resultado: NovedadesTransferencia, origen: string): string {
+    if (resultado.total === 0) {
+      return `No hay novedades transferibles en ${origen}.`;
+    }
+    const escritas = resultado.nuevas + resultado.actualizadas;
+    if (escritas === 0) {
+      return `Sin cambios: las ${resultado.total} ${resultado.total === 1 ? 'novedad' : 'novedades'} `
+        + `de ${origen} ya están transferidas.`;
+    }
+    const detalle = `${resultado.nuevas} ${resultado.nuevas === 1 ? 'nueva' : 'nuevas'}, `
+      + `${resultado.actualizadas} ${resultado.actualizadas === 1 ? 'actualizada' : 'actualizadas'}`
+      + (resultado.sinCambios > 0 ? `; ${resultado.sinCambios} sin cambios` : '');
+    return `Se transfirieron ${escritas} ${escritas === 1 ? 'novedad' : 'novedades'} `
+      + `desde ${origen} (${detalle}).`;
+  }
 
   private periodoAnteriorTexto(): string {
     let mes = this.mes() - 1;
