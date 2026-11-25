@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NOVEDADES_MENU_ITEMS } from '@haberes/novedades-menu';
+import { PermisosService } from '@haberes/shared-api';
 import { UiShellComponent } from '@haberes/ui-layout';
 
 @Component({
@@ -11,12 +12,17 @@ import { UiShellComponent } from '@haberes/ui-layout';
     <ui-shell
       moduleName="Novedades"
       menuSectionLabel="Menú Novedades"
-      [menuItems]="menuItems"
+      [menuItems]="menuItems()"
     />
   `,
 })
 export class AppComponent {
   title = 'novedades';
 
-  readonly menuItems = NOVEDADES_MENU_ITEMS;
+  private readonly permisos = inject(PermisosService);
+
+  /** Sólo las opciones habilitadas para el usuario (las rutas también tienen guard). */
+  readonly menuItems = computed(() =>
+    NOVEDADES_MENU_ITEMS.filter((item) => this.permisos.tieneAcceso(item.path)),
+  );
 }

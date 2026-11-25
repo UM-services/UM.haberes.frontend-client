@@ -34,6 +34,7 @@
       "@haberes/feature-control-periodo": ["./libs/feature-control-periodo/src/index.ts"],
       "@haberes/feature-limite-novedades": ["./libs/feature-limite-novedades/src/index.ts"],
       "@haberes/feature-usuarios": ["./libs/feature-usuarios/src/index.ts"],
+      "@haberes/feature-seguridad": ["./libs/feature-seguridad/src/index.ts"],
       "@haberes/feature-movimientos": ["./libs/feature-movimientos/src/index.ts"],
       "@haberes/novedades-menu": ["./libs/novedades-menu/src/index.ts"]
     },

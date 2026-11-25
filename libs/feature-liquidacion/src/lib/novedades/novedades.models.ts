@@ -83,3 +83,15 @@ export interface ArchivoNovedades {
   filename: string;
   base64: string;
 }
+
+/** Resultado de `POST /novedadfile/transfer/{anho}/{mes}`. */
+export interface NovedadesTransferencia {
+  /** Filas creadas en el período destino. */
+  nuevas: number;
+  /** Filas que existían con datos distintos y se actualizaron. */
+  actualizadas: number;
+  /** Filas que ya estaban transferidas tal cual (no se escribieron). */
+  sinCambios: number;
+  /** Total de filas del período de origen (`nuevas + actualizadas + sinCambios`). */
+  total: number;
+}

@@ -8,7 +8,8 @@ import {
   ArchivoNovedades,
   Novedad,
   NovedadPendiente,
-  NovedadRequest
+  NovedadRequest,
+  NovedadesTransferencia
 } from './novedades.models';
 
 /**
@@ -100,8 +101,9 @@ export class NovedadesService {
   }
 
   /** Copia las novedades transferibles del mes anterior al período. */
-  transferir(anho: number, mes: number, solicitante: number | null): Observable<void> {
-    return this.http.get<void>(`${this.url}/novedadfile/transfer/${anho}/${mes}`, this.headers(solicitante));
+  transferir(anho: number, mes: number, solicitante: number | null): Observable<NovedadesTransferencia> {
+    return this.http.post<NovedadesTransferencia>(
+      `${this.url}/novedadfile/transfer/${anho}/${mes}`, null, this.headers(solicitante));
   }
 
   private headers(solicitante: number | null): { headers: Record<string, string> } {
