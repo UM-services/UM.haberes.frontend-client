@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.30.0] - 2026-11-25
+
+### Added
+
+- **feat(`shared-api`):** la sesión pasa a un **token firmado** emitido por `POST /api/haberes/core/auth/login` (respuesta `{ token, expiresAt, legajoId, administrador }`). El nuevo `authInterceptor` agrega `Authorization: Bearer <token>` **sólo** a las peticiones cuya URL empieza con `API_URL`, de modo que el token nunca se filtra a backends de otros módulos. Un `401` en el login se traduce a *Password INCORRECTO* y limpia el token.
+- **feat(`shared-api`):** `AuthService.getDatosLegajo(legajoId)` consume el endpoint público de pre-login `GET /api/haberes/core/auth/legajo/{legajoId}`, que devuelve sólo `legajoId`, `apellidoNombre`, `habilitado` y `primerIngreso` (sin documento, CUIL, facultad ni permisos); el login ya no arma el estado inicial con la persona y el usuario completos.
+- **feat(`shared-api`):** `PermisosService` carga el bundle de permisos efectivos con `GET /api/haberes/core/permisoEfectivo/usuario/{legajoId}` al iniciar sesión, lo limpia al cerrar y lo recarga con `recargar()`. Si la carga falla el bundle queda vacío (**fail-closed**) y no hay bypass de administrador en el frontend: el backend devuelve todas las claves para `ADMIN_HABERES`.
+- **feat(`shared-api`):** guards **`permisoGuard(claves)`** (claves explícitas) y **`permisoRutaGuard`** (deduce el permiso de la URL con el mapa `rutas-permisos`, espejo del mapa del backend), con semántica OR entre claves y evaluación del prefijo más específico primero. Sin permiso, informan a `AccesoDenegadoService` (`tipo: 'permiso'`) y redirigen a `sin-acceso`. Se exporta `PERMISOS` con las claves de seguridad.
+- **feat(`feature-seguridad`):** nueva librería `@haberes/feature-seguridad` con cuatro pantallas sobre los endpoints `/core/{permiso,rol,rolPermiso,usuarioRol,usuarioPermiso,permisoEfectivo}`: **Permisos de usuario** (buscador estándar, roles heredados, excepciones otorgadas/revocadas, checkbox por permiso con el estado efectivo, contador por módulo y aviso de acceso total para administradores), **Roles y matriz rol × permiso** (alta, edición y baja de roles, con `ADMIN_HABERES` protegido), **Catálogo de permisos** (inventario y sincronización con el manifiesto, con previsualización `dryRun` y aplicación, más el detalle de creados/actualizados/retirados y advertencias) y **Simulador de permisos** (permisos efectivos de un usuario con el origen de cada clave).
+- **feat(`feature-seguridad`):** `SeguridadService` cubre el ciclo completo de altas, bajas y modificaciones de permisos, roles, asignaciones rol × permiso, roles por usuario y overrides por usuario (`PUT .../usuarioPermiso/usuario/{legajoId}/permiso/{permisoId}` con `otorgado: 1 | 0 | null`).
+- **feat(`administrador`):** rutas lazy `/seguridad/permisos`, `/seguridad/roles`, `/seguridad/catalogo` y `/seguridad/simulador` protegidas con `authGuard`, `administradorGuard` y la clave correspondiente (`seguridad.*`), más las opciones en el menú lateral y en el directorio de inicio.
+- **feat(`ui-layout`):** utilidades `.um-progress` / `.um-progress-bar` para operaciones en curso sin porcentaje conocido, animadas con `um-progress-slide`.
+- **feat(`feature-anotador`):** encabezado de pantalla con sección, título y ayuda según el contexto (`Novedades` para la facultad, `Revisar Anotador` para Liquidación) y chip con el legajo de la persona seleccionada.
+- **feat(`feature-liquidacion`):** la transferencia de novedades del mes anterior muestra una barra de progreso indeterminada con cronómetro y aviso de no cerrar la pantalla, que se detiene al finalizar o fallar y se limpia en `ngOnDestroy`.
+
+### Changed
+
+- **feat(`novedades`, `liquidacion`, `simulador-novedades`, `administrador`):** todas las rutas protegidas suman `permisoRutaGuard` y los menús laterales y paneles de inicio filtran sus opciones con `PermisosService.tieneAcceso(path)`, ocultando los grupos que quedan vacíos.
+- **feat(`feature-liquidacion`):** la transferencia desde el mes anterior usa `POST /api/haberes/core/novedadfile/transfer/{anho}/{mes}` (antes `GET`) y consume `NovedadesTransferencia` (`nuevas`, `actualizadas`, `sinCambios`, `total`) para informar el resultado: detalle de nuevas/actualizadas, *Sin cambios* cuando no hubo escrituras y *No hay novedades transferibles* cuando el origen está vacío.
+- **feat(`shared-api`):** la sesión persistida en `localStorage` (`haberes_user`) pasa a la **versión 3** y guarda `legajoId` + `token`; las sesiones v2 y anteriores se migran con `token: null` y el usuario vuelve a loguearse cuando el backend exige token. `clearSession()` descarta ambos datos y sigue sin persistir facultad, flag administrador ni permisos.
+- **docs:** `AGENTS.md` documenta el token firmado, la sesión v3, `PermisosService` y el doble control de acceso por facultad y por permiso de ruta.
+
+### Tests
+
+- `rutas-permisos.spec.ts`: rutas libres, prefijo más específico primero, normalización de query string y barra final, y OR entre claves.
+- `seguridad.service.spec.ts`: catálogo, permisos efectivos y sincronización con `dryRun`.
+- `auth.service.spec.ts`: la sesión persistida queda en versión 3 con `token: null` en los escenarios de revalidación y migración.
+- `novedades.service.spec.ts`: la transferencia es `POST` con el header de auditoría y devuelve el conteo del backend.
+- `novedades.component.spec.ts`: barra de transferencia, mensaje con el detalle de nuevas/actualizadas y aviso cuando no hay cambios.
+- `app.spec.ts` del simulador: el menú calculado expone las opciones compartidas con Novedades usando un `PermisosService` de prueba.
+
 ## [0.29.1] - 2026-11-25
 
 ### Fixed

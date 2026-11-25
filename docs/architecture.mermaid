@@ -12,7 +12,7 @@ graph TD
 
   Liquidacion---Layout1["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Liquidacion---Auth1["ui-auth - Login"]
-  Liquidacion---API1["shared-api - Auth/Persona/Env/Errores/moduloGuard"]
+  Liquidacion---API1["shared-api - Auth token / Permisos / Persona / Env / Errores / guards"]
   Liquidacion---Bonos["feature-bonos - BonoIndividual"]
   Liquidacion---LiqInd["feature-liquidacion - LiquidacionIndividual / LiquidacionGeneral / Novedades / SIJP"]
   Liquidacion---Transferir["feature-designaciones - TransferirNovedades"]
@@ -26,7 +26,7 @@ graph TD
 
   Novedades---Layout2["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Novedades---Auth2["ui-auth - Login"]
-  Novedades---API2["shared-api - Auth/Persona/Env/Errores/moduloGuard"]
+  Novedades---API2["shared-api - Auth token / Permisos / Persona / Env / Errores / guards"]
   Novedades---Desig["feature-designaciones - Designaciones / AsigCursos"]
   Novedades---Anot["feature-anotador - Anotaciones"]
   Novedades---Carg["feature-cargos - CargosLegajo / DocentesSede"]
@@ -34,7 +34,7 @@ graph TD
 
   Administrador---Layout3["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Administrador---Auth3["ui-auth - Login"]
-  Administrador---API3["shared-api - Auth/Persona/Env/Errores/administradorGuard/confirmarSalida"]
+  Administrador---API3["shared-api - Auth token / Permisos / Persona / Env / Errores / guards"]
   Administrador---Personas["feature-personas - DatosPersonales"]
   Administrador---Categorias["feature-categorias - Categorias"]
   Administrador---Codigos["feature-codigos - Codigos"]
@@ -45,10 +45,11 @@ graph TD
   Administrador---ControlPeriodo["feature-control-periodo - Control del periodo"]
   Administrador---LimiteNovedades["feature-limite-novedades - Limite de Novedades"]
   Administrador---Usuarios["feature-usuarios - Usuarios"]
+  Administrador---Seguridad["feature-seguridad - Permisos / Roles / Catalogo / Simulador"]
 
   Simulador---Layout4["ui-layout - UiShell J2 / persona-search / no-acceso / inactividad / umImporte / umFecha / input-fecha / sticky-footer / contenido proyectado"]
   Simulador---Auth4["ui-auth - Login"]
-  Simulador---API4["shared-api - Auth/Persona/Env/Errores/moduloGuard/administradorGuard/facultadSimuladaGuard"]
+  Simulador---API4["shared-api - Auth token / Permisos / Persona / Env / Errores / guards"]
   Simulador---MenuSim["novedades-menu - Menu lateral / Directorio del panel"]
   Simulador---DesigSim["feature-designaciones - Designaciones / AsigCursos"]
   Simulador---AnotSim["feature-anotador - Anotaciones"]

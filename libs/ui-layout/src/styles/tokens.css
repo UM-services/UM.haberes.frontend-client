@@ -122,6 +122,15 @@
   .um-badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
   }
+
+  /* Progreso indeterminado: operaciones en curso sin porcentaje conocido. */
+  .um-progress {
+    @apply h-1.5 w-full overflow-hidden rounded-full bg-um-border;
+  }
+  .um-progress-bar {
+    @apply h-full w-1/3 rounded-full bg-um-primary;
+    animation: um-progress-slide 1.2s ease-in-out infinite;
+  }
   .um-table {
     @apply w-full border-collapse text-left text-sm text-um-text;
   }
@@ -133,5 +142,14 @@
   }
   .um-table tbody tr:hover {
     @apply bg-um-surface;
+  }
+}
+
+@keyframes um-progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
   }
 }

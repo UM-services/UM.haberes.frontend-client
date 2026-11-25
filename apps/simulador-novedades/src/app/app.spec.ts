@@ -1,13 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
+import { PermisosService } from '@haberes/shared-api';
 import { AppComponent } from './app';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([]), provideHttpClient()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        // En este test interesa que el menú reusa los datos de Novedades, no el gating.
+        { provide: PermisosService, useValue: { tieneAcceso: () => true } },
+      ],
     }).compileComponents();
   });
 
@@ -18,6 +24,6 @@ describe('AppComponent', () => {
 
   it('reusa el menú del módulo Novedades', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    expect(fixture.componentInstance.menuItems.map((item) => item.path)).toContain('/anotador');
+    expect(fixture.componentInstance.menuItems().map((item) => item.path)).toContain('/anotador');
   });
 });

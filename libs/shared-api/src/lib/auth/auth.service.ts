@@ -1,6 +1,6 @@
 import { computed, Injectable, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import {
   BehaviorSubject,
@@ -66,6 +66,14 @@ export interface Usuario {
   administrador?: number;
 }
 
+/** Datos mínimos que devuelve el pre-login (sin documento, CUIL ni permisos). */
+export interface PreLogin {
+  legajoId: number;
+  apellidoNombre: string;
+  habilitado: boolean;
+  primerIngreso: boolean;
+}
+
 interface FacultadResumen {
   nombre?: string;
 }
@@ -80,18 +88,27 @@ export interface FacultadSimulada {
 }
 
 /**
- * Sesion persistida. Solo guardamos el legajoId: la facultad se revalida
- * contra haberes-core en cada arranque (ver `ensureSession`). Antes se
- * guardaba la Persona completa, incluido `facultadId`, y el navegador quedaba
- * con una asignacion vieja (o manipulada) hasta limpiar el almacenamiento.
+ * Sesión persistida. Guardamos el `legajoId` y el token firmado emitido por
+ * haberes-core. El token no contiene permisos ni flags: sólo identifica al
+ * usuario, y el backend resuelve roles/permisos contra la base en cada request.
+ * La facultad y el flag administrador se siguen revalidando en cada arranque
+ * (ver `ensureSession`); nunca se persisten como datos derivados.
  */
 interface StoredSession {
-  version: 2;
+  version: 3;
   legajoId: number;
+  token?: string | null;
+}
+
+interface LoginTokenResponse {
+  token: string;
+  expiresAt: string;
+  legajoId: number;
+  administrador: boolean;
 }
 
 const SESSION_KEY = 'haberes_user';
-const SESSION_VERSION = 2;
+const SESSION_VERSION = 3;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -153,13 +170,17 @@ export class AuthService {
 
   /** legajoId persistido, sin datos derivados que puedan quedar desactualizados. */
   private storedLegajoId: number | null;
+  /** Token firmado de la sesión (se envía como Bearer a haberes-core). */
+  private storedToken: string | null;
   /** true cuando la sesión ya se contrastó contra el backend en este arranque. */
   private sessionValidated = false;
   /** Validación en curso, compartida entre guards que se ejecuten en paralelo. */
   private validation$: Observable<Persona | null> | null = null;
 
   constructor() {
-    this.storedLegajoId = this.readStoredLegajoId();
+    const stored = this.readStoredSession();
+    this.storedLegajoId = stored.legajoId;
+    this.storedToken = stored.token;
     if (this.storedLegajoId) {
       // Sesión mínima mientras se revalida: el shell ya puede renderizar su
       // estructura sin mostrar el login, pero sin ningún dato derivado
@@ -173,8 +194,21 @@ export class AuthService {
     }
   }
 
+  /** Token vigente para el interceptor HTTP. */
+  get token(): string | null {
+    return this.storedToken;
+  }
+
   getPersona(legajoId: number): Observable<Persona> {
     return this.http.get<Persona>(`${this.personaUrl}/${legajoId}`);
+  }
+
+  /**
+   * Datos mínimos para la pantalla de login (nombre y flags). Endpoint público:
+   * no requiere token y no expone documento, CUIL, facultad ni permisos.
+   */
+  getDatosLegajo(legajoId: number): Observable<PreLogin> {
+    return this.http.get<PreLogin>(`${this.apiBase}/core/auth/legajo/${legajoId}`);
   }
 
   /** Lectura sincronica de la sesion (espejo del AuthService de tesoreria-frontend). */
@@ -257,40 +291,55 @@ export class AuthService {
     legajoId: number,
     password: string,
   ): Observable<{ success: boolean; usuario?: Usuario; error?: string }> {
-    const url_isvalid = this.usuarioUrl + '/isuservalid';
-    const url_lastlog = this.usuarioUrl + '/lastlog/' + legajoId + '/1';
+    return this.http
+      .post<LoginTokenResponse>(`${this.apiBase}/core/auth/login`, { legajoId, password, build: 1 })
+      .pipe(
+        switchMap((respuesta) => {
+          if (!respuesta?.token) {
+            return of({ success: false, error: 'Error en el servidor de autenticación' });
+          }
+          // El token se guarda antes de pedir el perfil: el interceptor lo envía
+          // en las llamadas siguientes.
+          this.storedToken = respuesta.token;
+          this.storedLegajoId = legajoId;
+          this.persistSession(legajoId, respuesta.token);
 
-    return this.http.put<boolean>(url_isvalid, { legajoId, password }).pipe(
-      switchMap((isValid) => {
-        if (!isValid) return of({ success: false, error: 'ERROR: Password INCORRECTO' });
+          return forkJoin({
+            usuario: this.getUsuario(legajoId),
+            persona: this.getPersona(legajoId),
+          }).pipe(
+            switchMap(({ usuario, persona }) => {
+              if (!usuario?.usuarioId) {
+                this.clearSession();
+                return of({ success: false, error: 'ERROR: Usuario NO HABILITADO' });
+              }
 
-        return forkJoin({
-          usuario: this.getUsuario(legajoId),
-          persona: this.getPersona(legajoId),
-          lastLog: this.http.get(url_lastlog),
-        }).pipe(
-          switchMap(({ usuario, persona }) => {
-            if (!usuario?.usuarioId) {
-              return of({ success: false, error: 'ERROR: Usuario NO HABILITADO' });
-            }
+              const facultad$ = usuario.facultadId
+                ? this.getFacultad(usuario.facultadId).pipe(catchError(() => of(null)))
+                : of(null);
 
-            const facultad$ = usuario.facultadId
-              ? this.getFacultad(usuario.facultadId).pipe(catchError(() => of(null)))
-              : of(null);
-
-            return facultad$.pipe(
-              map((facultad) => {
-                this.storedLegajoId = legajoId;
-                this.sessionValidated = true;
-                this.applySession(persona, usuario, facultad);
-                return { success: true, usuario };
-              }),
-            );
-          }),
-        );
-      }),
-      catchError(() => of({ success: false, error: 'Error en el servidor de autenticación' })),
-    );
+              return facultad$.pipe(
+                map((facultad) => {
+                  this.storedLegajoId = legajoId;
+                  this.sessionValidated = true;
+                  this.applySession(persona, usuario, facultad);
+                  return { success: true, usuario };
+                }),
+              );
+            }),
+          );
+        }),
+        catchError((error: HttpErrorResponse) => {
+          this.storedToken = null;
+          localStorage.removeItem(SESSION_KEY);
+          return of({
+            success: false,
+            error: error?.status === 401
+              ? 'ERROR: Password INCORRECTO'
+              : 'Error en el servidor de autenticación',
+          });
+        }),
+      );
   }
 
   setPassword(legajoId: number, password: string): Observable<void> {
@@ -311,6 +360,7 @@ export class AuthService {
 
   clearSession() {
     this.storedLegajoId = null;
+    this.storedToken = null;
     this.sessionValidated = false;
     this.validation$ = null;
     this.facultadSimulada.set(null);
@@ -338,35 +388,42 @@ export class AuthService {
     };
     this.currentUserSubject.next(session);
     this.storedLegajoId = session.legajoId;
-    this.persistSession(session.legajoId);
+    this.persistSession(session.legajoId, this.storedToken);
     return session;
   }
 
-  private persistSession(legajoId: number) {
-    const payload: StoredSession = { version: SESSION_VERSION, legajoId };
+  private persistSession(legajoId: number, token: string | null) {
+    const payload: StoredSession = { version: SESSION_VERSION, legajoId, token };
     localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
   }
 
   /**
-   * Lee la sesión persistida. Acepta el formato anterior (Persona completa) para
-   * migrarlo descartando `facultadId` y cualquier otro dato derivado.
+   * Lee la sesión persistida. Acepta el formato anterior (v2, sólo legajoId) y
+   * cualquier Persona completa de versiones viejas: en esos casos el token
+   * queda nulo y el usuario deberá volver a loguearse cuando el backend exija
+   * token. Nunca se leen datos derivados (facultadId/administrador).
    */
-  private readStoredLegajoId(): number | null {
+  private readStoredSession(): { legajoId: number | null; token: string | null } {
     const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
+    if (!raw) return { legajoId: null, token: null };
 
     try {
       const parsed = JSON.parse(raw) as Partial<StoredSession> & { legajoId?: number };
       const legajoId = Number(parsed?.legajoId);
       if (!Number.isFinite(legajoId) || legajoId <= 0) {
         localStorage.removeItem(SESSION_KEY);
-        return null;
+        return { legajoId: null, token: null };
       }
-      if (parsed.version !== SESSION_VERSION) this.persistSession(legajoId);
-      return legajoId;
+      const token = typeof parsed.token === 'string' && parsed.token.trim()
+        ? parsed.token
+        : null;
+      if (parsed.version !== SESSION_VERSION) {
+        this.persistSession(legajoId, token);
+      }
+      return { legajoId, token };
     } catch {
       localStorage.removeItem(SESSION_KEY);
-      return null;
+      return { legajoId: null, token: null };
     }
   }
 }
