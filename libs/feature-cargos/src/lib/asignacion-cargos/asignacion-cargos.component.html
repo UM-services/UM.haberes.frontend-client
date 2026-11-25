@@ -201,8 +201,8 @@
                     tabindex="0"
                     [class.bg-um-selected]="seleccionado()?.cargoId === cargo.cargoId"
                     class="cursor-pointer">
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ cargo.fechaAlta | umFecha }}</td>
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ cargo.fechaBaja | umFecha }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ cargo.fechaAlta | umFecha: 'nunca' }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ cargo.fechaBaja | umFecha: 'nunca' }}</td>
                   <td class="whitespace-nowrap font-medium text-um-ink">{{ nombreCategoria(cargo) }}</td>
                   <td class="whitespace-nowrap text-um-text">{{ nombreDependencia(cargo) }}</td>
                   <td class="text-right font-mono text-um-ink tabular-nums">{{ cargo.categoria?.basico | number:'1.2-2' }}</td>

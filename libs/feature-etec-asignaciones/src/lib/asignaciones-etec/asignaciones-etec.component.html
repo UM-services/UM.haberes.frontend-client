@@ -185,8 +185,8 @@
                     tabindex="0"
                     [class.bg-um-selected]="seleccionado()?.asignacionCargoId === asignacion.asignacionCargoId"
                     class="cursor-pointer">
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaAlta | umFecha }}</td>
-                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaBaja | umFecha }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaAlta | umFecha: 'nunca' }}</td>
+                  <td class="font-mono text-um-text tabular-nums whitespace-nowrap">{{ asignacion.fechaBaja | umFecha: 'nunca' }}</td>
                   <td class="whitespace-nowrap font-medium text-um-ink">{{ nombreCargoDe(asignacion) }}</td>
                   <td class="text-right font-mono text-um-ink tabular-nums">{{ puntosDeAsignacion(asignacion) | number:'1.0-2' }}</td>
                   <td class="text-right font-mono text-um-text tabular-nums">
