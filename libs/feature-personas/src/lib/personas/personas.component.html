@@ -60,6 +60,12 @@
         />
       </div>
     </div>
+
+    <div class="mt-4 flex justify-end">
+      <button type="button" class="um-btn-secondary" (click)="nuevoLegajo()">
+        Nuevo legajo
+      </button>
+    </div>
   </section>
 
   @if (cargando()) {
@@ -70,21 +76,27 @@
     </div>
   }
 
-  @if (persona(); as p) {
+  @if (persona() || modoNuevo()) {
     <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-baseline gap-3">
-        <h2 class="text-xl font-bold text-um-ink">{{ p.apellido }}, {{ p.nombre }}</h2>
+        @if (modoNuevo()) {
+          <h2 class="text-xl font-bold text-um-ink">Nuevo legajo</h2>
+        } @else {
+          <h2 class="text-xl font-bold text-um-ink">{{ form.apellido }}, {{ form.nombre }}</h2>
+        }
         <span class="um-badge bg-um-surface text-um-muted">
-          Legajo <span class="ml-1 font-mono tabular-nums">{{ p.legajoId }}</span>
+          Legajo <span class="ml-1 font-mono tabular-nums">{{ form.legajoId || '—' }}</span>
         </span>
-        @if (p.dependencia?.nombre || p.dependenciaId) {
+        @if (persona()?.dependencia?.nombre || form.dependenciaId) {
           <span class="text-sm text-um-muted">
-            {{ p.dependencia?.nombre ?? 'Dependencia ' + p.dependenciaId }}
+            {{ persona()?.dependencia?.nombre ?? 'Dependencia ' + form.dependenciaId }}
           </span>
         }
       </div>
 
-      @if (hayCambios()) {
+      @if (modoNuevo()) {
+        <span class="um-badge bg-um-surface text-um-muted">Alta de legajo</span>
+      } @else if (hayCambios()) {
         <span class="um-badge bg-amber-50 text-amber-800 ring-1 ring-amber-200">
           Cambios sin guardar
         </span>
@@ -102,9 +114,11 @@
               <label class="um-label" for="persona-legajo">Legajo</label>
               <input
                 id="persona-legajo"
+                type="number"
                 class="um-input font-mono tabular-nums"
-                [value]="form.legajoId"
-                readonly
+                [readonly]="!modoNuevo()"
+                [(ngModel)]="form.legajoId"
+                name="legajoId"
               />
             </div>
 
@@ -264,6 +278,11 @@
             </div>
 
             <div>
+              <label class="um-label" for="persona-alta-etec">Alta ETEC</label>
+              <ui-input-fecha inputId="persona-alta-etec" [(valor)]="form.altaEtec" />
+            </div>
+
+            <div>
               <label class="um-label" for="persona-obra-social">Obra social</label>
               <input
                 id="persona-obra-social"
@@ -347,8 +366,9 @@
           </div>
         </section>
 
-        <section class="um-card">
-          <h2 class="um-eyebrow">Contacto</h2>
+        @if (!modoNuevo()) {
+          <section class="um-card">
+            <h2 class="um-eyebrow">Contacto</h2>
 
           <div class="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
@@ -408,20 +428,22 @@
             </div>
           </div>
         </section>
+        }
       </div>
 
       <!-- Columna derecha -->
       <div class="space-y-6">
-        <section class="um-card">
-          <div class="flex items-start justify-between gap-3">
-            <h2 class="um-eyebrow">Antigüedad</h2>
+        @if (!modoNuevo()) {
+          <section class="um-card">
+            <div class="flex items-start justify-between gap-3">
+              <h2 class="um-eyebrow">Antigüedad</h2>
             <span class="font-mono text-xs tabular-nums text-um-muted">
               {{ mesActual }}/{{ anhoActual }}
             </span>
           </div>
 
           @if (antiguedad(); as a) {
-            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div class="mt-4 grid gap-3 sm:grid-cols-3">
               <div class="rounded border border-um-border bg-um-surface p-3">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-um-muted">Docente</p>
                 <p class="mt-1 font-mono text-lg tabular-nums text-um-ink">
@@ -438,6 +460,13 @@
                 </p>
                 <p class="text-xs text-um-muted">{{ a.mesesAdministrativos ?? 0 }} meses</p>
               </div>
+              <div class="rounded border border-um-border bg-um-surface p-3">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-um-muted">ETEC</p>
+                <p class="mt-1 font-mono text-lg tabular-nums text-um-ink">
+                  {{ aniosMeses(a.mesesEtec) }}
+                </p>
+                <p class="text-xs text-um-muted">{{ a.mesesEtec ?? 0 }} meses</p>
+              </div>
             </div>
           } @else {
             <p class="mt-3 text-sm text-um-muted">
@@ -449,29 +478,34 @@
             Se recalcula automáticamente al modificar fechas o ajustes de alta.
           </p>
         </section>
+        }
 
         <section class="um-card">
           <h2 class="um-eyebrow">Guardar</h2>
           <p class="mt-2 text-sm text-um-muted">
-            Se envían sólo los campos modificados: el resto de la ficha no se toca.
+            @if (modoNuevo()) {
+              Complete los datos de la ficha y cree el legajo. El número de legajo se informa acá.
+            } @else {
+              Se envían sólo los campos modificados: el resto de la ficha no se toca.
+            }
           </p>
 
           <div class="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
               class="um-btn-primary"
-              [disabled]="guardando() || !hayCambios()"
+              [disabled]="guardando() || (!modoNuevo() && !hayCambios())"
               (click)="guardar()"
             >
-              {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+              {{ guardando() ? 'Guardando…' : modoNuevo() ? 'Crear legajo' : 'Guardar cambios' }}
             </button>
             <button
               type="button"
               class="um-btn-secondary"
-              [disabled]="guardando() || !hayCambios()"
+              [disabled]="guardando() || (!modoNuevo() && !hayCambios())"
               (click)="descartar()"
             >
-              Descartar
+              {{ modoNuevo() ? 'Cancelar' : 'Descartar' }}
             </button>
           </div>
         </section>
@@ -479,7 +513,8 @@
     </div>
 
     <!-- CBU por período -->
-    <section class="um-card mt-6">
+    @if (!modoNuevo()) {
+      <section class="um-card mt-6">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 class="um-eyebrow">CBU por período</h2>
@@ -618,11 +653,12 @@
         </div>
       </div>
     </section>
+    }
   } @else if (!cargando()) {
     <div class="mt-6 rounded-lg border border-dashed border-um-border bg-white p-10 text-center">
-      <p class="text-sm font-semibold text-um-ink">Busque una persona para comenzar</p>
+      <p class="text-sm font-semibold text-um-ink">Busque una persona o cree un legajo</p>
       <p class="mt-1 text-sm text-um-muted">
-        Puede usar el buscador, el legajo exacto o el documento.
+        Puede usar el buscador, el legajo exacto, el documento o el botón «Nuevo legajo».
       </p>
     </div>
   }

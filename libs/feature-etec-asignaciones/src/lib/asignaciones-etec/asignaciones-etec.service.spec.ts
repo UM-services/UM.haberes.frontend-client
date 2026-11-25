@@ -52,6 +52,8 @@ describe('AsignacionesEtecService', () => {
     asignacionCargoId: 12,
     legajoId: 100,
     categoriaId: 992,
+    horasCargo: 18,
+    vecesBasicoMaestroGrado: 1,
     dependenciaId: 7,
     fechaAlta: '2026-11-01T00:00:00+0000',
     fechaBaja: null,
@@ -65,6 +67,8 @@ describe('AsignacionesEtecService', () => {
   const body: AsignacionEtecRequest = {
     legajoId: 100,
     categoriaId: 992,
+    horasCargo: 18,
+    vecesBasicoMaestroGrado: 1,
     dependenciaId: 7,
     fechaAlta: '2026-11-01T00:00:00+0000',
     fechaBaja: null,

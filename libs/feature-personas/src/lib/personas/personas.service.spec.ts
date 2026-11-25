@@ -33,6 +33,23 @@ describe('PersonasService', () => {
     req.flush({ legajoId: 7, apellido: 'Gómez' });
   });
 
+  it('da de alta un legajo con POST', () => {
+    const request = {
+      legajoId: 99,
+      documento: 30111223,
+      apellido: 'Nuevo',
+      nombre: 'Legajo',
+      altaEtec: '2026-03-01T00:00:00+0000',
+    };
+
+    service.crearPersona(request).subscribe();
+
+    const req = http.expectOne('/api/haberes/core/persona/');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(request);
+    req.flush(request);
+  });
+
   it('devuelve null cuando la persona no tiene contacto', () => {
     let resultado: unknown = 'pendiente';
     service.getContacto(7).subscribe((v) => (resultado = v));
