@@ -23,19 +23,16 @@ describe('formatearFechaUm', () => {
     expect(formatearFechaUm('2026-11-09T00:00:00', 'auto')).toBe('09/11/2026');
   });
 
-  it('interpreta los valores con zona como instante y los pasa a hora local', () => {
-    const instante = '2026-11-09T13:45:00Z';
-    const local = new Date(instante);
-    const esperado =
-      `${String(local.getDate()).padStart(2, '0')}/` +
-      `${String(local.getMonth() + 1).padStart(2, '0')}/` +
-      `${local.getFullYear()} ` +
-      `${String(local.getHours()).padStart(2, '0')}:${String(local.getMinutes()).padStart(2, '0')}`;
-    expect(formatearFechaUm(instante)).toBe(esperado);
+  it('muestra los valores con zona en UTC, sin correr el día', () => {
+    // Las fechas del sistema se guardan y se muestran en UTC: medianoche UTC es el
+    // mismo día, no la noche anterior en hora argentina.
+    expect(formatearFechaUm('2026-11-01T00:00:00Z')).toBe('01/11/2026');
+    expect(formatearFechaUm('2026-11-09T13:45:00Z')).toBe('09/11/2026 13:45');
+    expect(formatearFechaUm('2026-11-01T00:00:00+00:00')).toBe('01/11/2026');
   });
 
   it('acepta Date y epoch', () => {
-    const fecha = new Date(2026, 10, 9, 18, 30);
+    const fecha = new Date(Date.UTC(2026, 10, 9, 18, 30));
     expect(formatearFechaUm(fecha)).toBe('09/11/2026 18:30');
     expect(formatearFechaUm(fecha.getTime())).toBe('09/11/2026 18:30');
   });
