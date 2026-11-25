@@ -261,6 +261,8 @@ export class ControlPeriodoComponent implements OnInit {
     return {
       valorPuntoEtec: this.numero(control.valorPuntoEtec),
       montoFijoCargo: this.numero(control.montoFijoCargo),
+      horasReferenciaCargo: this.numero(control.horasReferenciaCargo),
+      basicoMaestroGrado: this.numero(control.basicoMaestroGrado),
       porcentajePresentismo: this.numero(control.porcentajePresentismo),
       porcentajeAdicionalCarrera: this.numero(control.porcentajeAdicionalCarrera),
       garantia: this.numero(control.garantia),
