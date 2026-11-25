@@ -28,31 +28,34 @@ function dosDigitos(valor: number): string {
 /**
  * Formatea una fecha como `dd/MM/yyyy` (y `HH:mm` cuando el dato tiene hora).
  *
- * No depende del `LOCALE_ID`: el formato es fijo, igual al que usa el sistema legacy.
+ * No depende del `LOCALE_ID` ni de la zona horaria del navegador: en el sistema todas
+ * las fechas se guardan y se muestran en **UTC**. El formato es fijo, igual al que usa
+ * el sistema legacy.
  *
  * ```ts
  * formatearFechaUm('2026-11-09T13:45:00'); // '09/11/2026 13:45'
  * formatearFechaUm('2026-11-09T00:00:00'); // '09/11/2026'
+ * formatearFechaUm('2026-11-01T00:00:00Z'); // '01/11/2026'
  * formatearFechaUm('2026-11-09');          // '09/11/2026'
  * formatearFechaUm(null);                  // '—'
  * ```
  *
- * Para valores ISO **sin zona** se usan los componentes tal cual vienen (día calendario
- * literal): un `...T00:00:00` no debe correrse de día. Si el valor declara zona se
- * interpreta como instante y se muestra en la hora local del navegador.
+ * Los valores ISO **sin zona** se toman como componentes literales (día calendario),
+ * y los que declaran zona se muestran en UTC: un `...T00:00:00Z` es el día 1, no la
+ * noche anterior en hora argentina.
  */
 export function formatearFechaUm(valor: FechaValor, hora: FechaHoraModo = 'auto'): string {
   const fecha = parsearFecha(valor);
   if (!fecha) {
     return FECHA_VACIA;
   }
-  const base = `${dosDigitos(fecha.getDate())}/${dosDigitos(fecha.getMonth() + 1)}/${fecha.getFullYear()}`;
+  const base = `${dosDigitos(fecha.getUTCDate())}/${dosDigitos(fecha.getUTCMonth() + 1)}/${fecha.getUTCFullYear()}`;
   if (hora === 'nunca') {
     return base;
   }
-  const conHora = hora === 'siempre' || fecha.getHours() !== 0 || fecha.getMinutes() !== 0;
+  const conHora = hora === 'siempre' || fecha.getUTCHours() !== 0 || fecha.getUTCMinutes() !== 0;
   return conHora
-    ? `${base} ${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`
+    ? `${base} ${dosDigitos(fecha.getUTCHours())}:${dosDigitos(fecha.getUTCMinutes())}`
     : base;
 }
 
@@ -81,12 +84,14 @@ function parsearFecha(valor: FechaValor): Date | null {
     return Number.isNaN(instante.getTime()) ? null : instante;
   }
   return new Date(
-    Number(anio),
-    Number(mes) - 1,
-    Number(dia),
-    Number(horas ?? 0),
-    Number(minutos ?? 0),
-    Number(segundos ?? 0),
+    Date.UTC(
+      Number(anio),
+      Number(mes) - 1,
+      Number(dia),
+      Number(horas ?? 0),
+      Number(minutos ?? 0),
+      Number(segundos ?? 0),
+    ),
   );
 }
 
