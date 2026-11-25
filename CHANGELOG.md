@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.29.1] - 2026-11-25
+
+### Fixed
+
+- **fix(`ui-layout`):** `umFecha` y `formatearFechaUm` interpretan y muestran las fechas en **UTC**, sin depender de la zona horaria del navegador: los valores con zona (`Z` o `±hh:mm`) ya no se corren al día anterior en hora argentina (un `2026-11-01T00:00:00Z` se muestra `01/11/2026`) y la hora se calcula también en UTC. Los ISO sin zona se siguen tomando como componentes literales del calendario, ahora armados con `Date.UTC` para que la medianoche no se desplace.
+- **fix(`feature-cargos`):** las columnas **Fecha alta** y **Fecha baja** de la grilla de Asignación de Cargos No Docentes usan `umFecha: 'nunca'` para mostrar sólo la fecha.
+- **fix(`feature-etec-asignaciones`):** las columnas **Fecha alta** y **Fecha baja** de la grilla de Cargos ETEC usan `umFecha: 'nunca'` para mostrar sólo la fecha.
+
+### Tests
+
+- `fecha.pipe.spec.ts`: los valores con zona se validan en UTC (`2026-11-01T00:00:00Z`, `13:45Z` y `+00:00` conservan el día) y los casos de `Date`/epoch se construyen con `Date.UTC`.
+
 ## [0.29.0] - 2026-11-24
 
 ### Added
