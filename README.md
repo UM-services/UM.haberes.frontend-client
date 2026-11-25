@@ -39,7 +39,7 @@ um.haberes.frontend-client/
 │   ├── feature-consultas/    # @haberes/feature-consultas — Consultas y reportes de liquidación
 │   ├── feature-contabilidad/ # @haberes/feature-contabilidad — Imputación contable, asientos individuales y totales del F.931
 │   ├── feature-movimientos/  # @haberes/feature-movimientos — Archivos bancarios, emisión individual y excluidos
-│   ├── feature-personas/     # @haberes/feature-personas — Datos personales y CBU
+│   ├── feature-personas/     # @haberes/feature-personas — Datos personales, alta de legajo y CBU
 │   ├── feature-categorias/   # @haberes/feature-categorias — Categorías y básicos
 │   ├── feature-codigos/      # @haberes/feature-codigos — Códigos de concepto y grupos
 │   ├── feature-clases/       # @haberes/feature-clases — Clases y valor hora
@@ -74,20 +74,20 @@ um.haberes.frontend-client/
 | `feature-designaciones` | `@haberes/feature-designaciones` | Búsqueda y visualización de designaciones, asignación de cursos docentes (altas/bajas/cambios) y transferencia de novedades entre períodos (`/liquidacion/transferir-novedades`) |
 | `feature-anotador` | `@haberes/feature-anotador` | Anotaciones docentes (pendientes/revisados, historial, alta) |
 | `feature-cargos` | `@haberes/feature-cargos` | Reportes de cargos por legajo y docentes por sede (descarga PDF), más la asignación de cargos **no docentes** y facultades habilitadas del legajo (`/liquidacion/asig-cargos`) |
-| `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): catálogo de cargos con los puntos vigentes del período seleccionado, alta y baja con dependencia, fechas, observaciones, valor del punto y monto fijo del período e importe estimado (`puntos × valor del punto + monto fijo`); registro de la pérdida de presentismo del período por cargo y por los cargos ETEC por horas, con bloqueo en períodos acreditados (`/liquidacion/etec/asig-cargos`) |
+| `feature-etec-asignaciones` | `@haberes/feature-etec-asignaciones` | Asignación de cargos ETEC (cargo por puntos): catálogo de cargos con los puntos vigentes del período seleccionado, alta y baja con dependencia, fechas, observaciones, horas del cargo, veces del básico del maestro de grado, valor del punto y monto fijo del período e importe estimado (`puntos × valor del punto + monto fijo`); registro de la pérdida de presentismo del período por cargo y por los cargos ETEC por horas, con bloqueo en períodos acreditados (`/liquidacion/etec/asig-cargos`) |
 | `feature-bonos` | `@haberes/feature-bonos` | Bono individual: integridad, PDF, auditoría y envío por email |
 | `feature-liquidacion` | `@haberes/feature-liquidacion` | Liquidación individual por legajo y período: ficha, cargos, novedades, generación de cargos, liquidación y totales por bloque (remunerativos, no remunerativos y descuentos); liquidación general del universo liquidable con procesos masivos; novedades mensuales por concepto con carga individual y por planilla (`.xlsx`); y generación del archivo SIJP del período (variantes normal y ETEC) |
 | `feature-consultas` | `@haberes/feature-consultas` | Consultas y reportes de liquidación: totales, comparaciones, planillas académicas y bonos por dependencia, con tabla y descargas PDF/XLSX del mismo contenido |
 | `feature-contabilidad` | `@haberes/feature-contabilidad` | Imputación contable por legajo, balances Debe/Haber y asientos individuales; totales del Formulario 931 por período (`/contabilidad/formulario-931`) |
 | `feature-movimientos` | `@haberes/feature-movimientos` | Archivos bancarios del período: generación masiva Santander y Otros Bancos (`.txt` bancario desde Base64), emisión individual por legajo o documento con ajuste de importe no persistido, y ABM de excluidos con reportes PDF/XLSX (`/movimientos/...`) |
-| `feature-personas` | `@haberes/feature-personas` | Datos personales, contacto y CBU por período |
+| `feature-personas` | `@haberes/feature-personas` | Ficha de la persona con **alta de legajo** desde el número informado, alta ETEC y antigüedad docente, administrativa y ETEC; contacto y CBU por período |
 | `feature-categorias` | `@haberes/feature-categorias` | Categorías, básicos, puntos ETEC, flags (incluida **horas ETEC**) y vigencia mensual, con buscador paginado server-side |
 | `feature-codigos` | `@haberes/feature-codigos` | Códigos de concepto, grupo contable y conceptos AFIP |
 | `feature-clases` | `@haberes/feature-clases` | Clases de hora cátedra y valor hora |
 | `feature-cargos-clase` | `@haberes/feature-cargos-clase` | Cargos con clase y asignaciones por período |
 | `feature-adicionales` | `@haberes/feature-adicionales` | Rangos de adicional por carga horaria |
 | `feature-sedes` | `@haberes/feature-sedes` | Sedes, desarraigo y sede de reemplazo |
-| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos (cada tramo con la categoría que liquida sus horas) y escala global de arraigo |
+| `feature-control-periodo` | `@haberes/feature-control-periodo` | Control del período: fechas, alícuotas, topes SIJP, modo de liquidación, parámetros **ETEC** por puntos (valor del punto, monto fijo, horas de referencia del cargo por puntos, básico del maestro de grado, presentismo, carrera, garantía y carga horaria), escala de horas de clase del período por tramos (cada tramo con la categoría que liquida sus horas) y escala global de arraigo |
 | `feature-usuarios` | `@haberes/feature-usuarios` | Usuarios de Haberes y habilitación del flag `administrador` (`/usuarios`) |
 | `feature-seguridad` | `@haberes/feature-seguridad` | RBAC de Haberes: permisos por usuario con roles heredados y excepciones, roles y matriz rol × permiso, catálogo con sincronización del manifiesto y simulador de permisos efectivos (`/seguridad/*`) |
 | `feature-limite-novedades` | `@haberes/feature-limite-novedades` | Límite de carga de novedades del período (`/limite-novedades` del módulo Administrador) con alta y edición parcial del registro de acreditación y estado de la carga en sólo lectura |
