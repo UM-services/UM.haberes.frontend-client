@@ -78,8 +78,9 @@ export class LiquidacionIndividualComponent {
       return '—';
     }
     const indices = `${antiguedad.indiceDocente ?? '—'} / ${antiguedad.indiceAdministrativo ?? '—'}`;
-    return `Índices: ${indices} · Antigüedad: ${this.anosMeses(antiguedad.mesesDocentes)} / `
-      + `${this.anosMeses(antiguedad.mesesAdministrativos)}`;
+    return `Índices: ${indices} · Docente ${this.anosMeses(antiguedad.mesesDocentes)}`
+      + ` · Administrativa ${this.anosMeses(antiguedad.mesesAdministrativos)}`
+      + ` · ETEC ${this.anosMeses(antiguedad.mesesEtec ?? null)}`;
   });
 
   private readonly gruposPorCodigo = signal<Map<number, GrupoConcepto> | null>(null);
