@@ -36,7 +36,7 @@ describe('LiquidacionIndividualComponent', () => {
     },
     control: { controlId: 88, anho: 2026, mes: 11, modoLiquidacionId: 1 },
     liquidacion: null,
-    antiguedad: { mesesDocentes: 192, mesesAdministrativos: 0, indiceDocente: 1.85, indiceAdministrativo: 1 },
+    antiguedad: { mesesDocentes: 192, mesesAdministrativos: 0, mesesEtec: 6, indiceDocente: 1.85, indiceAdministrativo: 1 },
     cargosDocentes: [],
     cargosNoDocentes: [],
     cargosConClase: [],
@@ -120,6 +120,16 @@ describe('LiquidacionIndividualComponent', () => {
     expect(component.anosMeses(192)).toBe('16 años 0 meses');
     expect(component.anosMeses(13)).toBe('1 año 1 mes');
     expect(component.anosMeses(null)).toBe('—');
+  });
+
+  it('muestra las tres antigüedades etiquetadas', () => {
+    component.seleccionarPersona(persona);
+    httpMock.expectOne('/api/haberes/core/liquidacion-individual/1001/2026/11').flush(fichaBase());
+
+    const texto = component.antiguedadTexto();
+    expect(texto).toContain('Docente 16 años 0 meses');
+    expect(texto).toContain('Administrativa 0 años 0 meses');
+    expect(texto).toContain('ETEC 0 años 6 meses');
   });
 
   it('agrega una novedad S/N por el endpoint del slice', () => {

@@ -29,7 +29,7 @@ describe('LiquidacionIndividualService', () => {
     },
     control: { controlId: 88, anho: 2026, mes: 11, modoLiquidacionId: 1 },
     liquidacion: null,
-    antiguedad: { mesesDocentes: 192, mesesAdministrativos: 0, indiceDocente: 1.85, indiceAdministrativo: 1 },
+    antiguedad: { mesesDocentes: 192, mesesAdministrativos: 0, mesesEtec: 6, indiceDocente: 1.85, indiceAdministrativo: 1 },
     cargosDocentes: [],
     cargosNoDocentes: [],
     cargosConClase: [],
