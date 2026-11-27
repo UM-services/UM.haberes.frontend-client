@@ -37,7 +37,7 @@ describe('CargosClaseService', () => {
     http.expectOne('/api/haberes/core/designaciontool/indiceantiguedad/120/2026/8').flush([0.4, 15]);
 
     service.getAntiguedad(120, 2026, 8).subscribe();
-    http.expectOne('/api/haberes/core/antiguedad/unique/120/2026/8').flush({ mesesDocentes: 60, mesesAdministrativos: 24 });
+    http.expectOne('/api/haberes/core/antiguedad/unique/120/2026/8').flush({ mesesDocentes: 60, mesesAdministrativos: 24, mesesEtec: 6 });
   });
 
   it('crea el cargo con clase con el cuerpo del POST y espera texto', () => {

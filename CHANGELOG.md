@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.32.0] - 2026-11-27
+
+### Added
+
+- **feat(`feature-designaciones`):** la pantalla **Asignación de Cursos** incorpora el encabezado institucional (`um-page-header`) con la sección *Designaciones Docentes*, el título y una descripción según el contexto: para usuarios globales describe el alta, actualización y baja de cursos con asignación directa de cargos del plantel, y para usuarios de facultad describe la consulta de cursos de su facultad y sede con propuesta de altas, bajas y cambios de cargos docentes para autorización. El contenedor pasa de alto fijo a `min-h-[calc(100vh-6rem)]` para acompañar el encabezado.
+- **feat(`feature-designaciones`):** la antigüedad del panel de **Asignación de cargos con clase** se muestra etiquetada por tipo: **Docente**, **Administrativa** y **ETEC**. El tipo `Antiguedad` suma `mesesEtec` opcional y la ETEC se informa como `0` cuando el backend no la envía.
+- **feat(`feature-liquidacion`):** la ficha de **Liquidación individual** muestra las tres antigüedades etiquetadas —**Docente**, **Administrativa** y **ETEC**— junto a los índices docente y administrativo. El tipo `AntiguedadFicha` suma `mesesEtec` opcional y, sin dato, la ETEC se muestra como `—` igual que el resto de los valores ausentes.
+
+### Tests
+
+- `liquidacion-individual.component.spec.ts`: caso que verifica las tres antigüedades etiquetadas en `antiguedadTexto()`.
+- `cargos-clase.service.spec.ts` / `liquidacion-individual.service.spec.ts`: los fixtures de antigüedad incluyen `mesesEtec`.
+
 ## [0.31.0] - 2026-11-25
 
 ### Added

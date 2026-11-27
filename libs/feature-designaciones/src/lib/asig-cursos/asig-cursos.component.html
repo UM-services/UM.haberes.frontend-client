@@ -1,5 +1,22 @@
-<div class="flex flex-col h-[calc(100vh-6rem)] gap-4">
-  
+<div class="flex flex-col min-h-[calc(100vh-6rem)] gap-4">
+
+  <!-- ENCABEZADO -->
+  <header class="um-page-header shrink-0">
+    <div>
+      <span class="um-eyebrow">Designaciones Docentes</span>
+      <h1 class="um-page-title">Asignación de Cursos</h1>
+      <p class="um-page-desc max-w-3xl">
+        @if (esGlobal()) {
+          Alta, actualización y baja de cursos, y asignación directa de los cargos docentes del
+          plantel de cada curso en el período seleccionado.
+        } @else {
+          Consulte los cursos de su facultad y sede y proponga altas, bajas y cambios de cargos
+          docentes para su autorización.
+        }
+      </p>
+    </div>
+  </header>
+
   <!-- CABECERA: FILTROS Y CONTROLES -->
   <div class="um-card p-3.5 flex flex-wrap items-end gap-3.5 shrink-0">
     @if (esGlobal()) {
