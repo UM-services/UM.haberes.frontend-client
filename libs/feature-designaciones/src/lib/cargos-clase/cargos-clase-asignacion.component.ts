@@ -82,7 +82,9 @@ export class CargosClaseAsignacionComponent {
     }
     if (antiguedad) {
       partes.push(
-        `Antigüedad: ${mesesATexto(antiguedad.mesesDocentes)} / ${mesesATexto(antiguedad.mesesAdministrativos)}`
+        `Antigüedad: Docente ${mesesATexto(antiguedad.mesesDocentes)}`
+        + ` · Administrativa ${mesesATexto(antiguedad.mesesAdministrativos)}`
+        + ` · ETEC ${mesesATexto(antiguedad.mesesEtec ?? 0)}`
       );
     }
     return partes.join('  ·  ');

@@ -34,6 +34,7 @@ export interface LiquidacionFicha {
 export interface AntiguedadFicha {
   mesesDocentes: number | null;
   mesesAdministrativos: number | null;
+  mesesEtec?: number | null;
   indiceDocente: number | null;
   indiceAdministrativo: number | null;
 }
