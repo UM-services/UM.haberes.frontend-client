@@ -95,6 +95,7 @@ export interface Antiguedad {
   mes: number;
   mesesDocentes: number;
   mesesAdministrativos: number;
+  mesesEtec?: number | null;
 }
 
 /** Payload del proceso de alta (cargoclasetool). */
